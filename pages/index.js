@@ -12,7 +12,7 @@ export default function Home() {
     if (status === 'loading') return;
     
     if (status === 'authenticated') {
-      router.push('/insurance-form');
+      router.push('/vehicle-validation-form');
     }
   }, [status, router]);
 
@@ -36,7 +36,7 @@ export default function Home() {
     );
   }
 
-  // If user is already authenticated, redirect to insurance form
+  // If user is already authenticated, redirect to vehicle validation form
   if (status === 'authenticated') {
     return null;
   }

@@ -11,8 +11,8 @@ export default function Dashboard() {
     if (status === 'unauthenticated') {
       router.push('/auth/signin');
     } else if (status === 'authenticated') {
-      // Redirect to insurance form instead of showing dashboard
-      router.push('/insurance-form');
+      // Redirect to vehicle validation form instead of showing dashboard
+      router.push('/vehicle-validation-form');
     }
   }, [status, router]);
 
@@ -31,6 +31,6 @@ export default function Dashboard() {
     return null;
   }
 
-  // This page will redirect to insurance form, so return null
+  // This page will redirect to vehicle validation form, so return null
   return null;
 }

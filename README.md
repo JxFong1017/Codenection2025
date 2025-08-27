@@ -5,6 +5,9 @@ A real-time, client-side form validation system for vehicle details that detects
 ## 🚗 Features
 
 ### Tier 1 (MVP) Features
+- **User Authentication**: Google OAuth sign-in with secure session management
+- **User Dashboard**: Personalized landing page with quick access to features
+- **User Profile Management**: Comprehensive profile settings and preferences
 - **Real-time Plate Number Validation**: Validates Malaysian state plate number formats with instant feedback
 - **Smart Error Correction**: Suggests corrections for common typos (e.g., 'O' vs '0', 'I' vs '1')
 - **Dynamic Make/Model Filtering**: Cascading dropdowns that filter models based on selected make
@@ -23,6 +26,7 @@ A real-time, client-side form validation system for vehicle details that detects
 - **Frontend**: React 19 with Next.js 15
 - **Styling**: Tailwind CSS 4
 - **Build Tool**: Next.js (with Turbopack for development)
+- **Authentication**: NextAuth.js with Google OAuth
 - **Validation**: Custom validation logic with regex patterns
 - **State Management**: React Hooks (useState, useEffect)
 - **Performance**: Custom debouncing hooks for optimal UX
@@ -39,6 +43,15 @@ src/
 │   └── useDebounce.js           # Custom debouncing hooks
 └── utils/
     └── validationLogic.js       # Core validation functions
+
+pages/
+├── _app.js                      # App wrapper with NextAuth
+├── index.js                     # Landing page with auth redirect
+├── auth/
+│   └── signin.js               # Google sign-in page
+├── dashboard.js                 # User dashboard
+├── profile.js                   # User profile management
+└── vehicle-form.js              # Vehicle validation form
 ```
 
 ## 🚀 Getting Started
@@ -46,6 +59,7 @@ src/
 ### Prerequisites
 - Node.js 18+ 
 - npm or yarn
+- Google Cloud Console account for OAuth
 
 ### Installation
 1. Clone the repository
@@ -54,12 +68,40 @@ src/
    npm install
    ```
 
-3. Run the development server:
+3. Set up Google OAuth:
+   - Go to [Google Cloud Console](https://console.cloud.google.com/)
+   - Create a new project or select existing one
+   - Enable Google+ API
+   - Go to Credentials → Create Credentials → OAuth 2.0 Client IDs
+   - Set authorized redirect URI: `http://localhost:3000/api/auth/callback/google`
+   - Copy Client ID and Client Secret
+
+4. Create environment variables:
+   ```bash
+   cp env.example .env.local
+   ```
+   Edit `.env.local` and add your Google OAuth credentials:
+   ```
+   GOOGLE_CLIENT_ID=your_google_client_id_here
+   GOOGLE_CLIENT_SECRET=your_google_client_secret_here
+   NEXTAUTH_SECRET=your_random_secret_here
+   NEXTAUTH_URL=http://localhost:3000
+   ```
+
+5. Run the development server:
    ```bash
    npm run dev
    ```
 
-4. Open [http://localhost:3000](http://localhost:3000) in your browser
+6. Open [http://localhost:3000](http://localhost:3000) in your browser
+
+## 🔐 Authentication Flow
+
+1. **Landing Page** (`/`) → Redirects to sign-in if not authenticated
+2. **Sign In** (`/auth/signin`) → Google OAuth authentication
+3. **Dashboard** (`/dashboard`) → Main user landing page with quick actions
+4. **Vehicle Form** (`/vehicle-form`) → Vehicle validation interface
+5. **Profile** (`/profile`) → User settings and preferences
 
 ## 📋 Usage Examples
 
@@ -105,6 +147,9 @@ src/
 ✅ **Typing BOV 9429 (where 'O' is likely a mistake for '0') suggests "Did you mean B0V 9429?"**  
 ✅ **Selecting "Proton" for make only shows Proton models**  
 ✅ **Entering a year like 1980 for a 2023 model triggers a warning**  
+✅ **User authentication with Google OAuth**  
+✅ **Protected routes and user dashboard**  
+✅ **Comprehensive user profile management**  
 
 ## 🔮 Future Enhancements (Tier 2)
 
@@ -113,6 +158,8 @@ src/
 - **Advanced Fuzzy Search**: Enhanced search with fuse.js for better make/model matching
 - **Data Export**: Export validation results and vehicle data
 - **Mobile Optimization**: Enhanced mobile experience with touch-friendly UI
+- **User Analytics**: Track validation patterns and user behavior
+- **Team Collaboration**: Share validation results with team members
 
 ## 🤝 Contributing
 

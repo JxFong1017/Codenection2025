@@ -3,6 +3,8 @@ import { useRouter } from 'next/router';
 import { useEffect, useState, useRef } from 'react';
 import Head from 'next/head';
 import Link from 'next/link';
+import GeranImageUpload from '../src/components/GeranImageUpload';
+import DecisionPopup from '../src/components/DecisionPopup';
 
 export default function VehicleValidationForm() {
   const { data: session, status } = useSession();
@@ -12,6 +14,11 @@ export default function VehicleValidationForm() {
   // Demo session state
   const [demoSession, setDemoSession] = useState(null);
   const [isDemoMode, setIsDemoMode] = useState(false);
+  
+  // Geran image upload state
+  const [showGeranUpload, setShowGeranUpload] = useState(false);
+  const [isImageMode, setIsImageMode] = useState(false);
+  const [showDecisionPopup, setShowDecisionPopup] = useState(false);
   
   // Form state
   const [formData, setFormData] = useState({
@@ -62,7 +69,16 @@ export default function VehicleValidationForm() {
     } else if (status === 'unauthenticated') {
       router.push('/auth/signin');
     }
-  }, [status, router]);
+
+    // Check if we're in image mode from URL query
+    if (router.query.mode === 'image') {
+      setIsImageMode(true);
+      setShowGeranUpload(true);
+    } else {
+      // Show decision popup when user arrives from dashboard (no mode specified)
+      setShowDecisionPopup(true);
+    }
+  }, [status, router, router.query.mode]);
 
   useEffect(() => {
     // Initialize makes
@@ -134,6 +150,47 @@ export default function VehicleValidationForm() {
     }, 2000);
   };
 
+  const handleDecision = (decision) => {
+    setShowDecisionPopup(false);
+    
+    if (decision === 'manual') {
+      // User chose manual input - stay on form
+      // Form is already visible
+    } else if (decision === 'image') {
+      // User chose image upload - show Geran upload modal
+      setShowGeranUpload(true);
+    }
+  };
+
+  const handleCloseDecisionPopup = () => {
+    setShowDecisionPopup(false);
+    // Stay on the form page
+  };
+
+  const handleGeranFormDataExtracted = (extractedData) => {
+    // Auto-fill form with extracted data
+    setFormData(extractedData);
+    
+    // Set validation states to valid for extracted fields
+    setValidationStates(prev => ({
+      ...prev,
+      plateNumber: { isValid: true, message: 'Extracted from Geran image', suggestion: null, confidence: extractedData.confidence },
+      make: { isValid: true, message: 'Extracted from Geran image' },
+      model: { isValid: true, message: 'Extracted from Geran image' },
+      year: { isValid: true, message: 'Extracted from Geran image' },
+      engineCC: { isValid: true, message: 'Extracted from Geran image' }
+    }));
+
+    // Update confidence score
+    setConfidenceScore(extractedData.confidence);
+    
+    // Close the Geran upload modal
+    setShowGeranUpload(false);
+    
+    // Show success message
+    alert(`Form automatically filled with data extracted from Geran image!\nConfidence: ${(extractedData.confidence * 100).toFixed(1)}%`);
+  };
+
   const handleSignOut = () => {
     if (isDemoMode) {
       localStorage.removeItem('demoSession');
@@ -194,46 +251,71 @@ export default function VehicleValidationForm() {
         <meta name="description" content="Comprehensive vehicle validation with AI-powered features" />
       </Head>
 
-      <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100">
+      {/* Decision Popup */}
+      <DecisionPopup
+        isOpen={showDecisionPopup}
+        onClose={handleCloseDecisionPopup}
+        onDecision={handleDecision}
+      />
+
+      {/* Geran Image Upload Modal */}
+      <GeranImageUpload
+        isOpen={showGeranUpload}
+        onClose={() => setShowGeranUpload(false)}
+        onFormDataExtracted={handleGeranFormDataExtracted}
+      />
+
+      <div className="min-h-screen bg-gray-50">
         {/* Navigation Header */}
-        <nav className="bg-white shadow-lg">
+        <nav className="bg-white shadow-sm">
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <div className="flex justify-between h-16">
               <div className="flex items-center">
                 <Link href="/" className="flex items-center">
-                  <div className="flex-shrink-0">
-                    <div className="h-8 w-8 bg-blue-600 rounded-full flex items-center justify-center">
-                      <svg className="h-5 w-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
-                      </svg>
-                    </div>
-                  </div>
-                  <div className="ml-3">
-                    <h1 className="text-xl font-semibold text-gray-900">Smart Vehicle Validation</h1>
-                  </div>
+                  <h1 className="text-2xl font-bold text-blue-900">CGS</h1>
                 </Link>
               </div>
               
-              <div className="flex items-center space-x-4">
-                {isDemoMode && (
-                  <div className="bg-yellow-100 text-yellow-800 px-3 py-1 rounded-full text-sm font-medium">
-                    Demo Mode
+              <div className="flex items-center space-x-6">
+                {/* Navigation Links */}
+                <nav className="hidden md:flex space-x-6">
+                  <a href="#" className="flex items-center space-x-2 text-gray-600 hover:text-blue-900">
+                    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+                    </svg>
+                    <span>Profile</span>
+                  </a>
+                  <a href="#" className="flex items-center space-x-2 text-gray-600 hover:text-blue-900">
+                    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1" />
+                    </svg>
+                    <span>Get Quotation</span>
+                  </a>
+                  <a href="#" className="flex items-center space-x-2 text-gray-600 hover:text-blue-900">
+                    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 17h5l-5 5v-5zM4.828 7l2.586 2.586a2 2 0 002.828 0L12.828 7H4.828z" />
+                    </svg>
+                    <span>Notifications</span>
+                  </a>
+                </nav>
+
+                {/* User Info */}
+                <div className="flex items-center space-x-4">
+                  {isDemoMode && (
+                    <div className="bg-yellow-100 text-yellow-800 px-3 py-1 rounded-full text-sm font-medium">
+                      Demo Mode
+                    </div>
+                  )}
+                  <div className="bg-black text-white px-4 py-2 rounded text-sm font-medium">
+                    {currentUser.email?.toUpperCase() || 'USER@GMAIL.COM'}
                   </div>
-                )}
-                <div className="flex items-center space-x-3">
-                  <img
-                    className="h-8 w-8 rounded-full"
-                    src={currentUser.image || '/default-avatar.png'}
-                    alt={currentUser.name}
-                  />
-                  <span className="text-sm font-medium text-gray-700">{currentUser.name}</span>
+                  <div className="flex items-center space-x-2">
+                    <span className="text-sm text-gray-600">EN</span>
+                    <svg className="w-4 h-4 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                    </svg>
+                  </div>
                 </div>
-                <button
-                  onClick={handleSignOut}
-                  className="px-3 py-2 text-sm font-medium text-red-600 hover:text-red-800 hover:bg-red-50 rounded-md transition-colors duration-200"
-                >
-                  {isDemoMode ? 'Exit Demo' : 'Sign Out'}
-                </button>
               </div>
             </div>
           </div>
@@ -249,6 +331,21 @@ export default function VehicleValidationForm() {
             <p className="text-xl text-gray-600 max-w-3xl mx-auto">
               Complete the comprehensive vehicle validation form with AI-powered features for accurate data entry.
             </p>
+            
+            {/* Geran Upload Button for Image Mode */}
+            {isImageMode && (
+              <div className="mt-4">
+                <button
+                  onClick={() => setShowGeranUpload(true)}
+                  className="inline-flex items-center px-4 py-2 bg-green-600 text-white font-medium rounded-md hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500 transition-colors duration-200"
+                >
+                  <svg className="h-5 w-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                  </svg>
+                  Upload Geran Image Again
+                </button>
+              </div>
+            )}
           </div>
 
           {/* Progress Steps */}

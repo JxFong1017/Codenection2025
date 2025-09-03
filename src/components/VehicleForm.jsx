@@ -10,7 +10,13 @@ import {
 import { vehicleDatabase } from '../data/vehicleDatabase';
 import { useDebounce } from '../hooks/useDebounce';
 
+
+
 const VehicleForm = () => {
+
+  const [showValidationMessage, setShowValidationMessage] = useState(false);
+
+  const [isPlateValid, setIsPlateValid] = useState(false);
   // Form state
   const [formData, setFormData] = useState({
     state: '',
@@ -37,6 +43,28 @@ const VehicleForm = () => {
   // Debounced plate number for validation
   const debouncedPlateNumber = useDebounce(formData.plateNumber, 500);
 
+  // Use a separate state to handle message visibility
+  const [showMessage, setShowMessage] = useState(false);
+
+  useEffect(() => {
+    // Logic to show message after more than 10 characters are entered
+    if (formData.plateNumber.replace(/\s/g, '').length > 10) {
+      setShowMessage(true);
+    } else {
+      setShowMessage(false);
+    }
+
+    // Your existing validation logic here...
+    const cleanedPlateNumber = formData.plateNumber.replace(/\s/g, '');
+    const validationResult = validatePlateNumber(debouncedPlateNumber, formData.state);
+  
+    // Update validation state
+    setValidation((prev) => ({
+      ...prev,
+      plateNumber: validationResult
+    }));
+  }, [debouncedPlateNumber, formData.state, formData.plateNumber]);
+
   // Initialize available makes on component mount
   useEffect(() => {
     setAvailableMakes(getUniqueMakes(vehicleDatabase));
@@ -54,16 +82,18 @@ const VehicleForm = () => {
     }
   }, [formData.make]);
 
-  // Validate plate number when debounced value changes
+  // Debounced effect for validation
   useEffect(() => {
-    if (debouncedPlateNumber && formData.state) {
-      const result = validatePlateNumber(debouncedPlateNumber, formData.state);
-      setValidation(prev => ({
-        ...prev,
-        plateNumber: result
-      }));
-    }
-  }, [debouncedPlateNumber, formData.state]);
+    const result = validatePlateNumber(debouncedPlateNumber, formData.state);
+    setValidation((prev) => ({
+     ...prev,
+     plateNumber: result
+    }));
+  
+  // Set the new state variable based on the validation result
+  setIsPlateValid(result.isValid);
+}, [debouncedPlateNumber, formData.state]);
+
 
   // Handle form input changes
   const handleInputChange = (field, value) => {

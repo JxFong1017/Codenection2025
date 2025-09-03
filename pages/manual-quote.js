@@ -1,7 +1,8 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import Head from 'next/head';
 import Link from 'next/link';
-
+import { useDebounce } from '../src/hooks/useDebounce';
+import { validatePlateNumber } from '../src/utils/validationLogic';
 export default function ManualQuoteWizard() {
   const [step, setStep] = useState(1);
   const [plateNumber, setPlateNumber] = useState('');
@@ -9,6 +10,22 @@ export default function ManualQuoteWizard() {
   const [model, setModel] = useState('');
   const [year, setYear] = useState('');
   const [protections, setProtections] = useState({});
+  const [validation, setValidation] = useState({
+    plateNumber: { isValid: false, error: null },
+  });
+
+  // Debounced plate number for validation
+  const debouncedPlateNumber = useDebounce(plateNumber, 500);
+
+  useEffect(() => {
+    const validationResult = validatePlateNumber(debouncedPlateNumber, 'default');
+    setValidation({
+      plateNumber: {
+        isValid: validationResult.isValid,
+        error: validationResult.error,
+      },
+    });
+  }, [debouncedPlateNumber]);
 
   const steps = [
     { id: 1, title: 'Enter car plate number' },
@@ -64,11 +81,16 @@ export default function ManualQuoteWizard() {
                     className="w-full max-w-md px-6 py-4 bg-blue-50 rounded-xl text-blue-900 text-xl text-center outline-none border border-blue-100 focus:ring-2 focus:ring-blue-400"
                   />
                 </div>
-                <p className="mt-3 text-xs text-gray-500">Maximum length: 10 characters exclude space</p>
+                {plateNumber.replace(/\s/g, '').length > 10 && (
+                  <p className="mt-3 text-xs text-red-500">Maximum length: 10 characters exclude space</p>
+                )}
                 <div className="mt-8 flex justify-center space-x-4">
                   <button
-                    onClick={() => plateNumber ? handleNext() : null}
-                    className={`px-8 py-3 rounded-xl font-semibold text-white ${plateNumber ? 'bg-blue-800 hover:bg-blue-900' : 'bg-gray-300 cursor-not-allowed'}`}
+                    onClick={handleNext}
+                    className={`px-8 py-3 rounded-xl font-semibold text-white transition-colors duration-200 ${
+                      !validation.plateNumber?.isValid || plateNumber.trim() === '' ? 'bg-gray-400 cursor-not-allowed' : 'bg-blue-800 hover:bg-blue-900'
+                    }`}
+                    disabled={!validation.plateNumber?.isValid || plateNumber.trim() === ''}
                   >
                     Next
                   </button>

@@ -1,22 +1,20 @@
 import React, { useState, useEffect } from 'react';
-import { 
-  validatePlateNumber, 
-  malaysianStates, 
-  getUniqueMakes, 
+import {
+  validatePlateNumber,
+  malaysianStates,
+  getUniqueMakes,
   getModelsForMake,
   validateYearForModel,
-  validateEngineCC
+  validateEngineCC,
+  validateCarMake
 } from '../utils/validationLogic';
 import { vehicleDatabase } from '../data/vehicleDatabase';
 import { useDebounce } from '../hooks/useDebounce';
 
-
-
 const VehicleForm = () => {
-
   const [showValidationMessage, setShowValidationMessage] = useState(false);
-
   const [isPlateValid, setIsPlateValid] = useState(false);
+
   // Form state
   const [formData, setFormData] = useState({
     state: '',
@@ -31,6 +29,7 @@ const VehicleForm = () => {
   // Validation state
   const [validation, setValidation] = useState({
     plateNumber: { isValid: null, suggestion: null, error: null },
+    make: { isValid: null, message: null, suggestion: null },
     year: { isValid: null, error: null },
     engineCC: { isValid: null, error: null }
   });
@@ -40,375 +39,208 @@ const VehicleForm = () => {
   const [availableModels, setAvailableModels] = useState([]);
   const [showSuggestions, setShowSuggestions] = useState(false);
 
-  // Debounced plate number for validation
+  // Debounced values for validation
   const debouncedPlateNumber = useDebounce(formData.plateNumber, 500);
+  const debouncedMake = useDebounce(formData.make, 500);
 
-  // Use a separate state to handle message visibility
-  const [showMessage, setShowMessage] = useState(false);
-
+  // Effect for validating plate number
   useEffect(() => {
-    // Logic to show message after more than 10 characters are entered
-    if (formData.plateNumber.replace(/\s/g, '').length > 10) {
-      setShowMessage(true);
-    } else {
-      setShowMessage(false);
+    if (debouncedPlateNumber) {
+      const validationResult = validatePlateNumber(debouncedPlateNumber, formData.state);
+      setValidation(prev => ({
+        ...prev,
+        plateNumber: {
+          isValid: validationResult.isValid,
+          error: validationResult.error,
+          suggestion: validationResult.suggestion,
+        },
+      }));
     }
+  }, [debouncedPlateNumber, formData.state]);
 
-    // Your existing validation logic here...
-    const cleanedPlateNumber = formData.plateNumber.replace(/\s/g, '');
-    const validationResult = validatePlateNumber(debouncedPlateNumber, formData.state);
-  
-    // Update validation state
-    setValidation((prev) => ({
+  const handleInputChange = (e) => {
+  const { name, value } = e.target;
+
+  setFormData(prev => ({
+    ...prev,
+    [name]: value
+  }));
+
+  // Run validation immediately for 'make'
+  if (name === 'make') {
+    const makeValidation = validateCarMake(value);
+    setValidation(prev => ({
       ...prev,
-      plateNumber: validationResult
+      make: makeValidation
     }));
-  }, [debouncedPlateNumber, formData.state, formData.plateNumber]);
+  }
+};
 
-  // Initialize available makes on component mount
+
+  const handleAutoCorrect = () => {
+    if (validation.make.suggestion) {
+      const correctedMake = validation.make.suggestion;
+      setFormData(prev => ({
+        ...prev,
+        make: correctedMake,
+        model: ''
+      }));
+
+      setValidation(prev => ({
+        ...prev,
+        make: validateCarMake(correctedMake)
+      }));
+
+      setAvailableModels(getModelsForMake(correctedMake));
+    }
+  };
+
+  // Effect for updating available makes
   useEffect(() => {
-    setAvailableMakes(getUniqueMakes(vehicleDatabase));
+    setAvailableMakes(getUniqueMakes());
   }, []);
 
-  // Update available models when make changes
+  // Effect for updating models based on make
   useEffect(() => {
     if (formData.make) {
-      const models = getModelsForMake(formData.make, vehicleDatabase);
-      setAvailableModels(models);
-      // Reset model selection when make changes
-      setFormData(prev => ({ ...prev, model: '' }));
+      setAvailableModels(getModelsForMake(formData.make));
     } else {
       setAvailableModels([]);
     }
   }, [formData.make]);
 
-  // Debounced effect for validation
-  useEffect(() => {
-    const result = validatePlateNumber(debouncedPlateNumber, formData.state);
-    setValidation((prev) => ({
-     ...prev,
-     plateNumber: result
-    }));
-  
-  // Set the new state variable based on the validation result
-  setIsPlateValid(result.isValid);
-}, [debouncedPlateNumber, formData.state]);
-
-
-  // Handle form input changes
-  const handleInputChange = (field, value) => {
-    setFormData(prev => ({ ...prev, [field]: value }));
-    
-    // Clear validation for the changed field
-    if (validation[field]) {
-      setValidation(prev => ({
-        ...prev,
-        [field]: { isValid: null, suggestion: null, error: null }
-      }));
-    }
-  };
-
-  // Handle plate number suggestion click
-  const handleSuggestionClick = (suggestion) => {
-    setFormData(prev => ({ ...prev, plateNumber: suggestion }));
-    setShowSuggestions(false);
-  };
-
-  // Validate year when model and year are both selected
-  const handleYearChange = (value) => {
-    handleInputChange('year', value);
-    
-    if (value && formData.model) {
-      const result = validateYearForModel(parseInt(value), formData.model, vehicleDatabase);
-      setValidation(prev => ({
-        ...prev,
-        year: result
-      }));
-    }
-  };
-
-  // Validate engine CC when model and engine CC are both selected
-  const handleEngineCCChange = (value) => {
-    handleInputChange('engineCC', value);
-    
-    if (value && formData.model) {
-      const result = validateEngineCC(parseInt(value), formData.model, vehicleDatabase);
-      setValidation(prev => ({
-        ...prev,
-        engineCC: result
-      }));
-    }
-  };
-
-  // Get validation status icon
-  const getValidationIcon = (field) => {
-    const fieldValidation = validation[field];
-    if (!fieldValidation || fieldValidation.isValid === null) return null;
-    
-    if (fieldValidation.isValid) {
-      return <span className="text-green-500 text-xl">✓</span>;
-    } else {
-      return <span className="text-red-500 text-xl">✗</span>;
-    }
-  };
-
-  // Get validation message
-  const getValidationMessage = (field) => {
-    const fieldValidation = validation[field];
-    if (!fieldValidation) return null;
-
-    if (field === 'plateNumber' && fieldValidation.suggestion) {
-      return (
-        <div className="text-yellow-600 text-sm mt-1">
-          <span className="font-medium">Did you mean:</span>{' '}
-          <button
-            onClick={() => handleSuggestionClick(fieldValidation.suggestion)}
-            className="text-blue-600 hover:text-blue-800 underline"
-          >
-            {fieldValidation.suggestion}
-          </button>
-        </div>
-      );
-    }
-
-    if (fieldValidation.error) {
-      return (
-        <div className="text-red-600 text-sm mt-1">
-          {fieldValidation.error}
-        </div>
-      );
-    }
-
-    return null;
-  };
-
-  // Handle form submission
   const handleSubmit = (e) => {
     e.preventDefault();
-    
-    // Validate all fields before submission
-    const plateValidation = validatePlateNumber(formData.plateNumber, formData.state);
-    const yearValidation = formData.year && formData.model 
-      ? validateYearForModel(parseInt(formData.year), formData.model, vehicleDatabase)
-      : { isValid: true, error: null };
-    const engineCCValidation = formData.engineCC && formData.model
-      ? validateEngineCC(parseInt(formData.engineCC), formData.model, vehicleDatabase)
-      : { isValid: true, error: null };
-
-    setValidation({
-      plateNumber: plateValidation,
-      year: yearValidation,
-      engineCC: engineCCValidation
-    });
-
-    // Check if all validations pass
-    if (plateValidation.isValid && yearValidation.isValid && engineCCValidation.isValid) {
+    // Check final validation state before submitting
+    if (
+      validation.plateNumber.isValid &&
+      validation.make.isValid &&
+      validation.year.isValid &&
+      validation.engineCC.isValid
+    ) {
       console.log('Form submitted successfully:', formData);
-      // Here you would typically send the data to your backend
-      alert('Vehicle data validated successfully!');
+      alert('Form submitted successfully!');
     } else {
-      alert('Please fix the validation errors before submitting.');
+      setShowValidationMessage(true);
+      alert('Please correct the errors in the form.');
     }
   };
 
   return (
-    <div className="max-w-2xl mx-auto p-6 bg-white rounded-lg shadow-lg">
-      <h1 className="text-3xl font-bold text-center text-gray-800 mb-8">
-        Smart Vehicle Data Validation
-      </h1>
-      <p className="text-center text-gray-600 mb-8">
-        Malaysian Vehicle Registration & Error Detection System
-      </p>
+    <div className="container mx-auto p-4 md:p-8 lg:p-12">
+      <div className="max-w-4xl mx-auto bg-white rounded-lg shadow-lg overflow-hidden">
+        <div className="md:flex">
+          <div className="w-full p-6 md:p-8">
+            <h2 className="text-2xl font-bold text-gray-800 mb-6">Vehicle Information</h2>
+            <form onSubmit={handleSubmit}>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                
+                {/* Car Brand Input */}
+                <div className="mb-4">
+                  <label htmlFor="make" className="block text-sm font-medium text-gray-700">
+                    Car Brand</label>
+                  <input
+                    type="text"
+                    id="make"
+                    name="make"
+                    value={formData.make}
+                    onChange={handleInputChange}
+                    className={`mt-1 block w-full rounded-md border shadow-sm sm:text-sm
+                      ${validation.make.isValid === true ? 'border-green-500' : ''}
+                      ${validation.make.suggestion ? 'border-orange-500' : ''}
+                      ${validation.make.isValid === false && !validation.make.suggestion ? 'border-red-500' : ''}
+                  `} 
+                    placeholder="e.g. Toyota"
+                  />
+                  {/* Show validation message */}
+                  {validation.make.message && (
+                    <div className="mt-2 flex items-center gap-2">
+                      <p
+                        className={`text-sm font-medium ${
+                          validation.make.isValid
+                            ? 'text-green-600'
+                            : validation.make.suggestion
+                            ? 'text-orange-600'
+                            : 'text-red-600'
+                        }`}
+                      >
+                        {validation.make.message}
+                      </p>
 
-      <form onSubmit={handleSubmit} className="space-y-6">
-        {/* State Selection */}
-        <div>
-          <label htmlFor="state" className="block text-sm font-medium text-gray-700 mb-2">
-            State *
-          </label>
-          <select
-            id="state"
-            value={formData.state}
-            onChange={(e) => handleInputChange('state', e.target.value)}
-            className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-            required
-          >
-            <option value="">Select a state</option>
-            {malaysianStates.map(state => (
-              <option key={state.value} value={state.value}>
-                {state.label}
-              </option>
-            ))}
-          </select>
-        </div>
+                      {/* Auto-correct button only if suggestion exists */}
+                      {validation.make.suggestion && (
+                        <button
+                          type="button"
+                          onClick={handleAutoCorrect}
+                          className="px-2 py-1 text-xs text-blue-600 font-semibold bg-blue-100 rounded-full hover:bg-blue-200 transition-colors duration-200"
+                        >
+                          Auto-correct
+                        </button>
+                      )}
+                    </div>
+                  )}
+                </div>
 
-        {/* Plate Number */}
-        <div>
-          <label htmlFor="plateNumber" className="block text-sm font-medium text-gray-700 mb-2">
-            Plate Number *
-          </label>
-          <div className="relative">
-            <input
-              type="text"
-              id="plateNumber"
-              value={formData.plateNumber}
-              onChange={(e) => handleInputChange('plateNumber', e.target.value)}
-              placeholder="e.g., BKV 9429"
-              className="w-full px-3 py-2 pr-10 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-              required
-            />
-            <div className="absolute right-3 top-2">
-              {getValidationIcon('plateNumber')}
-            </div>
-          </div>
-          {getValidationMessage('plateNumber')}
-        </div>
+                {/* Other fields (model, year, etc.) */}
+                <div className="mb-4">
+                  <label htmlFor="model" className="block text-sm font-medium text-gray-700">Model</label>
+                  <select
+                    id="model"
+                    name="model"
+                    value={formData.model}
+                    onChange={handleInputChange}
+                    className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm"
+                    disabled={!formData.make}
+                  >
+                    <option value="">Select a model</option>
+                    {availableModels.map(model => (
+                      <option key={model} value={model}>{model}</option>
+                    ))}
+                  </select>
+                </div>
 
-        {/* Make Selection */}
-        <div>
-          <label htmlFor="make" className="block text-sm font-medium text-gray-700 mb-2">
-            Vehicle Make *
-          </label>
-          <select
-            id="make"
-            value={formData.make}
-            onChange={(e) => handleInputChange('make', e.target.value)}
-            className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-            required
-          >
-            <option value="">Select a make</option>
-            {availableMakes.map(make => (
-              <option key={make} value={make}>
-                {make}
-              </option>
-            ))}
-          </select>
-        </div>
-
-        {/* Model Selection */}
-        <div>
-          <label htmlFor="model" className="block text-sm font-medium text-gray-700 mb-2">
-            Vehicle Model *
-          </label>
-          <select
-            id="model"
-            value={formData.model}
-            onChange={(e) => handleInputChange('model', e.target.value)}
-            className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-            required
-            disabled={!formData.make}
-          >
-            <option value="">
-              {formData.make ? 'Select a model' : 'Select a make first'}
-            </option>
-            {availableModels.map(model => (
-              <option key={model} value={model}>
-                {model}
-              </option>
-            ))}
-          </select>
-        </div>
-
-        {/* Year */}
-        <div>
-          <label htmlFor="year" className="block text-sm font-medium text-gray-700 mb-2">
-            Year *
-          </label>
-          <div className="relative">
-            <input
-              type="number"
-              id="year"
-              value={formData.year}
-              onChange={(e) => handleYearChange(e.target.value)}
-              min="1990"
-              max={new Date().getFullYear() + 1}
-              placeholder="e.g., 2023"
-              className="w-full px-3 py-2 pr-10 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-              required
-            />
-            <div className="absolute right-3 top-2">
-              {getValidationIcon('year')}
-            </div>
-          </div>
-          {getValidationMessage('year')}
-        </div>
-
-        {/* Engine CC */}
-        <div>
-          <label htmlFor="engineCC" className="block text-sm font-medium text-gray-700 mb-2">
-            Engine Capacity (CC) *
-          </label>
-          <div className="relative">
-            <input
-              type="number"
-              id="engineCC"
-              value={formData.engineCC}
-              onChange={(e) => handleEngineCCChange(e.target.value)}
-              min="600"
-              max="8000"
-              placeholder="e.g., 1498"
-              className="w-full px-3 py-2 pr-10 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-              required
-            />
-            <div className="absolute right-3 top-2">
-              {getValidationIcon('engineCC')}
-            </div>
-          </div>
-          {getValidationMessage('engineCC')}
-        </div>
-
-        {/* Color */}
-        <div>
-          <label htmlFor="color" className="block text-sm font-medium text-gray-700 mb-2">
-            Color
-          </label>
-          <input
-            type="text"
-            id="color"
-            value={formData.color}
-            onChange={(e) => handleInputChange('color', e.target.value)}
-            placeholder="e.g., Red"
-            className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-          />
-        </div>
-
-        {/* Submit Button */}
-        <div className="pt-4">
-          <button
-            type="submit"
-            className="w-full bg-blue-600 text-white py-3 px-4 rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transition-colors duration-200 font-medium"
-          >
-            Validate & Submit Vehicle Data
-          </button>
-        </div>
-      </form>
-
-      {/* Form Status */}
-      <div className="mt-6 p-4 bg-gray-50 rounded-md">
-        <h3 className="text-lg font-medium text-gray-800 mb-2">Form Status</h3>
-        <div className="space-y-2 text-sm">
-          <div className="flex items-center space-x-2">
-            <span>Plate Number:</span>
-            {validation.plateNumber?.isValid === true && <span className="text-green-600">✓ Valid</span>}
-            {validation.plateNumber?.isValid === false && <span className="text-red-600">✗ Invalid</span>}
-            {validation.plateNumber?.isValid === null && <span className="text-gray-400">- Not checked</span>}
-          </div>
-          <div className="flex items-center space-x-2">
-            <span>Year:</span>
-            {validation.year?.isValid === true && <span className="text-green-600">✓ Valid</span>}
-            {validation.year?.isValid === false && <span className="text-red-600">✗ Invalid</span>}
-            {validation.year?.isValid === null && <span className="text-gray-400">- Not checked</span>}
-          </div>
-          <div className="flex items-center space-x-2">
-            <span>Engine CC:</span>
-            {validation.engineCC?.isValid === true && <span className="text-green-600">✓ Valid</span>}
-            {validation.engineCC?.isValid === false && <span className="text-red-600">✗ Invalid</span>}
-            {validation.engineCC?.isValid === null && <span className="text-gray-400">- Not checked</span>}
+                <div className="mb-4">
+                  <label htmlFor="year" className="block text-sm font-medium text-gray-700">Year</label>
+                  <input
+                    type="number"
+                    id="year"
+                    name="year"
+                    value={formData.year}
+                    onChange={handleInputChange}
+                    className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm"
+                    placeholder="e.g. 2022"
+                  />
+                </div>
+                
+                <div className="mb-4">
+                  <label htmlFor="engineCC" className="block text-sm font-medium text-gray-700">Engine CC</label>
+                  <input
+                    type="number"
+                    id="engineCC"
+                    name="engineCC"
+                    value={formData.engineCC}
+                    onChange={handleInputChange}
+                    className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm"
+                    placeholder="e.g. 1500"
+                  />
+                </div>
+              </div>
+              
+              <div className="flex justify-end mt-6">
+                <button
+                  type="submit"
+                  className="px-6 py-3 bg-blue-600 text-white font-medium rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition-colors duration-200"
+                >
+                  Save & Continue
+                </button>
+              </div>
+            </form>
           </div>
         </div>
       </div>
     </div>
   );
 };
+
 
 export default VehicleForm;

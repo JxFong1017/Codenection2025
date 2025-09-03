@@ -3,8 +3,12 @@ import Head from 'next/head';
 import Link from 'next/link';
 import Image from 'next/image';
 import { signIn } from 'next-auth/react';
+import VehicleForm from '../src/components/VehicleForm';
+
+
 
 export default function Home() {
+  
   const [isLoginMode, setIsLoginMode] = useState(true);
   const [formData, setFormData] = useState({
     email: '',
@@ -99,6 +103,12 @@ export default function Home() {
                   priority
                 />
               </div>
+
+              {/* Vehicle Information Form */}
+              <div className="py-16 bg-gray-100">
+                <VehicleForm />
+              </div>
+
               
               {/* Background Image Overlay */}
               <div className="absolute inset-0 bg-black bg-opacity-30"></div>

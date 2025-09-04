@@ -160,9 +160,16 @@ export default function ManualQuoteSixStep() {
                     Maximum length: 10 characters exclude space
                   </p>
                 )}
-                <div className="mt-8 flex justify-center">
+                <div className="flex justify-between mt-8 max-w-md mx-auto">
+                  <Link
+                    href="/"
+                    className="px-6 py-3 rounded-xl font-semibold border border-blue-200 text-blue-900 hover:bg-blue-50"
+                  >
+                    Back to Landing Page
+                  </Link>
+
                   <button
-                    onClick={() => setShowPlateConfirm(true)} // ← show confirmation page instead of going next
+                    onClick={() => setShowPlateConfirm(true)}
                     disabled={!canProceedFrom(1)}
                     className={`px-10 py-3 rounded-xl font-semibold text-white ${
                       canProceedFrom(1)

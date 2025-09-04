@@ -3,6 +3,7 @@ import { useRouter } from 'next/router';
 import { useEffect, useState } from 'react';
 import Head from 'next/head';
 import DecisionPopup from '../src/components/DecisionPopup';
+import { useT } from '../src/utils/i18n';
 
 export default function Dashboard() {
   const { data: session, status } = useSession();
@@ -122,16 +123,16 @@ export default function Dashboard() {
         <section className="bg-blue-600 py-16">
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
             <h2 className="text-4xl font-bold text-yellow-400 mb-4">
-              Get Your Car Insurance Quote Instantly
+              {useT()('get_quote_instantly')}
             </h2>
             <p className="text-xl text-white mb-8">
-              Find the best coverage that fits your need and budget.
+              {useT()('find_best_coverage')}
             </p>
             <button 
               onClick={handleGetQuotation}
               className="bg-blue-900 text-white px-8 py-3 rounded-lg font-medium hover:bg-blue-800 transition-colors"
             >
-              Get Quote
+              {useT()('get_quote')}
             </button>
           </div>
         </section>
@@ -146,21 +147,21 @@ export default function Dashboard() {
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 17h5l-5 5v-5zM4.828 7l2.586 2.586a2 2 0 002.828 0L12.828 7H4.828z" />
                 </svg>
               </div>
-              <h3 className="text-xl font-bold text-black">Reminder</h3>
+              <h3 className="text-xl font-bold text-black">{useT()('reminder')}</h3>
             </div>
             <div className="space-y-3">
               <div className="flex items-start space-x-2">
                 <span className="text-black">•</span>
                 <p className="text-gray-700">
-                  Toyota Vios 2024, PJH 9196 insurance expires in 30 days (18 September 2025). 
-                  <span className="text-blue-600 font-medium"> Renew now to stay covered.</span>
+                  {useT()('reminder_1_text')} 
+                  <span className="text-blue-600 font-medium"> {useT()('renew_now')}</span>
                 </p>
               </div>
               <div className="flex items-start space-x-2">
                 <span className="text-black">•</span>
                 <p className="text-gray-700">
-                  Your next installment of RM350 for Perodua Myvi 2020, ABC 1234 is due on 10 Sept 2025. 
-                  <span className="text-blue-600 font-medium"> Please pay before the due date to avoid late charges.</span>
+                  {useT()('reminder_2_text')} 
+                  <span className="text-blue-600 font-medium"> {useT()('pay_before_due')}</span>
                 </p>
               </div>
             </div>
@@ -168,19 +169,19 @@ export default function Dashboard() {
 
           {/* Recent Quotes Section */}
           <div className="mb-8">
-            <h3 className="text-xl font-bold text-black mb-4">Recent Quotes</h3>
+            <h3 className="text-xl font-bold text-black mb-4">{useT()('recent_quotes')}</h3>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div className="bg-blue-100 rounded-lg p-6 relative">
                 <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2">
                   <span className="bg-yellow-400 text-black px-4 py-2 rounded-full text-sm font-medium">
-                    Pending
+                    {useT()('pending')}
                   </span>
                 </div>
               </div>
               <div className="bg-blue-100 rounded-lg p-6 relative">
                 <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2">
                   <span className="bg-green-500 text-white px-4 py-2 rounded-full text-sm font-medium">
-                    Confirmed
+                    {useT()('confirmed')}
                   </span>
                 </div>
               </div>
@@ -197,26 +198,26 @@ export default function Dashboard() {
 
           {/* My Car Records Section */}
           <div className="mb-8">
-            <h3 className="text-xl font-bold text-black mb-4">My Car Records</h3>
+            <h3 className="text-xl font-bold text-black mb-4">{useT()('my_car_records')}</h3>
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
               <div className="bg-blue-100 rounded-lg p-6 relative">
                 <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2">
                   <span className="bg-blue-900 text-white px-4 py-2 rounded-full text-sm font-medium">
-                    Renew
+                    {useT()('renew')}
                   </span>
                 </div>
               </div>
               <div className="bg-blue-100 rounded-lg p-6 relative">
                 <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2">
                   <span className="bg-blue-900 text-white px-4 py-2 rounded-full text-sm font-medium">
-                    View
+                    {useT()('view')}
                   </span>
                 </div>
               </div>
               <div className="bg-blue-100 rounded-lg p-6 relative">
                 <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2">
                   <span className="bg-blue-900 text-white px-4 py-2 rounded-full text-sm font-medium">
-                    View
+                    {useT()('view')}
                   </span>
                 </div>
               </div>
@@ -229,20 +230,20 @@ export default function Dashboard() {
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
               <div>
-                <h4 className="text-lg font-semibold mb-4">About Us</h4>
+                <h4 className="text-lg font-semibold mb-4">{useT()('about_us')}</h4>
                 <ul className="space-y-2">
-                  <li><a href="#" className="text-blue-200 hover:text-white">FAQ</a></li>
+                  <li><a href="#" className="text-blue-200 hover:text-white">{useT()('faq')}</a></li>
                 </ul>
               </div>
               <div>
-                <h4 className="text-lg font-semibold mb-4">Useful Links</h4>
+                <h4 className="text-lg font-semibold mb-4">{useT()('useful_links')}</h4>
                 <ul className="space-y-2">
-                  <li><a href="#" className="text-blue-200 hover:text-white">Contact Us</a></li>
-                  <li><a href="#" className="text-blue-200 hover:text-white">Personal Data Protection Notice</a></li>
+                  <li><a href="#" className="text-blue-200 hover:text-white">{useT()('contact_us')}</a></li>
+                  <li><a href="#" className="text-blue-200 hover:text-white">{useT()('personal_data_protection')}</a></li>
                 </ul>
               </div>
               <div>
-                <h4 className="text-lg font-semibold mb-4">Follow Us</h4>
+                <h4 className="text-lg font-semibold mb-4">{useT()('follow_us')}</h4>
                 <div className="flex space-x-4">
                   <a href="#" className="text-blue-200 hover:text-white">
                     <svg className="w-6 h-6" fill="currentColor" viewBox="0 0 24 24">

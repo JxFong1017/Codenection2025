@@ -4,23 +4,24 @@ export default function LanguageSwitcher() {
   const { language, setLanguage } = useLanguage();
 
   return (
-    <div style={{
-      position: 'sticky', top: 0, zIndex: 50, background: 'white',
-      borderBottom: '1px solid #e5e7eb', padding: '8px 12px', display: 'flex', gap: 8, alignItems: 'center'
-    }}>
-      <span style={{ fontSize: 12, color: '#6b7280' }}>Language:</span>
-      {SUPPORTED_LANGUAGES.map((lang) => (
-        <button
-          key={lang.code}
-          onClick={() => setLanguage(lang.code)}
-          style={{
-            padding: '6px 10px', borderRadius: 8, border: '1px solid #d1d5db', cursor: 'pointer',
-            background: language === lang.code ? '#111827' : 'white', color: language === lang.code ? 'white' : '#111827'
-          }}
+    <div className="flex items-center space-x-2">
+      <span className="text-sm text-gray-600">EN</span>
+      <svg className="w-4 h-4 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+      </svg>
+      <div className="relative">
+        <select 
+          value={language} 
+          onChange={(e) => setLanguage(e.target.value)}
+          className="appearance-none bg-transparent border-none text-sm text-gray-600 cursor-pointer focus:outline-none"
         >
-          {lang.label}
-        </button>
-      ))}
+          {SUPPORTED_LANGUAGES.map((lang) => (
+            <option key={lang.code} value={lang.code}>
+              {lang.label}
+            </option>
+          ))}
+        </select>
+      </div>
     </div>
   );
 }

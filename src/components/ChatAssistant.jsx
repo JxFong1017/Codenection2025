@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from 'react';
 import { useRouter } from 'next/router';
 import { useQuote } from '../context/QuoteContext';
+import { useT } from '../utils/i18n';
 
 const FAQ_ENTRIES = [
   {
@@ -28,16 +29,23 @@ const FAQ_ENTRIES = [
 export default function ChatAssistant() {
   const [isOpen, setIsOpen] = useState(false);
   const [messages, setMessages] = useState([
-    { role: 'assistant', content: 'Hi! I\'m CGS Assistant. Ask me anything about updating your car insurance.' }
+    { role: 'assistant', content: '' }
   ]);
   const [input, setInput] = useState('');
   const endRef = useRef(null);
   const router = useRouter();
   const { setQuoteDraft } = useQuote();
+  const t = useT();
 
   useEffect(() => {
     endRef.current?.scrollIntoView({ behavior: 'smooth' });
   }, [messages, isOpen]);
+
+  useEffect(() => {
+    if (messages.length === 1 && messages[0].content === '') {
+      setMessages([{ role: 'assistant', content: t('chat_welcome') }]);
+    }
+  }, [t, messages]);
 
   const tryParseIntent = (text) => {
     // Very lightweight parsing for demo: brand, model, year, renew intent, plate optional
@@ -65,7 +73,7 @@ export default function ChatAssistant() {
         step: 2
       }));
       router.push('/manual-quote');
-      return 'Got it. I\'ll prefill your quote with what I understood and take you to the form.';
+      return t('chat_got_it');
     }
     return null;
   };
@@ -74,7 +82,7 @@ export default function ChatAssistant() {
     for (const item of FAQ_ENTRIES) {
       if (item.q.test(text)) return item.a;
     }
-    return "I couldn't find an exact answer. You can start a new quote at Get Quotation or go to /manual-quote for the 6-step flow. Would you like quick links?";
+    return t('chat_no_answer');
   };
 
   const send = () => {
@@ -125,9 +133,9 @@ export default function ChatAssistant() {
               onChange={(e) => setInput(e.target.value)}
               onKeyDown={(e) => e.key === 'Enter' && send()}
               className="flex-1 px-3 py-2 rounded border border-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-300"
-              placeholder="Ask about renewal, NCD, drivers..."
+              placeholder={t('chat_placeholder')}
             />
-            <button onClick={send} className="px-3 py-2 bg-blue-700 hover:bg-blue-800 text-white rounded">Send</button>
+            <button onClick={send} className="px-3 py-2 bg-blue-700 hover:bg-blue-800 text-white rounded">{t('send')}</button>
           </div>
         </div>
       )}

@@ -5,10 +5,12 @@ import { useDebounce } from "../src/hooks/useDebounce";
 import { validatePlateNumber } from "../src/utils/validationLogic";
 import CarBrandInput from "../src/components/CarBrandInput";
 import { useQuote } from "../src/context/QuoteContext";
+import { useT } from "../src/utils/i18n";
 
 export default function ManualQuoteSixStep() {
   const [step, setStep] = useState(1);
   const { quoteDraft, setQuoteDraft } = useQuote();
+  const t = useT();
 
   // Step 1
   const [plate, setPlate] = useState("");
@@ -72,12 +74,12 @@ export default function ManualQuoteSixStep() {
   }, [debouncedPlate]);
 
   const steps = [
-    { id: 1, title: "Enter car plate number" },
-    { id: 2, title: "Vehicle information" },
-    { id: 3, title: "Additional protection" },
-    { id: 4, title: "Personal information" },
-    { id: 5, title: "Estimated car insurance range" },
-    { id: 6, title: "Finish" },
+    { id: 1, title: t('steps_1') },
+    { id: 2, title: t('steps_2') },
+    { id: 3, title: t('steps_3') },
+    { id: 4, title: t('steps_4') },
+    { id: 5, title: t('steps_5') },
+    { id: 6, title: t('steps_6') },
   ];
 
   const toggleProtection = (k) =>
@@ -144,7 +146,7 @@ export default function ManualQuoteSixStep() {
             {step === 1 && (
               <div className="text-center">
                 <h2 className="text-xl font-bold text-blue-900 mb-6">
-                  Please enter your car plate number:
+                  {t('plate_prompt')}
                 </h2>
                 <div className="flex justify-center">
                   <input
@@ -165,7 +167,7 @@ export default function ManualQuoteSixStep() {
                     href="/"
                     className="px-6 py-3 rounded-xl font-semibold border border-blue-200 text-blue-900 hover:bg-blue-50"
                   >
-                    Back to Landing Page
+{t('back')} to Landing Page
                   </Link>
 
                   <button
@@ -177,7 +179,7 @@ export default function ManualQuoteSixStep() {
                         : "bg-gray-400 cursor-not-allowed"
                     }`}
                   >
-                    Submit
+                    {t('submit')}
                   </button>
                 </div>
               </div>
@@ -194,7 +196,7 @@ export default function ManualQuoteSixStep() {
                     onClick={() => setShowPlateConfirm(false)} // back to edit
                     className="px-6 py-2 border border-blue-200 rounded-lg text-blue-900 font-semibold hover:bg-blue-50"
                   >
-                    Back to Edit
+{t('back')} to Edit
                   </button>
                   <button
                     onClick={() => {
@@ -203,7 +205,7 @@ export default function ManualQuoteSixStep() {
                     }} // next step
                     className="px-6 py-2 rounded-lg bg-blue-800 text-white font-semibold hover:bg-blue-900"
                   >
-                    Next
+{t('next')}
                   </button>
                 </div>
               </div>
@@ -212,7 +214,7 @@ export default function ManualQuoteSixStep() {
             {step === 2 && (
               <div>
                 <div className="text-xl font-bold text-blue-900 mb-6">
-                  Car plate number: {plate || "—"}
+                  {t('car_plate_number')} {plate || "—"}
                 </div>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                   {/* Car Brand input */}
@@ -221,7 +223,7 @@ export default function ManualQuoteSixStep() {
                   {/* Car Model */}
                   <div>
                     <label className="block text-blue-900 font-semibold mb-2">
-                      Car Model:
+                      {t('car_model')}
                     </label>
                     <select
                       value={model}
@@ -238,7 +240,7 @@ export default function ManualQuoteSixStep() {
                   {/* Manufactured Year */}
                   <div>
                     <label className="block text-blue-900 font-semibold mb-2">
-                      Manufactured Year:
+                      {t('manufactured_year')}
                     </label>
                     <select
                       value={year}
@@ -263,13 +265,13 @@ export default function ManualQuoteSixStep() {
                     onClick={goBack}
                     className="px-8 py-3 rounded-xl font-semibold border border-blue-200 text-blue-900 hover:bg-blue-50"
                   >
-                    Back
+{t('back')}
                   </button>
                   <button
                     onClick={goNext}
                     className="px-8 py-3 rounded-xl font-semibold text-white bg-blue-800 hover:bg-blue-900"
                   >
-                    Next
+{t('next')}
                   </button>
                 </div>
               </div>
@@ -278,18 +280,18 @@ export default function ManualQuoteSixStep() {
             {step === 3 && (
               <div>
                 <h2 className="text-xl font-bold text-blue-900 mb-6">
-                  Select additional protection:
+                  {t('select_additional_protection')}
                 </h2>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   {[
-                    "Windscreen",
-                    "Named Driver",
-                    "All Driver",
-                    "Natural Disaster (Special Perils)",
-                    "Strike Riot and Civil Commotion",
-                    "Personal Accident",
-                    "Towing",
-                    "Passengers coverage",
+                    t('windscreen'),
+                    t('named_driver'),
+                    t('all_driver'),
+                    t('natural_disaster'),
+                    t('strike_riot'),
+                    t('personal_accident'),
+                    t('towing'),
+                    t('passengers_coverage'),
                   ].map((label) => (
                     <label
                       key={label}
@@ -310,13 +312,13 @@ export default function ManualQuoteSixStep() {
                     onClick={goBack}
                     className="px-8 py-3 rounded-xl font-semibold border border-blue-200 text-blue-900 hover:bg-blue-50"
                   >
-                    Back
+{t('back')}
                   </button>
                   <button
                     onClick={goNext}
                     className="px-8 py-3 rounded-xl font-semibold text-white bg-blue-800 hover:bg-blue-900"
                   >
-                    Next
+{t('next')}
                   </button>
                 </div>
               </div>
@@ -328,29 +330,29 @@ export default function ManualQuoteSixStep() {
                   {/* Vehicle Info (read-only) */}
                   <div>
                     <div className="text-blue-900 font-bold mb-2">
-                      Car plate number:{" "}
+                      {t('car_plate_number')}{" "}
                       <span className="font-normal">{plate || "—"}</span>
                     </div>
                     <div className="text-blue-900 font-bold mb-2">
-                      Car Brand:{" "}
+                      {t('car_brand')}{" "}
                       <span className="font-normal">{brand || "—"}</span>
                     </div>
                     <div className="text-blue-900 font-bold mb-2">
-                      Car Model:{" "}
+                      {t('car_model')}{" "}
                       <span className="font-normal">{model || "—"}</span>
                     </div>
                     <div className="text-blue-900 font-bold mb-2">
-                      Manufactured Year:{" "}
+                      {t('manufactured_year')}{" "}
                       <span className="font-normal">{year || "—"}</span>
                     </div>
                     <div className="text-blue-900 font-bold mb-2">
-                      NCD:{" "}
+                      {t('ncd')}{" "}
                       <button
                         className="underline font-normal"
                         type="button"
                         onClick={() => setNcd(20)}
                       >
-                        Check NCD
+                        {t('check_ncd')}
                       </button>
                     </div>
                   </div>
@@ -359,7 +361,7 @@ export default function ManualQuoteSixStep() {
                   <div className="space-y-4">
                     <div>
                       <label className="block text-blue-900 font-semibold mb-2">
-                        Name as IC:
+                        {t('name_as_ic_field')}
                       </label>
                       <input
                         value={name}
@@ -369,7 +371,7 @@ export default function ManualQuoteSixStep() {
                     </div>
                     <div>
                       <label className="block text-blue-900 font-semibold mb-2">
-                        IC:
+                        {t('ic')}
                       </label>
                       <input
                         value={ic}
@@ -379,7 +381,7 @@ export default function ManualQuoteSixStep() {
                     </div>
                     <div>
                       <label className="block text-blue-900 font-semibold mb-2">
-                        Postcode:
+                        {t('postcode')}
                       </label>
                       <input
                         value={postcode}
@@ -395,7 +397,7 @@ export default function ManualQuoteSixStep() {
                     onClick={goBack}
                     className="px-8 py-3 rounded-xl font-semibold border border-blue-200 text-blue-900 hover:bg-blue-50"
                   >
-                    Back
+{t('back')}
                   </button>
                   <button
                     onClick={goNext}
@@ -406,7 +408,7 @@ export default function ManualQuoteSixStep() {
                         : "bg-gray-400 cursor-not-allowed"
                     }`}
                   >
-                    Next
+{t('next')}
                   </button>
                 </div>
               </div>
@@ -417,35 +419,35 @@ export default function ManualQuoteSixStep() {
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                   <div className="space-y-2 text-blue-900">
                     <div className="font-bold">
-                      Car plate number:{" "}
+                      {t('car_plate_number')}{" "}
                       <span className="font-normal">{plate}</span>
                     </div>
                     <div className="font-bold">
-                      Car Brand: <span className="font-normal">{brand}</span>
+                      {t('car_brand')} <span className="font-normal">{brand}</span>
                     </div>
                     <div className="font-bold">
-                      Car Model: <span className="font-normal">{model}</span>
+                      {t('car_model')} <span className="font-normal">{model}</span>
                     </div>
                     <div className="font-bold">
-                      Manufactured Year:{" "}
+                      {t('manufactured_year')}{" "}
                       <span className="font-normal">{year}</span>
                     </div>
                     <div className="font-bold">
-                      NCD: <span className="font-normal">{ncd}%</span>
+                      {t('ncd')} <span className="font-normal">{ncd}%</span>
                     </div>
                   </div>
                   <div className="space-y-2 text-blue-900">
                     <div className="font-bold">
-                      Name as IC: <span className="font-normal">{name}</span>
+                      {t('name_as_ic_field')} <span className="font-normal">{name}</span>
                     </div>
                     <div className="font-bold">
-                      IC: <span className="font-normal">{ic}</span>
+                      {t('ic')} <span className="font-normal">{ic}</span>
                     </div>
                     <div className="font-bold">
-                      Postcode: <span className="font-normal">{postcode}</span>
+                      {t('postcode')} <span className="font-normal">{postcode}</span>
                     </div>
                     <div className="font-bold">
-                      Estimated Car Insurance Range:{" "}
+                      {t('estimated_range')}{" "}
                       <span className="font-normal">
                         RM{estimateRange.min}-RM{estimateRange.max}
                       </span>
@@ -457,7 +459,7 @@ export default function ManualQuoteSixStep() {
                     onClick={goBack}
                     className="px-8 py-3 rounded-xl font-semibold border border-blue-200 text-blue-900 hover:bg-blue-50"
                   >
-                    Back
+{t('back')}
                   </button>
                   <button
                     onClick={goNext}
@@ -472,25 +474,21 @@ export default function ManualQuoteSixStep() {
             {step === 6 && (
               <div className="text-center">
                 <h2 className="text-xl font-bold text-blue-900 mb-2">
-                  Your insurance quotation
+                  {t('your_quotation_sent')}
                 </h2>
                 <p className="text-blue-900">has been sent to</p>
                 <div className="mt-4 text-3xl font-extrabold text-blue-800">
                   {name || "username123"}@gmail.com
                 </div>
                 <p className="mt-6 text-gray-600">
-                  If you have any questions, please do not hesitate to{" "}
-                  <a href="#" className="underline">
-                    contact us
-                  </a>
-                  .
+                  {t('contact_us_help')}
                 </p>
                 <div className="mt-8">
                   <Link
                     href="/dashboard"
                     className="inline-block px-10 py-3 rounded-xl font-semibold text-white bg-blue-800 hover:bg-blue-900"
                   >
-                    Done
+{t('done')}
                   </Link>
                 </div>
               </div>

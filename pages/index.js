@@ -3,6 +3,7 @@ import Head from 'next/head';
 import Link from 'next/link';
 import Image from 'next/image';
 import { signIn } from 'next-auth/react';
+import { useT } from '../src/utils/i18n';
 
 
 
@@ -79,13 +80,13 @@ export default function Home() {
             <div className="bg-white flex items-center justify-center p-8 lg:p-12">
               <div className="max-w-lg">
                 <h2 className="text-4xl lg:text-5xl font-bold text-gray-900 mb-6">
-                  SMART COVERAGE, SMOOTH RIDES.
+                  {useT()('hero_title')}
                 </h2>
                 <p className="text-lg text-gray-600 mb-8">
-                  Get instant coverage, transparent pricing and hassle-free claims — all in one place.
+                  {useT()('hero_subtitle')}
                 </p>
                 <button className="bg-blue-900 text-white px-8 py-3 rounded-lg font-medium hover:bg-blue-800 transition-colors">
-                  Get your quotation now!
+                  {useT()('get_quote_now')}
                 </button>
               </div>
             </div>
@@ -108,7 +109,7 @@ export default function Home() {
               <div className="absolute inset-0 flex items-center justify-center px-6">
                 <div className="w-full max-w-lg">
                   <h3 className="text-2xl font-bold text-white mb-6">
-                    {isLoginMode ? 'LOG IN' : 'SIGN UP'}
+                    {isLoginMode ? useT()('login') : useT()('signup')}
                   </h3>
 
                   <form onSubmit={handleSubmit} className="space-y-5">
@@ -116,7 +117,7 @@ export default function Home() {
                       <>
                         <div>
                           <label className="block text-white text-sm font-medium mb-2">
-                            Name as IC
+                            {useT()('name_as_ic')}
                           </label>
                           <input
                             type="text"
@@ -129,7 +130,7 @@ export default function Home() {
                         </div>
                         <div>
                           <label className="block text-white text-sm font-medium mb-2">
-                            Identification Number
+                            {useT()('identification_number')}
                           </label>
                           <input
                             type="text"
@@ -145,7 +146,7 @@ export default function Home() {
 
                     <div>
                       <label className="block text-white text-sm font-medium mb-2">
-                        Email
+                        {useT()('email')}
                       </label>
                       <input
                         type="email"
@@ -160,7 +161,7 @@ export default function Home() {
                     {!isLoginMode && (
                       <div>
                         <label className="block text-white text-sm font-medium mb-2">
-                          Phone number
+                          {useT()('phone_number')}
                         </label>
                         <div className="flex">
                           <select className="px-3 py-2 bg-white rounded-l text-gray-900 border-r border-gray-300 focus:outline-none">
@@ -180,7 +181,7 @@ export default function Home() {
 
                     <div>
                       <label className="block text-white text-sm font-medium mb-2">
-                        Password
+                        {useT()('password')}
                       </label>
                       <input
                         type="password"
@@ -195,7 +196,7 @@ export default function Home() {
                     {!isLoginMode && (
                       <div>
                         <label className="block text-white text-sm font-medium mb-2">
-                          Confirm Password
+                          {useT()('confirm_password')}
                         </label>
                         <input
                           type="password"
@@ -217,9 +218,7 @@ export default function Home() {
                           required
                         />
                         <label htmlFor="terms" className="text-white text-sm">
-                          I have read, understood and accepted the{' '}
-                          <a href="#" className="underline font-medium">terms and conditions</a>{' '}
-                          of the platform.
+                          {useT()('terms_accept')}
                         </label>
                       </div>
                     )}
@@ -232,7 +231,7 @@ export default function Home() {
                     </button>
 
                     <div className="flex items-center space-x-3 text-white">
-                      <span>OR</span>
+                      <span>{useT()('or')}</span>
                     </div>
 
                     <button
@@ -240,16 +239,16 @@ export default function Home() {
                       onClick={() => setIsLoginMode(!isLoginMode)}
                       className="w-36 bg-white text-blue-900 py-2 rounded font-medium hover:bg-gray-50 transition-colors border border-blue-900"
                     >
-                      {isLoginMode ? 'SIGN UP' : 'LOG IN'}
+                      {isLoginMode ? useT()('signup') : useT()('login')}
                     </button>
 
                     {isLoginMode && (
                       <div className="space-y-2">
                         <a href="#" className="block text-blue-200 text-sm hover:text-white">
-                          Forgot your password?
+                          {useT()('forgot_password')}
                         </a>
                         <a href="#" className="block text-blue-200 text-sm hover:text-white">
-                          Didn't receive confirmation instructions?
+                          {useT()('confirmation_instructions')}
                         </a>
                   </div>
                     )}
@@ -271,9 +270,9 @@ export default function Home() {
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
                     </svg>
                   </div>
-                <h3 className="text-lg font-semibold text-gray-900 mb-2">SECURE</h3>
+                <h3 className="text-lg font-semibold text-gray-900 mb-2">{useT()('secure')}</h3>
                 <p className="text-gray-600">
-                  Your data and policies are protected with enterprise-grade security.
+                  {useT()('secure_desc')}
                   </p>
                 </div>
 
@@ -284,9 +283,9 @@ export default function Home() {
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
                     </svg>
                   </div>
-                <h3 className="text-lg font-semibold text-gray-900 mb-2">FAST</h3>
+                <h3 className="text-lg font-semibold text-gray-900 mb-2">{useT()('fast')}</h3>
                 <p className="text-gray-600">
-                  Quick claims and instant coverage so you spend less time waiting.
+                  {useT()('fast_desc')}
                   </p>
                 </div>
 
@@ -297,9 +296,9 @@ export default function Home() {
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 6l3 1m0 0l-3 9a5.002 5.002 0 006.001 0M6 7l3 9M6 7l6-2m6 2l3-1m-3 1l-3 9a5.002 5.002 0 006.001 0M18 7l3 9m-3-9l-6-2m0-2v2m0 16V5m0 16H9m3 0h3" />
                     </svg>
                   </div>
-                <h3 className="text-lg font-semibold text-gray-900 mb-2">COMPARE</h3>
+                <h3 className="text-lg font-semibold text-gray-900 mb-2">{useT()('compare')}</h3>
                 <p className="text-gray-600">
-                  Easily compare plans to find the best value for your car insurance.
+                  {useT()('compare_desc')}
                   </p>
                 </div>
             </div>
@@ -309,22 +308,22 @@ export default function Home() {
         {/* Insurance Products */}
         <section className="py-16 bg-blue-800">
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-white">
-            <h3 className="text-3xl font-extrabold text-center mb-2">Insurance Products</h3>
-            <p className="text-center text-blue-100 mb-6">Explore our variety of car insurance products tailored for you.</p>
+            <h3 className="text-3xl font-extrabold text-center mb-2">{useT()('insurance_products')}</h3>
+            <p className="text-center text-blue-100 mb-6">{useT()('insurance_products_subtitle')}</p>
             <div className="text-center mb-10">
-              <button className="bg-black text-white px-5 py-2 rounded">View All Products</button>
+              <button className="bg-black text-white px-5 py-2 rounded">{useT()('view_all_products')}</button>
             </div>
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
               {[{
-                title:'Basic Insurance',desc:'Covers essential damages'
+                title: useT()('basic_insurance'), desc: useT()('basic_insurance_desc')
               },{
-                title:'Comprehensive Insurance',desc:'Covers all damages'
+                title: useT()('comprehensive_insurance'), desc: useT()('comprehensive_insurance_desc')
               },{
-                title:'Third Party, Fire and Theft Insurance',desc:'Covers third-party liabilities'
+                title: useT()('third_party_insurance'), desc: useT()('third_party_insurance_desc')
               }].map((card,idx)=> (
                 <div key={idx} className="bg-white rounded shadow p-4 text-blue-900">
                   <div className="h-40 bg-blue-100 rounded mb-4"></div>
-                  <div className="text-xs text-gray-500 mb-1">{idx===0?'Best Seller': idx===1?'Top Rated':''}</div>
+                  <div className="text-xs text-gray-500 mb-1">{idx===0?useT()('best_seller'): idx===1?useT()('top_rated'):''}</div>
                   <div className="font-semibold">{card.title}</div>
                   <div className="text-sm text-gray-600">{card.desc}</div>
                 </div>
@@ -336,8 +335,8 @@ export default function Home() {
         {/* Customer Reviews */}
         <section className="py-16 bg-white">
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            <h3 className="text-2xl font-extrabold text-gray-900 text-center mb-2">Customer Reviews</h3>
-            <p className="text-center text-gray-500 mb-8">See what our customers are saying about us!</p>
+            <h3 className="text-2xl font-extrabold text-gray-900 text-center mb-2">{useT()('customer_reviews')}</h3>
+            <p className="text-center text-gray-500 mb-8">{useT()('customer_reviews_subtitle')}</p>
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
               {["John Doe","Jane Smith","Alice Johnson"].map((name,idx)=> (
                 <div key={idx} className="bg-gray-50 rounded-lg p-6 shadow-sm">
@@ -346,9 +345,9 @@ export default function Home() {
                     <div className="font-medium text-gray-900">{name}</div>
                   </div>
                   <p className="text-gray-700 text-sm">
-                    {idx===0 && 'Great service and affordable rates!'}
-                    {idx===1 && 'Had a hassle-free experience finding my policy.'}
-                    {idx===2 && 'The quotes were quick and easy to understand.'}
+                    {idx===0 && useT()('review_1')}
+                    {idx===1 && useT()('review_2')}
+                    {idx===2 && useT()('review_3')}
                   </p>
                 </div>
               ))}
@@ -361,20 +360,20 @@ export default function Home() {
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
               <div>
-                <h4 className="text-lg font-semibold mb-4">About Us</h4>
+                <h4 className="text-lg font-semibold mb-4">{useT()('about_us')}</h4>
                 <ul className="space-y-2">
-                  <li><a href="#" className="text-blue-200 hover:text-white">FAQ</a></li>
+                  <li><a href="#" className="text-blue-200 hover:text-white">{useT()('faq')}</a></li>
                 </ul>
               </div>
               <div>
-                <h4 className="text-lg font-semibold mb-4">Useful Links</h4>
+                <h4 className="text-lg font-semibold mb-4">{useT()('useful_links')}</h4>
                 <ul className="space-y-2">
-                  <li><a href="#" className="text-blue-200 hover:text-white">Contact Us</a></li>
-                  <li><a href="#" className="text-blue-200 hover:text-white">Personal Data Protection Notice</a></li>
+                  <li><a href="#" className="text-blue-200 hover:text-white">{useT()('contact_us')}</a></li>
+                  <li><a href="#" className="text-blue-200 hover:text-white">{useT()('personal_data_protection')}</a></li>
                 </ul>
               </div>
               <div>
-                <h4 className="text-lg font-semibold mb-4">Follow Us</h4>
+                <h4 className="text-lg font-semibold mb-4">{useT()('follow_us')}</h4>
                 <div className="flex space-x-4">
                   <a href="#" className="text-blue-200 hover:text-white">
                     <svg className="w-6 h-6" fill="currentColor" viewBox="0 0 24 24">

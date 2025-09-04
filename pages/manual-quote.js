@@ -18,6 +18,8 @@ export default function ManualQuoteSixStep() {
     error: null,
   });
 
+  const [showPlateConfirm, setShowPlateConfirm] = useState(false);
+
   // Step 2
   const [brand, setBrand] = useState("");
   const [model, setModel] = useState("");
@@ -150,6 +152,7 @@ export default function ManualQuoteSixStep() {
                     onChange={(e) => setPlate(e.target.value.toUpperCase())}
                     className="w-full max-w-md px-6 py-4 bg-blue-50 rounded-xl text-blue-900 text-xl text-center outline-none border border-blue-100 focus:ring-2 focus:ring-blue-400"
                     placeholder="e.g. PKD 8381"
+                    disabled={showPlateConfirm} // ← disable when confirmation is showing
                   />
                 </div>
                 {plate.replace(/\s/g, "").length > 10 && (
@@ -159,7 +162,7 @@ export default function ManualQuoteSixStep() {
                 )}
                 <div className="mt-8 flex justify-center">
                   <button
-                    onClick={goNext}
+                    onClick={() => setShowPlateConfirm(true)} // ← show confirmation page instead of going next
                     disabled={!canProceedFrom(1)}
                     className={`px-10 py-3 rounded-xl font-semibold text-white ${
                       canProceedFrom(1)
@@ -168,6 +171,32 @@ export default function ManualQuoteSixStep() {
                     }`}
                   >
                     Submit
+                  </button>
+                </div>
+              </div>
+            )}
+
+            {step === 1 && showPlateConfirm && (
+              <div className="text-center p-6 bg-blue-50 rounded-lg shadow mt-6">
+                <p className="text-blue-700 text-lg font-semibold">
+                  Are you sure your car plate number is{" "}
+                  <span className="font-bold">{plate}</span>?
+                </p>
+                <div className="mt-6 flex justify-center gap-4">
+                  <button
+                    onClick={() => setShowPlateConfirm(false)} // back to edit
+                    className="px-6 py-2 border border-blue-200 rounded-lg text-blue-900 font-semibold hover:bg-blue-50"
+                  >
+                    Back to Edit
+                  </button>
+                  <button
+                    onClick={() => {
+                      setStep(2);
+                      setShowPlateConfirm(false);
+                    }} // next step
+                    className="px-6 py-2 rounded-lg bg-blue-800 text-white font-semibold hover:bg-blue-900"
+                  >
+                    Next
                   </button>
                 </div>
               </div>

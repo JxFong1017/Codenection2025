@@ -161,7 +161,7 @@ export default function ManualQuoteWizard() {
                   Car plate number: {plateNumber || "—"}
                 </div>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                  {/* Car Brand input with Toyota-only validation */}
+                  {/* Car Brand input */}
                   <CarBrandInput value={brand} onChange={setBrand} />
 
                   {/* Car Model */}
@@ -201,6 +201,22 @@ export default function ManualQuoteWizard() {
                       )}
                     </select>
                   </div>
+                </div>
+
+                {/* Back / Next buttons */}
+                <div className="mt-8 flex justify-between">
+                  <button
+                    onClick={handleBack}
+                    className="px-8 py-3 rounded-xl font-semibold border border-blue-200 text-blue-900 hover:bg-blue-50"
+                  >
+                    Back
+                  </button>
+                  <button
+                    onClick={handleNext}
+                    className="px-8 py-3 rounded-xl font-semibold text-white bg-blue-800 hover:bg-blue-900"
+                  >
+                    Next
+                  </button>
                 </div>
               </div>
             )}

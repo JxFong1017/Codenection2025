@@ -41,7 +41,11 @@ export default function CarBrandInput({ value, onChange }) {
       {brandValidation.message && (
         <p
           className={`mt-2 text-sm ${
-            brandValidation.isValid ? "text-green-600" : "text-red-500"
+            brandValidation.isValid
+              ? "text-green-600" // valid
+              : brandValidation.suggestion
+              ? "text-yellow-600" // typo (suggestion)
+              : "text-red-500" // invalid
           }`}
         >
           {brandValidation.message}{" "}

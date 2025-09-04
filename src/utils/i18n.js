@@ -106,6 +106,12 @@ const DICTS = {
     pay_before_due: 'Please pay before the due date to avoid late charges.',
     reminder_1_text: 'Toyota Vios 2024, PJH 9196 insurance expires in 30 days (18 September 2025).',
     reminder_2_text: 'Your next installment of RM350 for Perodua Myvi 2020, ABC 1234 is due on 10 Sept 2025.',
+    quote_id: 'Quote ID',
+    car_plate: 'Car Plate',
+    amount: 'Amount',
+    car_model: 'Car Model',
+    insurance_expired_days: 'Insurance Expired in 30 days',
+    insurance_active_until: 'Insurance Active Until',
     
     // Chat assistant
     chat_welcome: 'Hi! I\'m CGS Assistant. Ask me anything about updating your car insurance.',
@@ -219,6 +225,12 @@ const DICTS = {
     pay_before_due: 'Sila bayar sebelum tarikh tamat tempoh untuk mengelakkan caj lewat.',
     reminder_1_text: 'Toyota Vios 2024, PJH 9196 insurans akan tamat tempoh dalam 30 hari (18 September 2025).',
     reminder_2_text: 'Ansuran seterusnya RM350 untuk Perodua Myvi 2020, ABC 1234 perlu dibayar pada 10 Sept 2025.',
+    quote_id: 'ID Sebut Harga',
+    car_plate: 'Plat Kereta',
+    amount: 'Jumlah',
+    car_model: 'Model Kereta',
+    insurance_expired_days: 'Insurans Tamat Tempoh dalam 30 hari',
+    insurance_active_until: 'Insurans Aktif Sehingga',
     
     // Chat assistant
     chat_welcome: 'Hi! Saya Pembantu CGS. Tanya saya apa-apa tentang mengemas kini insurans kereta anda.',
@@ -332,6 +344,12 @@ const DICTS = {
     pay_before_due: '请在到期日前付款以避免滞纳金。',
     reminder_1_text: '丰田威驰2024，PJH 9196保险将在30天内到期（2025年9月18日）。',
     reminder_2_text: '您的Perodua Myvi 2020，ABC 1234下一期分期付款RM350将于2025年9月10日到期。',
+    quote_id: '报价ID',
+    car_plate: '车牌号',
+    amount: '金额',
+    car_model: '车型',
+    insurance_expired_days: '保险30天内到期',
+    insurance_active_until: '保险有效期至',
     
     // Chat assistant
     chat_welcome: '您好！我是CGS助手。您可以询问任何关于更新车险的问题。',

@@ -170,28 +170,74 @@ export default function Dashboard() {
           {/* Recent Quotes Section */}
           <div className="mb-8">
             <h3 className="text-xl font-bold text-black mb-4">{useT()('recent_quotes')}</h3>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div className="bg-blue-100 rounded-lg p-6 relative">
-                <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2">
-                  <span className="bg-yellow-400 text-black px-4 py-2 rounded-full text-sm font-medium">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 relative">
+              {/* Left Quote Card */}
+              <div className="bg-blue-100 rounded-lg p-6">
+                <div className="flex justify-between items-start mb-4">
+                  <div>
+                    <div className="text-sm text-gray-600">{useT()('quote_id')}</div>
+                    <div className="font-bold text-lg">#12346</div>
+                  </div>
+                  <span className="bg-yellow-400 text-black px-3 py-1 rounded-full text-sm font-medium">
                     {useT()('pending')}
                   </span>
                 </div>
+                <div className="space-y-2">
+                  <div className="flex justify-between">
+                    <span className="text-gray-600">{useT()('car_plate')}:</span>
+                    <span className="font-semibold">PJH 9196</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-gray-600">{useT()('amount')}:</span>
+                    <span className="font-semibold">RM980</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-gray-600">{useT()('car_model')}:</span>
+                    <span className="font-semibold">Toyota Vios 2020</span>
+                  </div>
+                </div>
+                <button className="w-full mt-4 bg-white text-blue-900 border border-blue-200 py-2 rounded-lg font-medium hover:bg-blue-50">
+                  {useT()('view')}
+                </button>
               </div>
-              <div className="bg-blue-100 rounded-lg p-6 relative">
-                <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2">
-                  <span className="bg-green-500 text-white px-4 py-2 rounded-full text-sm font-medium">
+
+              {/* Right Quote Card */}
+              <div className="bg-blue-100 rounded-lg p-6">
+                <div className="flex justify-between items-start mb-4">
+                  <div>
+                    <div className="text-sm text-gray-600">{useT()('quote_id')}</div>
+                    <div className="font-bold text-lg">#12345</div>
+                  </div>
+                  <span className="bg-green-500 text-white px-3 py-1 rounded-full text-sm font-medium">
                     {useT()('confirmed')}
                   </span>
                 </div>
+                <div className="space-y-2">
+                  <div className="flex justify-between">
+                    <span className="text-gray-600">{useT()('car_plate')}:</span>
+                    <span className="font-semibold">ABC 1234</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-gray-600">{useT()('amount')}:</span>
+                    <span className="font-semibold">RM1200</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-gray-600">{useT()('car_model')}:</span>
+                    <span className="font-semibold">Perodua Myvi 2025</span>
+                  </div>
+                </div>
+                <button className="w-full mt-4 bg-white text-blue-900 border border-blue-200 py-2 rounded-lg font-medium hover:bg-blue-50">
+                  {useT()('view')}
+                </button>
               </div>
-            </div>
-            {/* Robot Character */}
-            <div className="flex justify-end mt-4">
-              <div className="w-16 h-16 bg-blue-200 rounded-full flex items-center justify-center">
-                <svg className="w-8 h-8 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9.75 17L9 20l-1 1h8l-1-1-.75-3M3 13h18M5 17h14a2 2 0 002-2V5a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
-                </svg>
+
+              {/* Robot Character */}
+              <div className="absolute -right-4 top-1/2 transform -translate-y-1/2">
+                <div className="w-16 h-16 bg-blue-200 rounded-full flex items-center justify-center">
+                  <svg className="w-8 h-8 text-blue-600" fill="currentColor" viewBox="0 0 24 24">
+                    <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"/>
+                  </svg>
+                </div>
               </div>
             </div>
           </div>
@@ -200,25 +246,78 @@ export default function Dashboard() {
           <div className="mb-8">
             <h3 className="text-xl font-bold text-black mb-4">{useT()('my_car_records')}</h3>
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-              <div className="bg-blue-100 rounded-lg p-6 relative">
-                <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2">
-                  <span className="bg-blue-900 text-white px-4 py-2 rounded-full text-sm font-medium">
+              {/* Left Car Record */}
+              <div className="bg-blue-100 rounded-lg p-6">
+                <div className="space-y-3">
+                  <div className="flex justify-between items-start">
+                    <div>
+                      <div className="text-sm text-gray-600">{useT()('car_plate')}</div>
+                      <div className="font-bold text-lg">PJH 9196</div>
+                    </div>
+                    <div className="w-16 h-12 bg-red-200 rounded flex items-center justify-center">
+                      <div className="w-12 h-8 bg-red-500 rounded-sm"></div>
+                    </div>
+                  </div>
+                  <div>
+                                          <div className="text-sm text-gray-600">{useT()('car_model')}</div>
+                    <div className="font-semibold">Toyota Vios 2020</div>
+                  </div>
+                  <div>
+                    <div className="text-sm text-red-600 font-medium">{useT()('insurance_expired_days')}</div>
+                  </div>
+                  <button className="w-full bg-blue-900 text-white py-2 rounded-lg font-medium hover:bg-blue-800">
                     {useT()('renew')}
-                  </span>
+                  </button>
                 </div>
               </div>
-              <div className="bg-blue-100 rounded-lg p-6 relative">
-                <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2">
-                  <span className="bg-blue-900 text-white px-4 py-2 rounded-full text-sm font-medium">
+
+              {/* Middle Car Record */}
+              <div className="bg-blue-100 rounded-lg p-6">
+                <div className="space-y-3">
+                  <div className="flex justify-between items-start">
+                    <div>
+                      <div className="text-sm text-gray-600">{useT()('car_plate')}</div>
+                      <div className="font-bold text-lg">ABC 1234</div>
+                    </div>
+                    <div className="w-16 h-12 bg-gray-200 rounded flex items-center justify-center">
+                      <div className="w-12 h-8 bg-gray-600 rounded-sm"></div>
+                    </div>
+                  </div>
+                  <div>
+                                          <div className="text-sm text-gray-600">{useT()('car_model')}</div>
+                    <div className="font-semibold">Perodua Myvi 2025</div>
+                  </div>
+                  <div>
+                    <div className="text-sm text-gray-600">{useT()('insurance_active_until')} 12/08/2026</div>
+                  </div>
+                  <button className="w-full bg-white text-blue-900 border border-blue-200 py-2 rounded-lg font-medium hover:bg-blue-50">
                     {useT()('view')}
-                  </span>
+                  </button>
                 </div>
               </div>
-              <div className="bg-blue-100 rounded-lg p-6 relative">
-                <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2">
-                  <span className="bg-blue-900 text-white px-4 py-2 rounded-full text-sm font-medium">
+
+              {/* Right Car Record */}
+              <div className="bg-blue-100 rounded-lg p-6">
+                <div className="space-y-3">
+                  <div className="flex justify-between items-start">
+                    <div>
+                      <div className="text-sm text-gray-600">{useT()('car_plate')}</div>
+                      <div className="font-bold text-lg">PKD 3581</div>
+                    </div>
+                    <div className="w-16 h-12 bg-gray-200 rounded flex items-center justify-center">
+                      <div className="w-12 h-8 bg-white rounded-sm border"></div>
+                    </div>
+                  </div>
+                  <div>
+                                          <div className="text-sm text-gray-600">{useT()('car_model')}</div>
+                    <div className="font-semibold">Honda City 2018</div>
+                  </div>
+                  <div>
+                    <div className="text-sm text-gray-600">{useT()('insurance_active_until')} 02/01/2026</div>
+                  </div>
+                  <button className="w-full bg-white text-blue-900 border border-blue-200 py-2 rounded-lg font-medium hover:bg-blue-50">
                     {useT()('view')}
-                  </span>
+                  </button>
                 </div>
               </div>
             </div>

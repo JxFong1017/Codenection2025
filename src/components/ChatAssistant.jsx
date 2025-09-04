@@ -43,8 +43,10 @@ export default function ChatAssistant() {
     // Very lightweight parsing for demo: brand, model, year, renew intent, plate optional
     const lower = text.toLowerCase();
     const renew = /(renew|renewal)/.test(lower);
-    const yearMatch = lower.match(/(19|20)\d{2}/);
-    const plateMatch = text.match(/[A-Z]{1,3}\s?\d{1,4}/i);
+    const yearMatch = lower.match(/\b(19|20)\d{2}\b/);
+    // Malaysian-like plates: 1-3 letters + optional space/hyphen + 1-4 digits
+    // Use word boundaries to avoid matching inside words like 'Vios 2015'.
+    const plateMatch = text.match(/\b[A-Za-z]{1,3}[ -]?\d{1,4}\b/);
     // Simple brand/model extraction for Toyota Vios, Honda City, Perodua Myvi etc.
     const knownBrands = ['toyota','honda','perodua','proton','nissan','mazda','bmw','mercedes'];
     const brand = knownBrands.find(b => lower.includes(b));

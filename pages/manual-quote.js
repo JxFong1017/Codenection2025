@@ -116,12 +116,13 @@ export default function ManualQuoteSixStep() {
           </div>
         </header>
 
-        <section className="bg-blue-50 py-8">
-          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex items-center justify-between md:justify-start md:space-x-10">
+        <section className="relative bg-blue-50 py-16">
+          {/* Step bubbles */}
+          <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex justify-between items-center z-10">
             {steps.map((s) => (
-              <div key={s.id} className="text-center">
+              <div key={s.id} className="flex flex-col items-center w-1/6">
                 <div
-                  className={`w-24 h-24 rounded-full flex items-center justify-center text-4xl font-extrabold ${
+                  className={`w-16 h-16 rounded-full flex items-center justify-center text-2xl font-extrabold ${
                     step === s.id
                       ? "bg-blue-800 text-white"
                       : step > s.id
@@ -131,7 +132,7 @@ export default function ManualQuoteSixStep() {
                 >
                   {s.id}
                 </div>
-                <div className="mt-2 text-sm text-blue-900 max-w-[7.5rem] leading-snug">
+                <div className="mt-2 text-sm text-blue-900 text-center">
                   {s.title}
                 </div>
               </div>

@@ -38,12 +38,12 @@ export default function ManualQuoteSixStep() {
 
   // Step 5 (computed estimate)
   const estimateRange = useMemo(() => {
-    const base = 1200;
+    const base = 900;
     const brandFactor = brand ? 0 : 100; // encourage filling brand
     const protectionFactor =
       Object.values(protections).filter(Boolean).length * 40;
     const min = base + brandFactor + protectionFactor;
-    const max = min + 500;
+    const max = 1500;
     return { min, max };
   }, [brand, protections]);
 

@@ -4,9 +4,11 @@ import Link from "next/link";
 import { useDebounce } from "../src/hooks/useDebounce";
 import { validatePlateNumber } from "../src/utils/validationLogic";
 import CarBrandInput from "../src/components/CarBrandInput";
+import { useQuote } from "../src/context/QuoteContext";
 
 export default function ManualQuoteSixStep() {
   const [step, setStep] = useState(1);
+  const { quoteDraft, setQuoteDraft } = useQuote();
 
   // Step 1
   const [plate, setPlate] = useState("");
@@ -40,6 +42,23 @@ export default function ManualQuoteSixStep() {
     const max = min + 500;
     return { min, max };
   }, [brand, protections]);
+
+  useEffect(() => {
+    // Prefill from chat assistant
+    if (quoteDraft) {
+      if (quoteDraft.plate) setPlate(quoteDraft.plate);
+      if (quoteDraft.brand) setBrand(quoteDraft.brand);
+      if (quoteDraft.model)
+        setModel(
+          quoteDraft.model.charAt(0).toUpperCase() + quoteDraft.model.slice(1)
+        );
+      if (quoteDraft.year) setYear(String(quoteDraft.year));
+      if (quoteDraft.step) setStep(quoteDraft.step);
+      // Reset step for future entries
+      setQuoteDraft((prev) => ({ ...prev, step: 1 }));
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   useEffect(() => {
     if (!debouncedPlate) {

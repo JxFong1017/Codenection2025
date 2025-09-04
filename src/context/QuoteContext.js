@@ -8,7 +8,8 @@ export function QuoteProvider({ children }) {
     brand: '',
     model: '',
     year: '',
-    step: 1
+    step: 1,
+    fromGeran: false
   });
 
   const value = useMemo(() => ({ quoteDraft, setQuoteDraft }), [quoteDraft]);

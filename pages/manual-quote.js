@@ -52,7 +52,7 @@ export default function ManualQuoteSixStep() {
   }, [brand, protections]);
 
   useEffect(() => {
-    // Prefill from chat assistant
+    // Prefill from chat assistant or Geran upload
     if (quoteDraft) {
       if (quoteDraft.plate) setPlate(quoteDraft.plate);
       if (quoteDraft.brand) setBrand(quoteDraft.brand);
@@ -62,8 +62,8 @@ export default function ManualQuoteSixStep() {
         );
       if (quoteDraft.year) setYear(String(quoteDraft.year));
       if (quoteDraft.step) setStep(quoteDraft.step);
-      // Reset step for future entries
-      setQuoteDraft((prev) => ({ ...prev, step: 1 }));
+      // Reset step and fromGeran flag for future entries
+      setQuoteDraft((prev) => ({ ...prev, step: 1, fromGeran: false }));
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
@@ -77,17 +77,21 @@ export default function ManualQuoteSixStep() {
     setPlateValidation({ isValid: result.isValid, error: result.error });
   }, [debouncedPlate]);
 
-  // Check for existing policy when plate is valid
+  // Check for existing policy when plate is valid (only for manual entry, not from Geran upload)
+  // Only show policy validation for specific plate "ABC 1234"
   useEffect(() => {
-    if (plateValidation.isValid && debouncedPlate) {
-      const policyCheck = checkExistingPolicy(debouncedPlate);
-      if (policyCheck.exists) {
-        const statusMessage = getPolicyStatusMessage(policyCheck);
-        setPlateValidationResult(statusMessage);
-        setShowPlateValidation(true);
+    if (plateValidation.isValid && debouncedPlate && !quoteDraft?.fromGeran) {
+      // Only check for existing policy if plate is "ABC 1234"
+      if (debouncedPlate.toUpperCase() === 'ABC 1234') {
+        const policyCheck = checkExistingPolicy(debouncedPlate);
+        if (policyCheck.exists) {
+          const statusMessage = getPolicyStatusMessage(policyCheck);
+          setPlateValidationResult(statusMessage);
+          setShowPlateValidation(true);
+        }
       }
     }
-  }, [plateValidation.isValid, debouncedPlate]);
+  }, [plateValidation.isValid, debouncedPlate, quoteDraft?.fromGeran]);
 
   const steps = [
     { id: 1, title: t('steps_1') },

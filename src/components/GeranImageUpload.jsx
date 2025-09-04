@@ -1,4 +1,6 @@
 import { useState, useRef } from 'react';
+import { useRouter } from 'next/router';
+import { useQuote } from '../context/QuoteContext';
 
 export default function GeranImageUpload({ onFormDataExtracted, onClose }) {
   const [isUploading, setIsUploading] = useState(false);
@@ -7,6 +9,8 @@ export default function GeranImageUpload({ onFormDataExtracted, onClose }) {
   const [uploadProgress, setUploadProgress] = useState(0);
   const [extractionResult, setExtractionResult] = useState(null);
   const fileInputRef = useRef(null);
+  const router = useRouter();
+  const { setQuoteDraft } = useQuote();
 
   const handleFileSelect = (event) => {
     const file = event.target.files[0];
@@ -57,13 +61,13 @@ export default function GeranImageUpload({ onFormDataExtracted, onClose }) {
       // Simulate extracted data from Geran
       const extractedData = {
         state: 'selangor',
-        plateNumber: 'BKV 9429',
-        make: 'Proton',
-        model: 'Saga',
+        plateNumber: 'PJH 9196',
+        make: 'Toyota',
+        model: 'Vios',
         year: '2020',
         engineCC: '1332',
-        color: 'White',
-        vin: 'PROTON12345678901',
+        color: 'Red',
+        vin: 'TOYOTA12345678901',
         mileage: '45000',
         registrationDate: '2020-03-15',
         insuranceType: 'comprehensive',
@@ -96,7 +100,21 @@ export default function GeranImageUpload({ onFormDataExtracted, onClose }) {
     }
   };
 
-  const handleManualInput = () => {
+  const handleContinueToForm = () => {
+    // Update quote draft with extracted data
+    if (extractionResult) {
+      setQuoteDraft({
+        plate: extractionResult.plateNumber,
+        brand: extractionResult.make,
+        model: extractionResult.model,
+        year: extractionResult.year,
+        step: 3, // Navigate to step 3 (Additional Information)
+        fromGeran: true // Mark that this data came from Geran upload
+      });
+    }
+    
+    // Navigate to manual quote form at step 3
+    router.push('/manual-quote');
     onClose();
   };
 
@@ -257,7 +275,7 @@ export default function GeranImageUpload({ onFormDataExtracted, onClose }) {
                   Upload Different Image
                 </button>
                 <button
-                  onClick={handleManualInput}
+                  onClick={handleContinueToForm}
                   className="px-6 py-2 bg-blue-600 text-white font-medium rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition-colors duration-200"
                 >
                   Continue to Form

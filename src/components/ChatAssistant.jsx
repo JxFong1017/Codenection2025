@@ -1,4 +1,6 @@
 import { useEffect, useRef, useState } from 'react';
+import { useRouter } from 'next/router';
+import { useQuote } from '../context/QuoteContext';
 
 const FAQ_ENTRIES = [
   {
@@ -30,10 +32,41 @@ export default function ChatAssistant() {
   ]);
   const [input, setInput] = useState('');
   const endRef = useRef(null);
+  const router = useRouter();
+  const { setQuoteDraft } = useQuote();
 
   useEffect(() => {
     endRef.current?.scrollIntoView({ behavior: 'smooth' });
   }, [messages, isOpen]);
+
+  const tryParseIntent = (text) => {
+    // Very lightweight parsing for demo: brand, model, year, renew intent, plate optional
+    const lower = text.toLowerCase();
+    const renew = /(renew|renewal)/.test(lower);
+    const yearMatch = lower.match(/(19|20)\d{2}/);
+    const plateMatch = text.match(/[A-Z]{1,3}\s?\d{1,4}/i);
+    // Simple brand/model extraction for Toyota Vios, Honda City, Perodua Myvi etc.
+    const knownBrands = ['toyota','honda','perodua','proton','nissan','mazda','bmw','mercedes'];
+    const brand = knownBrands.find(b => lower.includes(b));
+    const models = ['vios','yaris','corolla','city','civic','accord','myvi','axia','saga','wira','almera'];
+    const model = models.find(m => lower.includes(m));
+    const year = yearMatch ? yearMatch[0] : '';
+    const plate = plateMatch ? plateMatch[0].toUpperCase().replace(/\s+/, ' ') : '';
+
+    if (renew && (brand || plate || model || year)) {
+      setQuoteDraft((prev) => ({
+        ...prev,
+        plate: plate || prev.plate,
+        brand: brand ? brand.charAt(0).toUpperCase() + brand.slice(1) : prev.brand,
+        model: model ? model.charAt(0).toUpperCase() + model.slice(1) : prev.model,
+        year: year || prev.year,
+        step: 2
+      }));
+      router.push('/manual-quote');
+      return 'Got it. I\'ll prefill your quote with what I understood and take you to the form.';
+    }
+    return null;
+  };
 
   const findAnswer = (text) => {
     for (const item of FAQ_ENTRIES) {
@@ -46,7 +79,8 @@ export default function ChatAssistant() {
     const trimmed = input.trim();
     if (!trimmed) return;
     const userMsg = { role: 'user', content: trimmed };
-    const reply = { role: 'assistant', content: findAnswer(trimmed) };
+    const intentReply = tryParseIntent(trimmed);
+    const reply = { role: 'assistant', content: intentReply || findAnswer(trimmed) };
     setMessages((m) => [...m, userMsg, reply]);
     setInput('');
   };

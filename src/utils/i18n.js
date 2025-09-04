@@ -113,6 +113,18 @@ const DICTS = {
     insurance_expired_days: 'Insurance Expired in 30 days',
     insurance_active_until: 'Insurance Active Until',
     
+    // Plate validation
+    policy_expired: 'Policy Expired',
+    policy_expiring_soon: 'Policy Expiring Soon',
+    active_policy_found: 'Active Policy Found',
+    policy_expired_message: 'This vehicle\'s insurance expired on {date}. You can proceed with a new policy.',
+    policy_expiring_message: 'This vehicle has an active policy expiring in {days} days ({date}). Do you want to renew early or transfer ownership?',
+    active_policy_message: 'This vehicle already has an active policy until {date}. Do you want to renew early or transfer ownership?',
+    renew_early: 'Renew Early',
+    transfer_ownership: 'Transfer Ownership',
+    proceed_anyway: 'Proceed Anyway',
+    cancel: 'Cancel',
+    
     // Chat assistant
     chat_welcome: 'Hi! I\'m CGS Assistant. Ask me anything about updating your car insurance.',
     chat_got_it: 'Got it. I\'ll prefill your quote with what I understood and take you to the form.',
@@ -232,6 +244,18 @@ const DICTS = {
     insurance_expired_days: 'Insurans Tamat Tempoh dalam 30 hari',
     insurance_active_until: 'Insurans Aktif Sehingga',
     
+    // Plate validation
+    policy_expired: 'Polisi Tamat Tempoh',
+    policy_expiring_soon: 'Polisi Akan Tamat Tempoh',
+    active_policy_found: 'Polisi Aktif Ditemui',
+    policy_expired_message: 'Insurans kenderaan ini telah tamat tempoh pada {date}. Anda boleh meneruskan dengan polisi baru.',
+    policy_expiring_message: 'Kenderaan ini mempunyai polisi aktif yang akan tamat tempoh dalam {days} hari ({date}). Adakah anda mahu memperbaharui awal atau memindahkan pemilikan?',
+    active_policy_message: 'Kenderaan ini sudah mempunyai polisi aktif sehingga {date}. Adakah anda mahu memperbaharui awal atau memindahkan pemilikan?',
+    renew_early: 'Perbaharui Awal',
+    transfer_ownership: 'Pindahkan Pemilikan',
+    proceed_anyway: 'Teruskan Juga',
+    cancel: 'Batal',
+    
     // Chat assistant
     chat_welcome: 'Hi! Saya Pembantu CGS. Tanya saya apa-apa tentang mengemas kini insurans kereta anda.',
     chat_got_it: 'Baik. Saya akan mengisi sebut harga anda dengan apa yang saya fahami dan membawa anda ke borang.',
@@ -350,6 +374,18 @@ const DICTS = {
     car_model: '车型',
     insurance_expired_days: '保险30天内到期',
     insurance_active_until: '保险有效期至',
+    
+    // Plate validation
+    policy_expired: '保单已过期',
+    policy_expiring_soon: '保单即将过期',
+    active_policy_found: '发现有效保单',
+    policy_expired_message: '此车辆的保险已于{date}过期。您可以继续购买新保单。',
+    policy_expiring_message: '此车辆有有效保单将在{days}天后过期（{date}）。您要提前续保还是转移所有权？',
+    active_policy_message: '此车辆已有有效保单至{date}。您要提前续保还是转移所有权？',
+    renew_early: '提前续保',
+    transfer_ownership: '转移所有权',
+    proceed_anyway: '继续',
+    cancel: '取消',
     
     // Chat assistant
     chat_welcome: '您好！我是CGS助手。您可以询问任何关于更新车险的问题。',

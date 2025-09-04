@@ -6,6 +6,8 @@ import { validatePlateNumber } from "../src/utils/validationLogic";
 import CarBrandInput from "../src/components/CarBrandInput";
 import { useQuote } from "../src/context/QuoteContext";
 import { useT } from "../src/utils/i18n";
+import { checkExistingPolicy, getPolicyStatusMessage } from "../src/data/insuranceDatabase";
+import PlateValidationPopup from "../src/components/PlateValidationPopup";
 
 export default function ManualQuoteSixStep() {
   const [step, setStep] = useState(1);
@@ -21,6 +23,8 @@ export default function ManualQuoteSixStep() {
   });
 
   const [showPlateConfirm, setShowPlateConfirm] = useState(false);
+  const [showPlateValidation, setShowPlateValidation] = useState(false);
+  const [plateValidationResult, setPlateValidationResult] = useState(null);
 
   // Step 2
   const [brand, setBrand] = useState("");
@@ -73,6 +77,18 @@ export default function ManualQuoteSixStep() {
     setPlateValidation({ isValid: result.isValid, error: result.error });
   }, [debouncedPlate]);
 
+  // Check for existing policy when plate is valid
+  useEffect(() => {
+    if (plateValidation.isValid && debouncedPlate) {
+      const policyCheck = checkExistingPolicy(debouncedPlate);
+      if (policyCheck.exists) {
+        const statusMessage = getPolicyStatusMessage(policyCheck);
+        setPlateValidationResult(statusMessage);
+        setShowPlateValidation(true);
+      }
+    }
+  }, [plateValidation.isValid, debouncedPlate]);
+
   const steps = [
     { id: 1, title: t('steps_1') },
     { id: 2, title: t('steps_2') },
@@ -86,6 +102,32 @@ export default function ManualQuoteSixStep() {
     setProtections((prev) => ({ ...prev, [k]: !prev[k] }));
   const goNext = () => setStep((s) => Math.min(6, s + 1));
   const goBack = () => setStep((s) => Math.max(1, s - 1));
+
+  // Plate validation handlers
+  const handlePlateValidationClose = () => {
+    setShowPlateValidation(false);
+    setPlateValidationResult(null);
+  };
+
+  const handlePlateValidationProceed = () => {
+    setShowPlateValidation(false);
+    setPlateValidationResult(null);
+    setShowPlateConfirm(true);
+  };
+
+  const handleRenewEarly = () => {
+    setShowPlateValidation(false);
+    setPlateValidationResult(null);
+    // Navigate to renewal flow or pre-fill with existing policy data
+    setShowPlateConfirm(true);
+  };
+
+  const handleTransferOwnership = () => {
+    setShowPlateValidation(false);
+    setPlateValidationResult(null);
+    // Navigate to transfer ownership flow
+    setShowPlateConfirm(true);
+  };
 
   const canProceedFrom = (currentStep) => {
     if (currentStep === 1)
@@ -510,6 +552,16 @@ export default function ManualQuoteSixStep() {
             )}
           </div>
         </main>
+
+        {/* Plate Validation Popup */}
+        <PlateValidationPopup
+          isOpen={showPlateValidation}
+          onClose={handlePlateValidationClose}
+          onProceed={handlePlateValidationProceed}
+          onRenew={handleRenewEarly}
+          onTransfer={handleTransferOwnership}
+          validationResult={plateValidationResult}
+        />
       </div>
     </>
   );

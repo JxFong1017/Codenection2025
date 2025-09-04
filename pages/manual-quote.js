@@ -140,8 +140,22 @@ export default function ManualQuoteSixStep() {
           </div>
         </section>
 
-        <main className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-10">
-          <div className="bg-white rounded-2xl shadow border border-gray-200 p-8">
+        <main className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-10 ">
+          {/* Background car images */}
+          <div className="absolute inset-0 flex justify-center items-center pointer-events-none z-0">
+            <img
+              src="/images/car-picture-1.jpg"
+              alt="Car Left"
+              className="w-130 h-auto mr-90 opacity-100 mt-120"
+            />
+            <img
+              src="/images/car-picture-2.jpg"
+              alt="Car Right"
+              className="w-120 h-auto ml-90 opacity-100 mt-120"
+            />
+          </div>
+
+          <div className="relative z-10 bg-white rounded-2xl shadow border border-gray-200 p-8">
             {step === 1 && (
               <div className="text-center">
                 <h2 className="text-xl font-bold text-blue-900 mb-6">

@@ -3,7 +3,6 @@ import Head from 'next/head';
 import Link from 'next/link';
 import Image from 'next/image';
 import { signIn } from 'next-auth/react';
-import VehicleForm from '../src/components/VehicleForm';
 
 
 
@@ -92,34 +91,27 @@ export default function Home() {
             </div>
 
             {/* Right Side - Login/Signup Form */}
-            <div className="relative flex items-center justify-center p-8 lg:p-12 overflow-hidden">
+            <div className="relative p-0 lg:p-0 overflow-hidden">
               {/* Background Image */}
-              <div className="absolute inset-0">
+              <div className="relative h-[520px] lg:h-full">
                 <Image
-                  src="https://images.unsplash.com/photo-1558618666-fcd25c85cd64?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=2069&q=80"
+                  src="https://images.unsplash.com/photo-1558618666-fcd25c85cd64?ixlib=rb-4.0.3&auto=format&fit=crop&w=1600&q=80"
                   alt="Luxury SUV background"
                   fill
-                  className="object-cover brightness-60"
+                  className="object-cover"
                   priority
                 />
+                <div className="absolute inset-0 bg-black/40" />
               </div>
 
-              {/* Vehicle Information Form */}
-              <div className="py-16 bg-gray-100">
-                <VehicleForm />
-              </div>
-
-              
-              {/* Background Image Overlay */}
-              <div className="absolute inset-0 bg-black bg-opacity-30"></div>
-              
-              <div className="relative z-10 w-full max-w-md">
-                <div className="bg-white bg-opacity-10 backdrop-blur-sm rounded-2xl p-8">
-                  <h3 className="text-2xl font-bold text-white mb-8 text-center">
+              {/* Auth Form over image */}
+              <div className="absolute inset-0 flex items-center justify-center px-6">
+                <div className="w-full max-w-lg">
+                  <h3 className="text-2xl font-bold text-white mb-6">
                     {isLoginMode ? 'LOG IN' : 'SIGN UP'}
                   </h3>
 
-                  <form onSubmit={handleSubmit} className="space-y-6">
+                  <form onSubmit={handleSubmit} className="space-y-5">
                     {!isLoginMode && (
                       <>
                         <div>
@@ -130,7 +122,7 @@ export default function Home() {
                             type="text"
                             value={formData.name}
                             onChange={(e) => handleInputChange('name', e.target.value)}
-                            className="w-full px-4 py-3 bg-white rounded-lg text-gray-900 placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-300"
+                            className="w-full px-4 py-2 bg-white rounded text-gray-900 placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-300"
                             placeholder="Enter your full name"
                             required={!isLoginMode}
                           />
@@ -143,7 +135,7 @@ export default function Home() {
                             type="text"
                             value={formData.ic}
                             onChange={(e) => handleInputChange('ic', e.target.value)}
-                            className="w-full px-4 py-3 bg-white rounded-lg text-gray-900 placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-300"
+                            className="w-full px-4 py-2 bg-white rounded text-gray-900 placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-300"
                             placeholder="Enter your IC number"
                             required={!isLoginMode}
                           />
@@ -159,7 +151,7 @@ export default function Home() {
                         type="email"
                         value={formData.email}
                         onChange={(e) => handleInputChange('email', e.target.value)}
-                        className="w-full px-4 py-3 bg-white rounded-lg text-gray-900 placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-300"
+                        className="w-full px-4 py-2 bg-white rounded text-gray-900 placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-300"
                         placeholder="Enter your email"
                         required
                       />
@@ -171,14 +163,14 @@ export default function Home() {
                           Phone number
                         </label>
                         <div className="flex">
-                          <select className="px-3 py-3 bg-white rounded-l-lg text-gray-900 border-r border-gray-300 focus:outline-none">
+                          <select className="px-3 py-2 bg-white rounded-l text-gray-900 border-r border-gray-300 focus:outline-none">
                             <option>🇲🇾 +60</option>
                           </select>
                           <input
                             type="tel"
                             value={formData.phone}
                             onChange={(e) => handleInputChange('phone', e.target.value)}
-                            className="flex-1 px-4 py-3 bg-white rounded-r-lg text-gray-900 placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-300"
+                            className="flex-1 px-4 py-2 bg-white rounded-r text-gray-900 placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-300"
                             placeholder="Enter phone number"
                             required={!isLoginMode}
                           />
@@ -194,7 +186,7 @@ export default function Home() {
                         type="password"
                         value={formData.password}
                         onChange={(e) => handleInputChange('password', e.target.value)}
-                        className="w-full px-4 py-3 bg-white rounded-lg text-gray-900 placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-300"
+                        className="w-full px-4 py-2 bg-white rounded text-gray-900 placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-300"
                         placeholder="Enter your password"
                         required
                       />
@@ -209,7 +201,7 @@ export default function Home() {
                           type="password"
                           value={formData.confirmPassword}
                           onChange={(e) => handleInputChange('confirmPassword', e.target.value)}
-                          className="w-full px-4 py-3 bg-white rounded-lg text-gray-900 placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-300"
+                          className="w-full px-4 py-2 bg-white rounded text-gray-900 placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-300"
                           placeholder="Confirm your password"
                           required={!isLoginMode}
                         />
@@ -234,25 +226,25 @@ export default function Home() {
 
                     <button
                       type="submit"
-                      className="w-full bg-blue-900 text-white py-3 rounded-lg font-medium hover:bg-blue-800 transition-colors"
+                      className="w-36 bg-blue-900 text-white py-2 rounded font-medium hover:bg-blue-800 transition-colors"
                     >
                       {isLoginMode ? 'LOG IN' : 'SIGN UP'}
                     </button>
 
-                    <div className="text-center">
-                      <span className="text-white">OR</span>
+                    <div className="flex items-center space-x-3 text-white">
+                      <span>OR</span>
                     </div>
 
                     <button
                       type="button"
                       onClick={() => setIsLoginMode(!isLoginMode)}
-                      className="w-full bg-white text-blue-900 py-3 rounded-lg font-medium hover:bg-gray-50 transition-colors border border-blue-900"
+                      className="w-36 bg-white text-blue-900 py-2 rounded font-medium hover:bg-gray-50 transition-colors border border-blue-900"
                     >
                       {isLoginMode ? 'SIGN UP' : 'LOG IN'}
                     </button>
 
                     {isLoginMode && (
-                      <div className="space-y-2 text-center">
+                      <div className="space-y-2">
                         <a href="#" className="block text-blue-200 text-sm hover:text-white">
                           Forgot your password?
                         </a>
@@ -310,6 +302,56 @@ export default function Home() {
                   Easily compare plans to find the best value for your car insurance.
                   </p>
                 </div>
+            </div>
+          </div>
+        </section>
+
+        {/* Insurance Products */}
+        <section className="py-16 bg-blue-800">
+          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-white">
+            <h3 className="text-3xl font-extrabold text-center mb-2">Insurance Products</h3>
+            <p className="text-center text-blue-100 mb-6">Explore our variety of car insurance products tailored for you.</p>
+            <div className="text-center mb-10">
+              <button className="bg-black text-white px-5 py-2 rounded">View All Products</button>
+            </div>
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+              {[{
+                title:'Basic Insurance',desc:'Covers essential damages'
+              },{
+                title:'Comprehensive Insurance',desc:'Covers all damages'
+              },{
+                title:'Third Party, Fire and Theft Insurance',desc:'Covers third-party liabilities'
+              }].map((card,idx)=> (
+                <div key={idx} className="bg-white rounded shadow p-4 text-blue-900">
+                  <div className="h-40 bg-blue-100 rounded mb-4"></div>
+                  <div className="text-xs text-gray-500 mb-1">{idx===0?'Best Seller': idx===1?'Top Rated':''}</div>
+                  <div className="font-semibold">{card.title}</div>
+                  <div className="text-sm text-gray-600">{card.desc}</div>
+                </div>
+              ))}
+            </div>
+          </div>
+        </section>
+
+        {/* Customer Reviews */}
+        <section className="py-16 bg-white">
+          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <h3 className="text-2xl font-extrabold text-gray-900 text-center mb-2">Customer Reviews</h3>
+            <p className="text-center text-gray-500 mb-8">See what our customers are saying about us!</p>
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+              {["John Doe","Jane Smith","Alice Johnson"].map((name,idx)=> (
+                <div key={idx} className="bg-gray-50 rounded-lg p-6 shadow-sm">
+                  <div className="flex items-center space-x-3 mb-3">
+                    <div className="w-9 h-9 rounded-full bg-blue-100" />
+                    <div className="font-medium text-gray-900">{name}</div>
+                  </div>
+                  <p className="text-gray-700 text-sm">
+                    {idx===0 && 'Great service and affordable rates!'}
+                    {idx===1 && 'Had a hassle-free experience finding my policy.'}
+                    {idx===2 && 'The quotes were quick and easy to understand.'}
+                  </p>
+                </div>
+              ))}
             </div>
           </div>
         </section>

@@ -4,6 +4,7 @@ import { LanguageProvider } from '../src/context/LanguageContext';
 import dynamic from 'next/dynamic';
 
 const LanguageSwitcher = dynamic(() => import('../src/components/LanguageSwitcher'), { ssr: false });
+const ChatAssistant = dynamic(() => import('../src/components/ChatAssistant'), { ssr: false });
 
 export default function App({ Component, pageProps: { session, ...pageProps } }) {
   return (
@@ -11,6 +12,7 @@ export default function App({ Component, pageProps: { session, ...pageProps } })
       <LanguageProvider>
         <LanguageSwitcher />
         <Component {...pageProps} />
+        <ChatAssistant />
       </LanguageProvider>
     </SessionProvider>
   );

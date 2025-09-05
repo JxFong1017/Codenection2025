@@ -214,7 +214,7 @@ export default function VehicleValidationForm() {
     const allValid = Object.values(finalValidation).every(Boolean);
     
     if (allValid) {
-      alert('Vehicle validation completed successfully! Confidence Score: ' + (confidenceScore * 100).toFixed(1) + '%');
+      router.push(`/confirm?plateNumber=${encodeURIComponent(formData.plateNumber)}`);
     } else {
       alert('Please fix validation errors before submitting.');
     }

@@ -248,7 +248,7 @@ export default function Home() {
                       </div>
                     )}
 
-                    <div className="flex justify-center items-center space-x-3">
+                    <div className="flex flex-col items-center space-y-3">
                       <button
                         type="submit"
                         className="w-36 bg-black text-white py-2 rounded font-bold hover:bg-blue-800 transition-colors"
@@ -256,15 +256,30 @@ export default function Home() {
                         {isLoginMode ? "LOG IN" : "SIGN UP"}
                       </button>
 
-                      <span className="text-white font-bold">OR</span>
+                      {isLoginMode && (
+                        <>
+                          <span className="text-white font-bold">OR</span>
+                          <button
+                            type="button"
+                            onClick={() => setIsLoginMode(!isLoginMode)}
+                            className="w-36 bg-transparent text-white py-2 rounded font-bold border border-white hover:bg-white/20 transition-colors"
+                          >
+                            {useT()("signup")}
+                          </button>
+                        </>
+                      )}
 
-                      <button
-                        type="button"
-                        onClick={() => setIsLoginMode(!isLoginMode)}
-                        className="w-36 bg-transparent text-white py-2 rounded font-bold border border-white hover:bg-white/20 transition-colors"
-                      >
-                        {isLoginMode ? useT()("signup") : useT()("login")}
-                      </button>
+                      {!isLoginMode && (
+                        <p className="text-white text-center text-sm">
+                          Already have an account?{" "}
+                          <span
+                            onClick={() => setIsLoginMode(true)}
+                            className="underline cursor-pointer font-bold text-[#67DABB]"
+                          >
+                            Login here
+                          </span>
+                        </p>
+                      )}
                     </div>
 
                     {isLoginMode && (

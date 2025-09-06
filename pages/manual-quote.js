@@ -308,20 +308,35 @@ export default function ManualQuoteSixStep() {
                   <CarBrandInput value={brand} onChange={setBrand} />
 
                   {/* Car Model */}
-                  <div>
+                  <div className="relative">
                     <label className="block text-blue-900 font-semibold mb-2">
                       {t("car_model")}
                     </label>
-                    <select
+                    <input
+                      type="text"
                       value={model}
                       onChange={(e) => setModel(e.target.value)}
                       className="w-full px-4 py-3 bg-blue-50 rounded-lg text-blue-900 border border-blue-100 focus:ring-2 focus:ring-blue-400"
-                    >
-                      <option value="">Select model</option>
-                      <option value="Vios">Vios</option>
-                      <option value="Yaris">Yaris</option>
-                      <option value="Corolla">Corolla</option>
-                    </select>
+                      placeholder="Type to search..."
+                      autoComplete="off"
+                    />
+                    {model && (
+                      <ul className="absolute z-20 w-full bg-white border border-gray-200 rounded-lg mt-1 max-h-40 overflow-y-auto">
+                        {["Vios", "Veloz", "Yaris", "Corolla"]
+                          .filter((m) =>
+                            m.toLowerCase().startsWith(model.toLowerCase())
+                          )
+                          .map((m) => (
+                            <li
+                              key={m}
+                              className="px-4 py-2 hover:bg-blue-50 cursor-pointer"
+                              onClick={() => setModel(m)}
+                            >
+                              {m}
+                            </li>
+                          ))}
+                      </ul>
+                    )}
                   </div>
 
                   {/* Manufactured Year */}

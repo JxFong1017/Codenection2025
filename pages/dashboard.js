@@ -11,17 +11,25 @@ export default function Dashboard() {
   const { data: session, status } = useSession();
   const router = useRouter();
   const [showDecisionPopup, setShowDecisionPopup] = useState(false);
-  const [hasShownPopup, setHasShownPopup] = useState(false);
+  const [showLogoutPopup, setShowLogoutPopup] = useState(false);
+
+  const handleLogout = () => {
+    signOut({ callbackUrl: "/" });
+  };
 
   useEffect(() => {
     if (status === "unauthenticated") {
       router.push("/auth/signin");
     }
-    // Remove automatic popup - user must click "Get Quotation" button
+  }, [status, router]);
+
+  useEffect(() => {
+    if (status === "unauthenticated") {
+      router.push("/auth/signin");
+    }
   }, [status, router]);
 
   const handleGetQuotation = () => {
-    // Go to decision page first
     router.push("/get-quote");
   };
 
@@ -29,17 +37,14 @@ export default function Dashboard() {
     setShowDecisionPopup(false);
 
     if (decision === "manual") {
-      // User chose manual input - redirect to form
       router.push("/vehicle-validation-form");
     } else if (decision === "image") {
-      // User chose image upload - redirect to form with image mode
       router.push("/vehicle-validation-form?mode=image");
     }
   };
 
   const handleClosePopup = () => {
     setShowDecisionPopup(false);
-    // Redirect to vehicle form anyway
     router.push("/vehicle-validation-form");
   };
 
@@ -111,7 +116,7 @@ export default function Dashboard() {
                     className="flex items-center space-x-2 text-gray-600 hover:text-blue-900"
                   >
                     <img
-                      src="/images/notification.png" // replace with your image path
+                      src="/images/notification.png"
                       alt="Notifications"
                       className="w-5 h-5"
                     />
@@ -119,27 +124,40 @@ export default function Dashboard() {
                   </a>
                 </nav>
 
-                {/* User Info */}
-                <div className="flex items-center space-x-4">
-                  <div className="bg-black text-white px-4 py-2 rounded text-sm font-medium">
-                    {session.user.email?.toUpperCase() || "USER@GMAIL.COM"}
-                  </div>
-                  <div className="flex items-center space-x-2">
-                    <span className="text-sm text-gray-600">EN</span>
-                    <svg
-                      className="w-4 h-4 text-gray-600"
-                      fill="none"
-                      stroke="currentColor"
-                      viewBox="0 0 24 24"
-                    >
-                      <path
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        strokeWidth={2}
-                        d="M19 9l-7 7-7-7"
-                      />
-                    </svg>
-                  </div>
+                {/* User Info as Logout Button */}
+                <div className="relative">
+                  <button
+                    onClick={() => setShowLogoutPopup(!showLogoutPopup)}
+                    className="bg-black text-white px-4 py-2 rounded text-sm font-medium hover:bg-gray-800 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
+                  >
+                    {session.user.email || "user@gmail.com"}
+                  </button>
+
+                  {/* Small Popup */}
+                  {showLogoutPopup && (
+                    <div className="absolute right-0 translate-x-1 mt-2 w-48 bg-white rounded-lg shadow-lg border border-gray-200 z-50">
+                      <p className="px-4 py-3 text-gray-700 text-sm text-left">
+                        Are you sure you want to log out?
+                      </p>
+                      <div className="flex border-t border-gray-200">
+                        <button
+                          onClick={() => setShowLogoutPopup(false)}
+                          className="flex-1 px-4 py-2 text-sm text-gray-600 hover:bg-gray-100 rounded-bl-lg"
+                        >
+                          Cancel
+                        </button>
+                        <button
+                          onClick={() => {
+                            setShowLogoutPopup(false);
+                            signOut({ callbackUrl: "/" });
+                          }}
+                          className="flex-1 px-4 py-2 text-sm text-red-500 hover:bg-red-50 rounded-br-lg"
+                        >
+                          Log out
+                        </button>
+                      </div>
+                    </div>
+                  )}
                 </div>
               </div>
             </div>

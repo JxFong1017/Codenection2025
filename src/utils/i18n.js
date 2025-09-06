@@ -124,6 +124,8 @@ const DICTS = {
     car_model: "Car Model",
     insurance_expired_days: "Insurance Expired in 30 days",
     insurance_active_until: "Insurance Active Until",
+    logout_confirmation: "Are you sure you want to log out?",
+    log_out: "Log out",
 
     // Plate validation
     policy_expired: "Policy Expired",
@@ -275,6 +277,8 @@ const DICTS = {
     car_model: "Model Kereta",
     insurance_expired_days: "Insurans Tamat Tempoh dalam 30 hari",
     insurance_active_until: "Insurans Aktif Sehingga",
+    logout_confirmation: "Adakah anda pasti mahu log keluar?",
+    log_out: "Log keluar",
 
     // Plate validation
     policy_expired: "Polisi Tamat Tempoh",
@@ -416,6 +420,8 @@ const DICTS = {
     car_model: "车型",
     insurance_expired_days: "保险30天内到期",
     insurance_active_until: "保险有效期至",
+    logout_confirmation: "您确定要注销吗？",
+    log_out: "注销",
 
     // Plate validation
     policy_expired: "保单已过期",

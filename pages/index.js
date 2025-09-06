@@ -235,7 +235,7 @@ export default function Home() {
                         type="submit"
                         className="w-36 bg-black text-white py-2 rounded font-bold hover:bg-blue-800 transition-colors"
                       >
-                        {isLoginMode ? "LOG IN" : "SIGN UP"}
+                        {isLoginMode ? useT()("login") : useT()("signup")}
                       </button>
 
                       {isLoginMode && (

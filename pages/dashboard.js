@@ -8,6 +8,7 @@ import Image from "next/image";
 import Link from "next/link";
 
 export default function Dashboard() {
+  const t = useT();
   const { data: session, status } = useSession();
   const router = useRouter();
   const [showDecisionPopup, setShowDecisionPopup] = useState(false);
@@ -16,12 +17,6 @@ export default function Dashboard() {
   const handleLogout = () => {
     signOut({ callbackUrl: "/" });
   };
-
-  useEffect(() => {
-    if (status === "unauthenticated") {
-      router.push("/auth/signin");
-    }
-  }, [status, router]);
 
   useEffect(() => {
     if (status === "unauthenticated") {
@@ -137,14 +132,15 @@ export default function Dashboard() {
                   {showLogoutPopup && (
                     <div className="absolute right-0 translate-x-1 mt-2 w-48 bg-white rounded-lg shadow-lg border border-gray-200 z-50">
                       <p className="px-4 py-3 text-gray-700 text-sm text-left">
-                        Are you sure you want to log out?
+                        {t("logout_confirmation")}
+                        {/* Alternatively, you can add this key to your DICTS like: logout_confirmation */}
                       </p>
                       <div className="flex border-t border-gray-200">
                         <button
                           onClick={() => setShowLogoutPopup(false)}
                           className="flex-1 px-4 py-2 text-sm text-gray-600 hover:bg-gray-100 rounded-bl-lg"
                         >
-                          Cancel
+                          {t("cancel", "Cancel")}
                         </button>
                         <button
                           onClick={() => {
@@ -153,7 +149,7 @@ export default function Dashboard() {
                           }}
                           className="flex-1 px-4 py-2 text-sm text-red-500 hover:bg-red-50 rounded-br-lg"
                         >
-                          Log out
+                          {t("log_out", "Log out")}
                         </button>
                       </div>
                     </div>

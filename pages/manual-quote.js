@@ -335,7 +335,7 @@ export default function ManualQuoteSixStep() {
                       className="w-full px-4 py-3 bg-blue-50 rounded-lg text-blue-900 border border-blue-100 focus:ring-2 focus:ring-blue-400"
                     >
                       <option value="">Select year</option>
-                      {Array.from({ length: 25 }, (_, i) => 2025 - i).map(
+                      {Array.from({ length: 24 }, (_, i) => 2025 - i).map(
                         (y) => (
                           <option key={y} value={y}>
                             {y}

@@ -279,17 +279,6 @@ export default function Dashboard() {
                   {useT()("view")}
                 </button>
               </div>
-
-              {/* Right side image */}
-              <div className="flex items-center justify-center h-64">
-                <Image
-                  src="/images/robot.png"
-                  alt="Robot Character"
-                  width={150}
-                  height={150}
-                  className="object-contain"
-                />
-              </div>
             </div>
           </div>
 

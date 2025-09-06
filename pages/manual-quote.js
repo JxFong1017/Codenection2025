@@ -245,15 +245,16 @@ export default function ManualQuoteSixStep() {
                 </div>
                 {plate.replace(/\s/g, "").length > 10 && (
                   <p className="mt-3 text-xs text-red-500">
-                    Maximum length: 10 characters exclude space
+                    {t("plate_max_length")}
                   </p>
                 )}
+
                 <div className="flex justify-between mt-8 max-w-md mx-auto">
                   <Link
-                    href="/"
+                    href="/dashboard"
                     className="px-6 py-3 rounded-xl font-semibold border border-blue-200 text-blue-900 hover:bg-blue-50"
                   >
-                    {t("back")} to Landing Page
+                    {t("back_to_home")}
                   </Link>
 
                   <button

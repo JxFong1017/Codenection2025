@@ -5,6 +5,7 @@ import Head from "next/head";
 import DecisionPopup from "../src/components/DecisionPopup";
 import { useT } from "../src/utils/i18n";
 import Image from "next/image";
+import Link from "next/link";
 
 export default function Dashboard() {
   const { data: session, status } = useSession();

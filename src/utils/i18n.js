@@ -69,6 +69,7 @@ const DICTS = {
     steps_5: "Estimated car insurance range",
     steps_6: "Finish",
     plate_prompt: "Please enter your car plate number:",
+    plate_max_length: "Maximum length: 10 characters exclude space",
     car_plate_number: "Car plate number:",
     car_brand: "Car Brand:",
     car_model: "Car Model:",
@@ -95,6 +96,7 @@ const DICTS = {
     next: "Next",
     submit: "Submit",
     done: "Done",
+    back_to_home: "Back to Home Page",
 
     // Dashboard
     get_quote_instantly: "Get Your Car Insurance Quote Instantly",
@@ -217,6 +219,7 @@ const DICTS = {
     steps_5: "Anggaran harga insurans kereta",
     steps_6: "Selesai",
     plate_prompt: "Sila masukkan nombor plat kereta anda:",
+    plate_max_length: "Panjang maksimum: 10 aksara tanpa ruang",
     car_plate_number: "Nombor plat kereta:",
     car_brand: "Jenama Kereta:",
     car_model: "Model Kereta:",
@@ -243,6 +246,7 @@ const DICTS = {
     next: "Seterusnya",
     submit: "Hantar",
     done: "Selesai",
+    back_to_home: "Kembali ke Halaman Utama",
 
     // Dashboard
     get_quote_instantly: "Dapatkan Sebut Harga Insurans Kereta Anda Seketika",
@@ -359,6 +363,7 @@ const DICTS = {
     steps_5: "车险预估范围",
     steps_6: "完成",
     plate_prompt: "请输入您的车牌号：",
+    plate_max_length: "最多 10 个字符，不包括空格",
     car_plate_number: "车牌号：",
     car_brand: "品牌：",
     car_model: "车型：",
@@ -384,6 +389,7 @@ const DICTS = {
     next: "下一步",
     submit: "提交",
     done: "完成",
+    back_to_home: "返回主页",
 
     // Dashboard
     get_quote_instantly: "立即获取车险报价",

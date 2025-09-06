@@ -11,8 +11,10 @@ import {
   getPolicyStatusMessage,
 } from "../src/data/insuranceDatabase";
 import PlateValidationPopup from "../src/components/PlateValidationPopup";
+import { useSession } from "next-auth/react";
 
 export default function ManualQuoteSixStep() {
+  const { data: session } = useSession();
   const [step, setStep] = useState(1);
   const { quoteDraft, setQuoteDraft } = useQuote();
   const t = useT();
@@ -179,12 +181,54 @@ export default function ManualQuoteSixStep() {
       </Head>
       <div className="min-h-screen bg-white">
         <header className="bg-white shadow-sm">
-          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
+          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center">
+            {/* Logo on the left */}
             <Link href="/" className="text-2xl font-bold text-blue-900">
               CGS
             </Link>
-            <div className="text-sm font-medium px-3 py-1 rounded bg-black text-white">
-              USERNAME123@GMAIL.COM
+
+            {/* Navigation Links + Email pushed to the right */}
+            <div className="flex items-center ml-auto space-x-6">
+              {/* Navigation Links */}
+              <nav className="hidden md:flex space-x-6">
+                <a
+                  href="#"
+                  className="flex items-center space-x-2 text-gray-600 hover:text-blue-900"
+                >
+                  <img
+                    src="/images/profile.png"
+                    alt="Profile"
+                    className="w-5 h-5"
+                  />
+                  <span>Profile</span>
+                </a>
+                <a
+                  href="#"
+                  className="flex items-center space-x-2 text-gray-600 hover:text-blue-900"
+                >
+                  <img
+                    src="/images/get-quotation.png"
+                    alt="Get Quotation"
+                    className="w-5 h-5"
+                  />
+                  <span>Get Quotation</span>
+                </a>
+                <a
+                  href="#"
+                  className="flex items-center space-x-2 text-gray-600 hover:text-blue-900"
+                >
+                  <img
+                    src="/images/notification.png"
+                    alt="Notifications"
+                    className="w-5 h-5"
+                  />
+                  <span>Notifications</span>
+                </a>
+              </nav>
+
+              <div className="bg-black text-white px-4 py-2 rounded text-sm font-medium hover:bg-gray-800 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500">
+                {session?.user?.email || "USERNAME123@GMAIL.COM"}
+              </div>
             </div>
           </div>
         </header>

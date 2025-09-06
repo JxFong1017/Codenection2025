@@ -91,7 +91,7 @@ const DICTS = {
     estimated_range: "Estimated Car Insurance Range:",
     your_quotation_sent: "Your insurance quotation has been sent to",
     contact_us_help:
-      "If you have any questions, please do not hesitate to contact us.",
+      "If you have any questions, please do not hesitate to {contact_us}.",
     back: "Back",
     next: "Next",
     submit: "Submit",
@@ -241,7 +241,7 @@ const DICTS = {
     estimated_range: "Anggaran Julat Insurans Kereta:",
     your_quotation_sent: "Sebut harga insurans anda telah dihantar ke",
     contact_us_help:
-      "Jika anda mempunyai sebarang soalan, jangan teragak-agak untuk menghubungi kami.",
+      "Jika anda mempunyai sebarang soalan, jangan teragak-agak untuk {contact_us}.",
     back: "Kembali",
     next: "Seterusnya",
     submit: "Hantar",
@@ -384,7 +384,7 @@ const DICTS = {
     check_ncd: "检查无索赔折扣",
     estimated_range: "预估车险范围：",
     your_quotation_sent: "您的保险报价已发送至",
-    contact_us_help: "如有任何问题，请随时联系我们。",
+    contact_us_help: "如有任何问题，请随时{contact_us}。",
     back: "返回",
     next: "下一步",
     submit: "提交",
@@ -446,4 +446,12 @@ export function useT() {
   const { language } = useLanguage();
   const dict = DICTS[language] || DICTS.en;
   return (key, fallback) => dict[key] ?? fallback ?? key;
+}
+
+export function translateWithPlaceholders(t, key, placeholders = {}) {
+  let str = t(key);
+  Object.entries(placeholders).forEach(([k, v]) => {
+    str = str.replace(`{${k}}`, v);
+  });
+  return str;
 }

@@ -12,6 +12,7 @@ import {
 } from "../src/data/insuranceDatabase";
 import PlateValidationPopup from "../src/components/PlateValidationPopup";
 import { useSession } from "next-auth/react";
+import ContactHelp from "../src/components/ContactHelp";
 
 export default function ManualQuoteSixStep() {
   const { data: session } = useSession();
@@ -183,7 +184,10 @@ export default function ManualQuoteSixStep() {
         <header className="bg-white shadow-sm">
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center">
             {/* Logo on the left */}
-            <Link href="/" className="text-2xl font-bold text-blue-900">
+            <Link
+              href="/dashboard"
+              className="text-2xl font-bold text-blue-900"
+            >
               CGS
             </Link>
 
@@ -626,11 +630,15 @@ export default function ManualQuoteSixStep() {
                 <h2 className="text-xl font-bold text-blue-900 mb-2">
                   {t("your_quotation_sent")}
                 </h2>
-                <p className="text-blue-900">has been sent to</p>
                 <div className="mt-4 text-3xl font-extrabold text-blue-800">
-                  {name || "username123"}@gmail.com
+                  {session?.user?.email || "USERNAME123@GMAIL.COM"}
                 </div>
-                <p className="mt-6 text-gray-600">{t("contact_us_help")}</p>
+
+                {/* Contact Help with underlined links */}
+                <div className="mt-6 text-gray-700">
+                  <ContactHelp />
+                </div>
+
                 <div className="mt-8">
                   <Link
                     href="/dashboard"

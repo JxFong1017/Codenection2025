@@ -150,6 +150,28 @@ export default function ManualQuoteSixStep() {
     return true;
   };
 
+  const handlePlateInput = (e) => {
+    const input = e.target;
+    let { selectionStart } = input;
+    let value = input.value.toUpperCase();
+
+    const clean = value.replace(/\s+/g, "");
+
+    const formatted = clean
+      .replace(/([A-Z]+)(\d+)/gi, "$1 $2")
+      .replace(/(\d+)([A-Z]+)/gi, "$1 $2");
+
+    if (formatted.length > value.length) selectionStart += 1;
+    else if (formatted.length < value.length) selectionStart -= 1;
+
+    setPlate(formatted);
+
+    setTimeout(
+      () => input.setSelectionRange(selectionStart, selectionStart),
+      0
+    );
+  };
+
   return (
     <>
       <Head>
@@ -215,7 +237,7 @@ export default function ManualQuoteSixStep() {
                 <div className="flex justify-center">
                   <input
                     value={plate}
-                    onChange={(e) => setPlate(e.target.value.toUpperCase())}
+                    onChange={handlePlateInput}
                     className="w-full max-w-md px-6 py-4 bg-blue-50 rounded-xl text-blue-900 text-xl text-center outline-none border border-blue-100 focus:ring-2 focus:ring-blue-400"
                     placeholder="e.g. PKD 8381"
                     disabled={showPlateConfirm} // ← disable when confirmation is showing

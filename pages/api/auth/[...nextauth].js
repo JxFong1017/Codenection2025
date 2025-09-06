@@ -1,31 +1,32 @@
-import NextAuth from 'next-auth';
-import GoogleProvider from 'next-auth/providers/google';
-import CredentialsProvider from 'next-auth/providers/credentials';
+import NextAuth from "next-auth";
+import GoogleProvider from "next-auth/providers/google";
+import CredentialsProvider from "next-auth/providers/credentials";
 
 // Check if Google OAuth credentials are configured
-const isGoogleConfigured = process.env.GOOGLE_CLIENT_ID && process.env.GOOGLE_CLIENT_SECRET;
+const isGoogleConfigured =
+  process.env.GOOGLE_CLIENT_ID && process.env.GOOGLE_CLIENT_SECRET;
 
 const providers = [
   // Add credentials provider for demo purposes
   CredentialsProvider({
-    name: 'credentials',
+    name: "credentials",
     credentials: {
-      email: { label: 'Email', type: 'email' },
-      password: { label: 'Password', type: 'password' }
+      email: { label: "Email", type: "email" },
+      password: { label: "Password", type: "password" },
     },
     async authorize(credentials) {
       // Demo authentication - accept any email/password combination
       if (credentials?.email && credentials?.password) {
         return {
-          id: '1',
-          name: 'Demo User',
+          id: "1",
+          name: "Demo User",
           email: credentials.email,
-          image: null
+          image: null,
         };
       }
       return null;
-    }
-  })
+    },
+  }),
 ];
 
 if (isGoogleConfigured) {
@@ -57,7 +58,7 @@ export default NextAuth({
         return `${baseUrl}/dashboard`;
       }
       // Allow relative callback URLs
-      if (url.startsWith('/')) {
+      if (url.startsWith("/")) {
         return `${baseUrl}${url}`;
       }
       // Allow callback URLs on the same origin
@@ -68,9 +69,9 @@ export default NextAuth({
     },
   },
   pages: {
-    signIn: '/auth/signin',
-    signOut: '/auth/signout',
+    signIn: "/auth/signin",
+    signOut: "/auth/signout",
   },
-  secret: process.env.NEXTAUTH_SECRET || 'your-secret-key-here',
-  debug: process.env.NODE_ENV === 'development',
+  secret: process.env.NEXTAUTH_SECRET || "your-secret-key-here",
+  debug: process.env.NODE_ENV === "development",
 });

@@ -176,11 +176,6 @@ styles/
 - **Available Models**: Saga, Persona, X70, Iriz, Exora
 - **Dynamic Filtering**: Only shows models for the selected make
 
-### Year Validation
-- **Model**: 2023 Honda Civic
-- **Input Year**: 1980
-- **Warning**: "Year 1980 seems unlikely for Civic (expected around 2023)"
-
 ## 🎯 Success Criteria Met
 
 ✅ **Typing BKV9429 (no space) suggests the correct format BKV 9429**  
@@ -207,14 +202,10 @@ styles/
 4. Add tests if applicable
 5. Submit a pull request
 
-##Reference
+## 📄 Reference
 1. Presentation Slides: https://www.canva.com/design/DAGxzTY_CyE/LDaR0Q85nIvLTkAKIm6dxQ/edit?utm_content=DAGxzTY_CyE&utm_campaign=designshare&utm_medium=link2&utm_source=sharebutton
 
 2. Youtube Link: https://youtu.be/iHL23TGzBM0?si=_Gyi-CKGK4GXV42H
-
-## 📄 License
-
-This project is licensed under the MIT License.
 
 ## 🆘 Support
 

@@ -16,8 +16,9 @@ const DICTS = {
     identification_number: "Identification Number",
     phone_number: "Phone number",
     confirm_password: "Confirm Password",
-    terms_accept:
-      "I have read, understood and accepted the terms and conditions of the platform.",
+    terms_accept_text: "I have read, understood and accepted the",
+    terms_conditions: "terms and conditions",
+    terms_accept_suffix: "of the platform.",
     forgot_password: "Forgot your password?",
     confirmation_instructions: "Didn't receive confirmation instructions?",
 
@@ -167,8 +168,9 @@ const DICTS = {
     identification_number: "Nombor Pengenalan",
     phone_number: "Nombor telefon",
     confirm_password: "Sahkan Kata Laluan",
-    terms_accept:
-      "Saya telah membaca, memahami dan menerima terma dan syarat platform.",
+    terms_accept_text: "Saya telah membaca, memahami dan menerima",
+    terms_conditions: "terma dan syarat",
+    terms_accept_suffix: "platform.",
     forgot_password: "Lupa kata laluan anda?",
     confirmation_instructions: "Tidak menerima arahan pengesahan?",
 
@@ -319,7 +321,9 @@ const DICTS = {
     identification_number: "身份证号码",
     phone_number: "电话号码",
     confirm_password: "确认密码",
-    terms_accept: "我已阅读、理解并接受平台条款和条件。",
+    terms_accept_text: "我已阅读、理解并接受平台的",
+    terms_conditions: "条款和条件",
+    terms_accept_suffix: "",
     forgot_password: "忘记密码？",
     confirmation_instructions: "未收到确认说明？",
 

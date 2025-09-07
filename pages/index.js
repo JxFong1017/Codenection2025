@@ -225,7 +225,14 @@ export default function Home() {
                           required
                         />
                         <label htmlFor="terms" className="text-white text-sm">
-                          {useT()("terms_accept")}
+                          {useT()("terms_accept_text")}{" "}
+                          <Link
+                            href="/terms"
+                            className="underline text-[#67DABB] hover:text-white"
+                          >
+                            {useT()("terms_conditions")}
+                          </Link>{" "}
+                          {useT()("terms_accept_suffix")}
                         </label>
                       </div>
                     )}

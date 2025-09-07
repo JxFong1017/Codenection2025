@@ -151,7 +151,7 @@ pages/
 ✅ **Protected routes and user dashboard**  
 ✅ **Comprehensive user profile management**  
 
-## 🔮 Future Enhancements (Tier 2)
+## 🔮 Future Enhancements
 
 - **Vehicle Preview Card**: Visual representation of entered vehicle data
 - **AI-powered Suggestions**: TensorFlow.js integration for smarter error detection
@@ -169,11 +169,6 @@ pages/
 4. Add tests if applicable
 5. Submit a pull request
 
-## 📄 License
-
-This project is licensed under the MIT License.
-
-## 🆘 Support
 
 For questions or support, please open an issue in the repository.
 

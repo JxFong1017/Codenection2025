@@ -36,22 +36,54 @@ A real-time, client-side form validation system for vehicle details that detects
 ```
 src/
 ├── components/
-│   └── VehicleForm.jsx          # Main form component
+│   ├── CarBrandInput.jsx        # Car brand selection component
+│   ├── ChatAssistant.jsx        # AI chat assistant component
+│   ├── ContactHelp.jsx          # Contact and help component
+│   ├── DecisionPopup.jsx        # Decision confirmation popup
+│   ├── GeranImageUpload.jsx     # Vehicle registration document upload
+│   ├── LanguageSwitcher.jsx     # Multi-language support component
+│   ├── PlateValidationPopup.jsx # Plate number validation popup
+│   └── VehicleForm.jsx          # Main vehicle form component
+├── context/
+│   ├── LanguageContext.js       # Language state management
+│   └── QuoteContext.js          # Insurance quote state management
 ├── data/
+│   ├── insuranceDatabase.js     # Insurance company and policy data
 │   └── vehicleDatabase.js       # Vehicle database and metadata
 ├── hooks/
 │   └── useDebounce.js           # Custom debouncing hooks
 └── utils/
+    ├── i18n.js                  # Internationalization utilities
     └── validationLogic.js       # Core validation functions
 
 pages/
 ├── _app.js                      # App wrapper with NextAuth
+├── _document.js                 # Custom document structure
 ├── index.js                     # Landing page with auth redirect
+├── api/
+│   ├── auth/
+│   │   └── [...nextauth].js     # NextAuth.js API routes
+│   └── hello.js                 # API test endpoint
 ├── auth/
 │   └── signin.js               # Google sign-in page
+├── confirm.js                   # Confirmation page
 ├── dashboard.js                 # User dashboard
+├── get-quote.js                 # Insurance quote generation
+├── insurance-form.js            # Insurance application form
+├── manual-quote.js              # Manual quote entry
 ├── profile.js                   # User profile management
-└── vehicle-form.js              # Vehicle validation form
+├── vehicle-form.js              # Vehicle validation form
+└── vehicle-validation-form.js   # Advanced vehicle validation
+
+public/
+├── images/                      # Static images and assets
+│   ├── car-picture-*.jpg        # Vehicle images
+│   ├── *.png                    # UI icons and illustrations
+│   └── *.svg                    # Vector graphics
+└── favicon.ico                  # Site favicon
+
+styles/
+└── globals.css                  # Global CSS styles
 ```
 
 ## 🚀 Getting Started
@@ -151,7 +183,7 @@ pages/
 ✅ **Protected routes and user dashboard**  
 ✅ **Comprehensive user profile management**  
 
-## 🔮 Future Enhancements (Tier 2)
+## 🔮 Future Enhancements
 
 - **Vehicle Preview Card**: Visual representation of entered vehicle data
 - **AI-powered Suggestions**: TensorFlow.js integration for smarter error detection

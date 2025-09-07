@@ -31,7 +31,7 @@ This causes:
 - **User Profile Management**: Comprehensive profile settings and preferences
 - **Real-time Validation**: Instant feedback with smart error correction
 - **Debounced Input**: Prevents excessive validation calls with intelligent debouncing
-- **Visual Feedback**: Clear validation indicators (✓ green, ✗ red, ⚠ yellow with suggestions)
+- **Visual Feedback**: Clear validation indicators (✗ red, ⚠ yellow with suggestions)
 
 ## 🚀 Extra Features
 
@@ -171,11 +171,6 @@ styles/
 - **Suggestion**: "Did you mean: BKV 9429?"
 - **Result**: Auto-formats to correct Malaysian standard
 
-### Typo Correction
-- **Input**: `BOV 9429` (where 'O' is likely '0')
-- **Suggestion**: "Did you mean: B0V 9429?"
-- **Result**: Detects common character substitutions
-
 ### Make/Model Filtering
 - **Select Make**: "Proton"
 - **Available Models**: Saga, Persona, X70, Iriz, Exora
@@ -186,28 +181,10 @@ styles/
 - **Input Year**: 1980
 - **Warning**: "Year 1980 seems unlikely for Civic (expected around 2023)"
 
-## 🔧 Validation Rules
-
-### Plate Number Format
-- **Selangor**: `B[A-Z]{2} [0-9]{4}` (e.g., BKV 9429)
-- **Kuala Lumpur**: `W[A-Z]{2} [0-9]{4}` (e.g., WXY 4567)
-- **Johor**: `J[A-Z]{2} [0-9]{4}` (e.g., JKL 1234)
-
-### Year Validation
-- **Range**: 1990 to Current Year + 1
-- **Model-specific**: ±5 years tolerance from expected model year
-
-### Engine Capacity
-- **Range**: 600cc to 8000cc
-- **Model-specific**: 30% tolerance from expected engine CC
-
 ## 🎯 Success Criteria Met
 
 ✅ **Typing BKV9429 (no space) suggests the correct format BKV 9429**  
-✅ **Typing BKV 9429 and selecting "Selangor" is marked as valid**  
-✅ **Typing BOV 9429 (where 'O' is likely a mistake for '0') suggests "Did you mean B0V 9429?"**  
 ✅ **Selecting "Proton" for make only shows Proton models**  
-✅ **Entering a year like 1980 for a 2023 model triggers a warning**  
 ✅ **User authentication with Google OAuth**  
 ✅ **Protected routes and user dashboard**  
 ✅ **Comprehensive user profile management**  
@@ -229,6 +206,11 @@ styles/
 3. Make your changes
 4. Add tests if applicable
 5. Submit a pull request
+
+##Reference
+1. Presentation Slides: https://www.canva.com/design/DAGxzTY_CyE/LDaR0Q85nIvLTkAKIm6dxQ/edit?utm_content=DAGxzTY_CyE&utm_campaign=designshare&utm_medium=link2&utm_source=sharebutton
+
+2. Youtube Link: https://youtu.be/iHL23TGzBM0?si=_Gyi-CKGK4GXV42H
 
 ## 📄 License
 

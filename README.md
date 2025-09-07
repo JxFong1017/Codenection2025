@@ -94,7 +94,7 @@ pages/
 │   │   └── [...nextauth].js     # NextAuth.js API routes
 │   └── hello.js                 # API test endpoint
 ├── auth/
-│   └── signin.js               # Google sign-in page
+│   └── signin.js                # Google sign-in page
 ├── confirm.js                   # Confirmation page
 ├── dashboard.js                 # User dashboard
 ├── get-quote.js                 # Insurance quote generation

@@ -1,20 +1,49 @@
-# Smart Vehicle Data Validation & Error Detection System (MVP)
+# Smart Vehicle Data Validation & Error Detection System
 
-A real-time, client-side form validation system for vehicle details that detects and corrects common user input errors, specifically designed for the Malaysian market.
+**Track:** Industry Collaboration (Smart Vehicle Data Validation & Error Detection by BJAK)
 
-## 🚗 Features
+A comprehensive real-time vehicle data validation and error detection system that prevents incorrect vehicle details during car insurance purchases and renewals, specifically designed for the Malaysian market.
 
-### Tier 1 (MVP) Features
+## 🎯 Problem Statement
+
+When buying or renewing car insurance online, users often enter incorrect vehicle details such as:
+- Car plate number
+- Brand
+- Model  
+- Manufacturing year
+
+This causes:
+- ❌ Delayed policy approvals
+- ❌ Wrong premium pricing
+- ❌ Risk of invalid or rejected insurance coverage
+
+## 💡 Solution
+
+### Core Validation Features
+- **Car Plate Number**: Auto-space, auto-uppercase, data validation for maximum length of 10 characters
+- **Car Brand**: Data validation & error detection & auto-correction
+- **Car Model**: Searchable dropdown that filters by the selected brand
+- **Manufacturing Year**: Dropdown with valid years for the selected brand and model
+
+### Core System Features
 - **User Authentication**: Google OAuth sign-in with secure session management
 - **User Dashboard**: Personalized landing page with quick access to features
 - **User Profile Management**: Comprehensive profile settings and preferences
-- **Real-time Plate Number Validation**: Validates Malaysian state plate number formats with instant feedback
-- **Smart Error Correction**: Suggests corrections for common typos (e.g., 'O' vs '0', 'I' vs '1')
-- **Dynamic Make/Model Filtering**: Cascading dropdowns that filter models based on selected make
-- **Year Validation**: Checks if the year is plausible for the selected vehicle model
-- **Engine Capacity Validation**: Validates engine CC against expected ranges for the model
+- **Real-time Validation**: Instant feedback with smart error correction
 - **Debounced Input**: Prevents excessive validation calls with intelligent debouncing
 - **Visual Feedback**: Clear validation indicators (✓ green, ✗ red, ⚠ yellow with suggestions)
+
+## 🚀 Extra Features
+
+- **Gmail Account Data Protection**: Secure handling of user email data
+- **Multilingual Support**: Multi-language interface for diverse users
+- **Auto Fill by Uploading Geran**: Automatic form population from vehicle registration documents
+- **Duplicate Insurance Check**: Prevents duplicate insurance applications
+- **AI Chatbot**: Intelligent assistant for user queries and support
+- **Insurance Estimation Preview**: Real-time premium calculation preview
+- **Quotation Generator & Delivery via Email**: Automated quote generation and email delivery
+- **Reminder System**: Automated reminders for policy renewals
+- **Recent Quotes and Car Records**: Historical data management and tracking
 
 ### Malaysian Market Specific
 - **State-based Plate Validation**: Supports all 16 Malaysian states with correct regex patterns
@@ -185,13 +214,13 @@ styles/
 
 ## 🔮 Future Enhancements
 
-- **Vehicle Preview Card**: Visual representation of entered vehicle data
-- **AI-powered Suggestions**: TensorFlow.js integration for smarter error detection
-- **Advanced Fuzzy Search**: Enhanced search with fuse.js for better make/model matching
-- **Data Export**: Export validation results and vehicle data
-- **Mobile Optimization**: Enhanced mobile experience with touch-friendly UI
-- **User Analytics**: Track validation patterns and user behavior
-- **Team Collaboration**: Share validation results with team members
+- **Advanced AI Integration**: Enhanced machine learning for smarter error detection
+- **Mobile App Development**: Native mobile applications for iOS and Android
+- **API Integration**: Connect with insurance company APIs for real-time data
+- **Advanced Analytics**: Comprehensive user behavior and validation pattern tracking
+- **Blockchain Integration**: Secure and immutable insurance record management
+- **Voice Input Support**: Voice-activated form filling for accessibility
+- **Integration with Government Databases**: Real-time vehicle registration verification
 
 ## 🤝 Contributing
 
@@ -201,9 +230,15 @@ styles/
 4. Add tests if applicable
 5. Submit a pull request
 
+## 📄 License
+
+This project is licensed under the MIT License.
+
+## 🆘 Support
 
 For questions or support, please open an issue in the repository.
 
 ---
 
-**Built with ❤️ for the Malaysian automotive community**
+**Built with ❤️ for the Malaysian automotive community**  
+**Industry Collaboration with BJAK - Smart Vehicle Data Validation & Error Detection**

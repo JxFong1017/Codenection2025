@@ -2,7 +2,13 @@ import { useEffect, useMemo, useState } from "react";
 import Head from "next/head";
 import Link from "next/link";
 import { useDebounce } from "../src/hooks/useDebounce";
-import { validatePlateNumber } from "../src/utils/validationLogic";
+import { validatePlateNumber ,validateCarMake,
+  getModelsForMake, // <-- New import
+  getYearsForModel, 
+  validateIC, validatePassport,     // <-- New import
+  validatePostcode, // <-- New import
+  validatePhone,  
+} from "../src/utils/validationLogic";
 import CarBrandInput from "../src/components/CarBrandInput";
 import { useQuote } from "../src/context/QuoteContext";
 import { useT } from "../src/utils/i18n";
@@ -27,6 +33,7 @@ export default function ManualQuoteSixStep() {
     isValid: false,
     error: null,
   });
+  const [modelValidation, setModelValidation] = useState({ isValid: null, error: null });
 
   const [showPlateConfirm, setShowPlateConfirm] = useState(false);
   const [showPlateValidation, setShowPlateValidation] = useState(false);
@@ -37,6 +44,12 @@ export default function ManualQuoteSixStep() {
   const [model, setModel] = useState("");
   const [year, setYear] = useState("");
 
+  const [modelSearch, setModelSearch] = useState("");
+  const [showModelDropdown, setShowModelDropdown] = useState(false);
+
+  const [availableModels, setAvailableModels] = useState([]);
+  const [availableYears, setAvailableYears] = useState([]);
+
   // Step 3
   const [protections, setProtections] = useState({});
 
@@ -44,7 +57,38 @@ export default function ManualQuoteSixStep() {
   const [name, setName] = useState("");
   const [ic, setIc] = useState("");
   const [postcode, setPostcode] = useState("");
+  const [passport, setPassport] = useState("");
+  const [phone, setPhone] = useState("");
   const [ncd, setNcd] = useState(20);
+
+  const [documentType, setDocumentType] = useState("ic");
+  const goNext = () => setStep((s) => Math.min(6, s + 1));
+  const goBack = () => setStep((s) => Math.max(1, s - 1));
+
+  const currentYear = new Date().getFullYear();
+  const isCarOlderThan15Years = () => {
+    // Check if a year has been selected
+    if (!year) {
+        return false;
+    }
+    const currentYear = new Date().getFullYear();
+    const selectedYear = parseInt(year, 10); // Convert the string to a number
+    return (currentYear - selectedYear) > 15;
+};
+
+
+  // Validation state for Step 4
+  const [icValidation, setIcValidation] = useState({ isValid: null, error: null });
+  const [passportValidation, setPassportValidation] = useState({ isValid: null, error: null }); // New validation state
+  const [postcodeValidation, setPostcodeValidation] = useState({ isValid: null, error: null });
+  const [phoneValidation, setPhoneValidation] = useState({ isValid: null, error: null });
+
+  // Debounced values for validation
+  const debouncedIC = useDebounce(ic, 500);
+  const debouncedPostcode = useDebounce(postcode, 500);
+  const debouncedPassport = useDebounce(passport, 500);
+  const debouncedPhone = useDebounce(phone, 500);
+  const debouncedModelSearch = useDebounce(modelSearch, 500);
 
   // Step 5 (computed estimate)
   const estimateRange = useMemo(() => {
@@ -56,6 +100,64 @@ export default function ManualQuoteSixStep() {
     const max = 1500;
     return { min, max };
   }, [brand, protections]);
+
+  const formatICNumber = (value) => {
+    // 1. Remove all non-digit characters (including existing dashes)
+    const cleanedValue = value.replace(/\D/g, '');
+    // 2. Apply the dash formatting based on length
+    let formattedValue = '';
+    if (cleanedValue.length > 0) {
+      formattedValue = cleanedValue.slice(0, 6);
+    }
+    if (cleanedValue.length > 6) {
+      formattedValue += '-' + cleanedValue.slice(6, 8);
+    }
+    if (cleanedValue.length > 8) {
+      formattedValue += '-' + cleanedValue.slice(8, 12);
+    }
+    // 3. Return the formatted value
+    return formattedValue;
+  };
+
+  const toggleProtection = (k) => {
+  setProtections((prev) => {
+    // If 'None' is toggled
+    if (k === "None") {
+      // If 'None' is being checked, return an object with only 'None' true
+      // Otherwise, return an empty object
+      return prev.None ? {} : { None: true };
+    } else {
+      // If any other protection is toggled
+      const newState = { ...prev, [k]: !prev[k] };
+      // Remove 'None' if any other protection is selected
+      delete newState.None;
+      return newState;
+    }
+  });
+};
+
+  // This useEffect handles both IC and Passport validation
+useEffect(() => {
+  if (documentType === 'ic') {
+    const result = validateIC(debouncedIC);
+    setIcValidation(result);
+    // Reset passport validation when IC is active
+    setPassportValidation({ isValid: null, error: null });
+  } else if (documentType === 'passport') {
+    const result = validatePassport(debouncedPassport);
+    setPassportValidation(result);
+    // Reset IC validation when Passport is active
+    setIcValidation({ isValid: null, error: null });
+  }
+}, [debouncedIC, debouncedPassport, documentType]);
+
+  useEffect(() => {
+    setPostcodeValidation(validatePostcode(debouncedPostcode));
+  }, [debouncedPostcode]);
+
+  useEffect(() => {
+    setPhoneValidation(validatePhone(debouncedPhone));
+  }, [debouncedPhone]);
 
   useEffect(() => {
     // Prefill from chat assistant or Geran upload
@@ -99,6 +201,62 @@ export default function ManualQuoteSixStep() {
     }
   }, [plateValidation.isValid, debouncedPlate, quoteDraft?.fromGeran]);
 
+  // Effect to update available models when brand changes
+  useEffect(() => {
+    if (brand) {
+      setAvailableModels(getModelsForMake(brand));
+    } else {
+      setAvailableModels([]);
+    }
+    // Reset model and year when brand changes
+    setModel("");
+    setYear("");
+    setModelSearch("");
+  }, [brand]);
+
+  // Add a new useEffect to filter models based on the search input
+  const filteredModels = useMemo(() => {
+    if (!modelSearch) {
+      return availableModels;
+    }
+    return availableModels.filter((m) =>
+      m.toLowerCase().includes(modelSearch.toLowerCase())
+    );
+  }, [modelSearch, availableModels]);
+
+  useEffect(() => {
+  if (debouncedModelSearch) {
+    // Find a model from the available list that exactly matches the debounced input
+    const matchingModel = availableModels.find(m => m.toLowerCase() === debouncedModelSearch.toLowerCase());
+
+    if (matchingModel) {
+      // If a matching model is found, automatically set it as the selected model
+      setModel(matchingModel);
+      setModelSearch(matchingModel); // Keep the search input consistent
+      setModelValidation({ isValid: true, error: null });
+      // You may also want to close the dropdown here
+      setShowModelDropdown(false); 
+    } else {
+      // If no match is found, set the validation to invalid
+      setModelValidation({ isValid: false, error: "Invalid model. Please choose from the dropdown list." });
+    }
+  } else {
+    // If the search input is empty, reset the validation state
+    setModelValidation({ isValid: null, error: null });
+  }
+}, [debouncedModelSearch, availableModels, setModel, setModelSearch]);
+
+  // Effect to update available years when model changes
+  useEffect(() => {
+    if (brand && model) {
+      setAvailableYears(getYearsForModel(brand, model));
+    } else {
+      setAvailableYears([]);
+    }
+    // Reset year when model changes
+    setYear("");
+  }, [brand, model]);
+
   const steps = [
     { id: 1, title: t("steps_1") },
     { id: 2, title: t("steps_2") },
@@ -107,11 +265,6 @@ export default function ManualQuoteSixStep() {
     { id: 5, title: t("steps_5") },
     { id: 6, title: t("steps_6") },
   ];
-
-  const toggleProtection = (k) =>
-    setProtections((prev) => ({ ...prev, [k]: !prev[k] }));
-  const goNext = () => setStep((s) => Math.min(6, s + 1));
-  const goBack = () => setStep((s) => Math.max(1, s - 1));
 
   // Plate validation handlers
   const handlePlateValidationClose = () => {
@@ -140,18 +293,37 @@ export default function ManualQuoteSixStep() {
   };
 
   const canProceedFrom = (currentStep) => {
-    if (currentStep === 1)
-      return (
-        plateValidation.isValid &&
-        plate.trim() !== "" &&
-        plate.replace(/\s/g, "").length <= 10
-      );
-    if (currentStep === 2) return brand && model && year;
-    if (currentStep === 3) return true;
-    if (currentStep === 4) return name && ic && postcode;
-    if (currentStep === 5) return true;
+  if (currentStep === 1) {
+    return (
+      plateValidation.isValid &&
+      plate.trim() !== "" &&
+      plate.replace(/\s/g, "").length <= 10
+    );
+  }
+  if (currentStep === 2) {
+    return brand && model && year && modelValidation.isValid;
+  }
+  if (currentStep === 3) {
+    return Object.keys(protections).length > 0;
+  }
+  if (currentStep === 4) {
+    // Logic for step 4 is now correctly enclosed
+    const isDocumentValid = documentType === 'ic'
+      ? icValidation.isValid === true
+      : passportValidation.isValid === true;
+      
+    // The return statement is now inside the if block
+    return (
+      name.trim() !== "" &&
+      isDocumentValid &&
+      postcodeValidation.isValid === true 
+    );
+  }
+  if (currentStep === 5) {
     return true;
-  };
+  }
+  return false;
+};
 
   const handlePlateInput = (e) => {
     const input = e.target;
@@ -340,7 +512,7 @@ export default function ManualQuoteSixStep() {
                     }} // next step
                     className="px-6 py-2 rounded-lg bg-blue-800 text-white font-semibold hover:bg-blue-900"
                   >
-                    {t("next")}
+                    {t("Yes")}
                   </button>
                 </div>
               </div>
@@ -348,66 +520,93 @@ export default function ManualQuoteSixStep() {
 
             {step === 2 && (
               <div>
-                <div className="text-xl font-bold text-blue-900 mb-6">
-                  {t("car_plate_number")} {plate || "—"}
-                </div>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                  {/* Car Brand input */}
-                  <CarBrandInput value={brand} onChange={setBrand} />
+          <div className="text-xl font-bold text-blue-900 mb-6">
+            {t("Car Plate Number: ")} {plate || "—"}
+          </div>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            {/* Car Brand input (already a component) */}
+            <CarBrandInput value={brand} onChange={setBrand} />
 
-                  {/* Car Model */}
-                  <div className="relative">
-                    <label className="block text-blue-900 font-semibold mb-2">
-                      {t("car_model")}
-                    </label>
-                    <input
-                      type="text"
-                      value={model}
-                      onChange={(e) => setModel(e.target.value)}
-                      className="w-full px-4 py-3 bg-blue-50 rounded-lg text-blue-900 border border-blue-100 focus:ring-2 focus:ring-blue-400"
-                      placeholder="Type to search..."
-                      autoComplete="off"
-                    />
-                    {model && (
-                      <ul className="absolute z-20 w-full bg-white border border-gray-200 rounded-lg mt-1 max-h-40 overflow-y-auto">
-                        {["Vios", "Veloz", "Yaris", "Corolla"]
-                          .filter((m) =>
-                            m.toLowerCase().startsWith(model.toLowerCase())
-                          )
-                          .map((m) => (
-                            <li
-                              key={m}
-                              className="px-4 py-2 hover:bg-blue-50 cursor-pointer"
-                              onClick={() => setModel(m)}
-                            >
-                              {m}
-                            </li>
-                          ))}
-                      </ul>
-                    )}
-                  </div>
+            {/* Car Model search input with filtered dropdown */}
+            <div className="relative">
+              <label className="block text-blue-900 font-semibold mb-2">
+                {t("Car Model:")}
+              </label>
+              {/* This should be a dropdown now */}
+              <input
+          type="text"
+          value={modelSearch}
+          onChange={(e) => {
+            setModelSearch(e.target.value);
+            setModel(""); // Clear selected model
+            setShowModelDropdown(true);
+          }}
+          onFocus={() => setShowModelDropdown(true)}
+          onBlur={() => setTimeout(() => setShowModelDropdown(false), 200)}
+          className={`w-full px-4 py-3 bg-blue-50 rounded-lg text-blue-900 border ${
+            modelValidation.isValid === true
+              ? "border-green-500" // Green border when valid
+              : modelValidation.isValid === false
+              ? "border-red-500" // Red border when invalid
+              : "border-blue-100" // Default border
+            } focus:ring-2 focus:ring-blue-400`}
+          placeholder="Type to search..."
+          disabled={!brand}
+          autoComplete="off"
+        />
 
-                  {/* Manufactured Year */}
-                  <div>
-                    <label className="block text-blue-900 font-semibold mb-2">
-                      {t("manufactured_year")}
-                    </label>
-                    <select
-                      value={year}
-                      onChange={(e) => setYear(e.target.value)}
-                      className="w-full px-4 py-3 bg-blue-50 rounded-lg text-blue-900 border border-blue-100 focus:ring-2 focus:ring-blue-400"
-                    >
-                      <option value="">Select year</option>
-                      {Array.from({ length: 24 }, (_, i) => 2025 - i).map(
-                        (y) => (
-                          <option key={y} value={y}>
-                            {y}
-                          </option>
-                        )
-                      )}
-                    </select>
-                  </div>
-                </div>
+        {/* New: Display error message if the model is invalid */}
+        {modelValidation.error && (
+          <p className="mt-2 text-sm text-red-600">{modelValidation.error}</p>
+        )}
+
+        {showModelDropdown && filteredModels.length > 0 && (
+          <ul className="absolute z-20 w-full bg-white border border-gray-200 rounded-lg mt-1 max-h-40 overflow-y-auto shadow-lg">
+            {filteredModels.map((m) => (
+              <li
+                key={m}
+                className="px-4 py-2 hover:bg-blue-50 cursor-pointer"
+                onMouseDown={(e) => { // Use onMouseDown to prevent blur
+                  e.preventDefault();
+                  setModelSearch(m);
+                  setModel(m);
+                  setShowModelDropdown(false);
+                }}
+              >
+                {m}
+              </li>
+            ))}
+          </ul>
+        )}
+      </div>
+
+            {/* Manufactured Year dropdown */}
+            <div>
+              <label className="block text-blue-900 font-semibold mb-2">
+                {t("manufactured_year")}
+              </label>
+              <select
+                value={year}
+                onChange={(e) => setYear(e.target.value)}
+                className="w-full px-4 py-3 bg-blue-50 rounded-lg text-blue-900 border border-blue-100 focus:ring-2 focus:ring-blue-400"
+                disabled={!model} // Disable until a model is selected
+              >
+                <option value="">Select year</option>
+                {availableYears
+                  .sort((a, b) => b - a) // <-- This is the key change!
+                  .map((y) => (
+                    <option key={y} value={y}>
+                      {y}
+                    </option>
+                ))}
+              </select>
+              {isCarOlderThan15Years() && (
+                <p className="mt-2 text-red-500 font-normal text-center">
+                  Your car is older than 15 years. Coverage may be limited or require special inspection.
+                </p>
+              )}
+            </div>
+          </div>
 
                 {/* Back / Next buttons */}
                 <div className="mt-8 flex justify-between">
@@ -415,14 +614,19 @@ export default function ManualQuoteSixStep() {
                     onClick={goBack}
                     className="px-8 py-3 rounded-xl font-semibold border border-blue-200 text-blue-900 hover:bg-blue-50"
                   >
-                    {t("back")}
-                  </button>
-                  <button
-                    onClick={goNext}
-                    className="px-8 py-3 rounded-xl font-semibold text-white bg-blue-800 hover:bg-blue-900"
-                  >
-                    {t("next")}
-                  </button>
+                  {t("back")}
+                </button>
+                <button
+                  onClick={goNext}
+                  disabled={!canProceedFrom(2)}
+                  className={`px-8 py-3 rounded-xl font-semibold text-white ${
+                    canProceedFrom(2)
+                      ? "bg-blue-800 hover:bg-blue-900"
+                      : "bg-gray-400 cursor-not-allowed"
+                  }`}
+                >
+                {t("next")}
+                </button>
                 </div>
               </div>
             )}
@@ -433,6 +637,19 @@ export default function ManualQuoteSixStep() {
                   {t("select_additional_protection")}
                 </h2>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  {/* Add the "None" checkbox here */}
+                  <label
+                    key="None"
+                    className="flex items-center space-x-3 p-3 rounded-lg hover:bg-blue-50 cursor-pointer"
+                  >
+                  <input
+                    type="checkbox"
+                    className="h-5 w-5"
+                    checked={!!protections.None}
+                    onChange={() => toggleProtection("None")}
+                  />
+                  <span className="text-blue-900">None</span>
+                  </label>
                   {[
                     t("windscreen"),
                     t("named_driver"),
@@ -452,6 +669,7 @@ export default function ManualQuoteSixStep() {
                         className="h-5 w-5"
                         checked={!!protections[label]}
                         onChange={() => toggleProtection(label)}
+                        disabled={!!protections.None}
                       />
                       <span className="text-blue-900">{label}</span>
                     </label>
@@ -466,7 +684,12 @@ export default function ManualQuoteSixStep() {
                   </button>
                   <button
                     onClick={goNext}
-                    className="px-8 py-3 rounded-xl font-semibold text-white bg-blue-800 hover:bg-blue-900"
+                    disabled={!canProceedFrom(3)} // Check validation for the current step (3)
+                    className={`px-8 py-3 rounded-xl font-semibold text-white ${
+                      canProceedFrom(3)
+                        ? "bg-blue-800 hover:bg-blue-900"
+                        : "bg-gray-400 cursor-not-allowed"
+                    }`}
                   >
                     {t("next")}
                   </button>
@@ -480,7 +703,7 @@ export default function ManualQuoteSixStep() {
                   {/* Vehicle Info (read-only) */}
                   <div>
                     <div className="text-blue-900 font-bold mb-2">
-                      {t("car_plate_number")}{" "}
+                      {t("Car Plate Number")}{" "}
                       <span className="font-normal">{plate || "—"}</span>
                     </div>
                     <div className="text-blue-900 font-bold mb-2">
@@ -511,7 +734,7 @@ export default function ManualQuoteSixStep() {
                   <div className="space-y-4">
                     <div>
                       <label className="block text-blue-900 font-semibold mb-2">
-                        {t("name_as_ic_field")}
+                        {t("Full Name")}
                       </label>
                       <input
                         value={name}
@@ -519,26 +742,112 @@ export default function ManualQuoteSixStep() {
                         className="w-full px-4 py-3 bg-blue-50 rounded-lg text-blue-900 border border-blue-100 focus:ring-2 focus:ring-blue-400"
                       />
                     </div>
-                    <div>
-                      <label className="block text-blue-900 font-semibold mb-2">
-                        {t("ic")}
-                      </label>
-                      <input
-                        value={ic}
-                        onChange={(e) => setIc(e.target.value)}
-                        className="w-full px-4 py-3 bg-blue-50 rounded-lg text-blue-900 border border-blue-100 focus:ring-2 focus:ring-blue-400"
-                      />
-                    </div>
+
+                    <div className="md:col-span-2 flex items-center mb-4">
+            <span className="text-blue-900 font-semibold mr-4">
+              ID Type:
+            </span>
+            <label className="inline-flex items-center">
+              <input
+                type="radio"
+                className="form-radio text-blue-600"
+                name="documentType"
+                value="ic"
+                checked={documentType === "ic"}
+                onChange={() => {
+                  setDocumentType("ic");
+                  setPassport(""); // Clear passport value
+                }}
+              />
+              <span className="ml-2 text-blue-900">NRIC (IC)</span>
+            </label>
+            <label className="inline-flex items-center ml-6">
+              <input
+                type="radio"
+                className="form-radio text-blue-600"
+                name="documentType"
+                value="passport"
+                checked={documentType === "passport"}
+                onChange={() => {
+                  setDocumentType("passport");
+                  setIc(""); // Clear IC value
+                }}
+              />
+              <span className="ml-2 text-blue-900">Passport</span>
+            </label>
+          </div>
+
+          {/* Conditional input for IC or Passport */}
+          {documentType === "ic" ? (
+            <div className="mb-4">
+              <label className="block text-blue-900 font-semibold mb-2">
+                NRIC (IC)
+              </label>
+              <input
+                type="text"
+                value={ic}
+                onChange={(e) => {
+                  const formattedIC = formatICNumber(e.target.value);
+                  setIc(formattedIC);}}
+                className={`w-full px-4 py-3 bg-blue-50 rounded-lg text-blue-900 border ${
+                  icValidation.isValid === true
+                    ? "border-green-500"
+                    : icValidation.isValid === false
+                    ? "border-red-500"
+                    : "border-blue-100"
+                }`}
+                placeholder="e.g. 050102-07-0304"
+              />
+            
+              {icValidation.error && (
+                <p className="mt-2 text-sm text-red-600">{icValidation.error}</p>
+              )}
+            </div>
+          ) : (
+            <div className="mb-4">
+              <label className="block text-blue-900 font-semibold mb-2">
+                Passport Number
+              </label>
+              <input
+                type="text"
+                value={passport}
+                onChange={(e) => setPassport(e.target.value)}
+                className={`w-full px-4 py-3 bg-blue-50 rounded-lg text-blue-900 border ${
+                  passportValidation.isValid === true
+                    ? "border-green-500"
+                    : passportValidation.isValid === false
+                    ? "border-red-500"
+                    : "border-blue-100"
+                }`}
+                placeholder="e.g. 123456789"
+              />
+              {passportValidation.error && (
+                <p className="mt-2 text-sm text-red-600">{passportValidation.error}</p>
+              )}
+            </div>
+          )}
                     <div>
                       <label className="block text-blue-900 font-semibold mb-2">
                         {t("postcode")}
                       </label>
                       <input
-                        value={postcode}
-                        onChange={(e) => setPostcode(e.target.value)}
-                        className="w-full px-4 py-3 bg-blue-50 rounded-lg text-blue-900 border border-blue-100 focus:ring-2 focus:ring-blue-400"
-                      />
-                    </div>
+              type="text"
+              value={postcode}
+              onChange={(e) => setPostcode(e.target.value)}
+              className={`w-full px-4 py-3 bg-blue-50 rounded-lg text-blue-900 border ${
+                postcodeValidation.isValid === true
+                  ? "border-green-500"
+                  : postcodeValidation.isValid === false
+                  ? "border-red-500"
+                  : "border-blue-100"
+              }`}
+              placeholder="e.g. 50000"
+            />
+            {postcodeValidation.error && (
+              <p className="mt-2 text-sm text-red-600">{postcodeValidation.error}</p>
+            )}
+          </div>
+
                   </div>
                 </div>
 
@@ -550,10 +859,9 @@ export default function ManualQuoteSixStep() {
                     {t("back")}
                   </button>
                   <button
-                    onClick={goNext}
-                    disabled={!canProceedFrom(4)}
+                    onClick={() => canProceedFrom(step) && goNext()}
                     className={`px-8 py-3 rounded-xl font-semibold text-white ${
-                      canProceedFrom(4)
+                      canProceedFrom(step)
                         ? "bg-blue-800 hover:bg-blue-900"
                         : "bg-gray-400 cursor-not-allowed"
                     }`}
@@ -665,3 +973,4 @@ export default function ManualQuoteSixStep() {
     </>
   );
 }
+  

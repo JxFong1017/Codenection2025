@@ -1073,16 +1073,6 @@ const goBack = () => {
             <option value={55}>55%</option>
           </select>
         </div>
-        <div>
-          <label className="block text-blue-900 font-semibold mb-2">
-            {t("Full Name: ")}
-          </label>
-          <input
-            value={name}
-            onChange={(e) => setName(e.target.value)}
-            className="w-full px-4 py-3 bg-blue-50 rounded-lg text-blue-900 border border-blue-100 focus:ring-2 focus:ring-blue-400"
-          />
-        </div>
 
         <div>
           <label className="block text-blue-900 font-semibold mb-2">

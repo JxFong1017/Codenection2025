@@ -20,12 +20,13 @@ import PlateValidationPopup from "../src/components/PlateValidationPopup";
 import { useSession } from "next-auth/react";
 import ContactHelp from "../src/components/ContactHelp";
 
-export default function ManualQuoteSixStep() {
+
+export default function ManualQuoteSevenStep() {
   const { data: session } = useSession();
   const [step, setStep] = useState(1);
   const { quoteDraft, setQuoteDraft } = useQuote();
   const t = useT();
-
+  const [selectedAddOns, setSelectedAddOns] = useState([]);
   // Step 1
   const [plate, setPlate] = useState("");
   const debouncedPlate = useDebounce(plate, 400);
@@ -51,9 +52,12 @@ export default function ManualQuoteSixStep() {
   const [availableYears, setAvailableYears] = useState([]);
 
   // Step 3
-  const [protections, setProtections] = useState({});
+  const [coverageType, setCoverageType] = useState("");
 
   // Step 4
+  const [protections, setProtections] = useState({});
+
+  // Step 5
   const [name, setName] = useState("");
   const [ic, setIc] = useState("");
   const [postcode, setPostcode] = useState("");
@@ -62,8 +66,7 @@ export default function ManualQuoteSixStep() {
   const [ncd, setNcd] = useState(20);
 
   const [documentType, setDocumentType] = useState("ic");
-  const goNext = () => setStep((s) => Math.min(6, s + 1));
-  const goBack = () => setStep((s) => Math.max(1, s - 1));
+
 
   const currentYear = new Date().getFullYear();
   const isCarOlderThan15Years = () => {
@@ -90,7 +93,7 @@ export default function ManualQuoteSixStep() {
   const debouncedPhone = useDebounce(phone, 500);
   const debouncedModelSearch = useDebounce(modelSearch, 500);
 
-  // Step 5 (computed estimate)
+  // Step 6 (computed estimate)
   const estimateRange = useMemo(() => {
     const base = 900;
     const brandFactor = brand ? 0 : 100; // encourage filling brand
@@ -119,20 +122,28 @@ export default function ManualQuoteSixStep() {
     return formattedValue;
   };
 
-  const toggleProtection = (k) => {
-  setProtections((prev) => {
-    // If 'None' is toggled
-    if (k === "None") {
-      // If 'None' is being checked, return an object with only 'None' true
-      // Otherwise, return an empty object
-      return prev.None ? {} : { None: true };
-    } else {
-      // If any other protection is toggled
-      const newState = { ...prev, [k]: !prev[k] };
-      // Remove 'None' if any other protection is selected
-      delete newState.None;
-      return newState;
+// Update the `toggleProtection` function to handle the new state
+const toggleProtection = (label) => {
+  setProtections((prevProtections) => {
+    // If "None" is selected, clear all other protections
+    if (label === "None") {
+      return {
+        None: !prevProtections.None, // Toggle the "None" state
+      };
     }
+
+    // If any other protection is selected, ensure "None" is not
+    const newProtections = {
+      ...prevProtections,
+      [label]: !prevProtections[label], // Toggle the selected protection
+    };
+
+    // If a new protection is selected, uncheck "None"
+    if (newProtections[label]) {
+      delete newProtections.None;
+    }
+
+    return newProtections;
   });
 };
 
@@ -258,13 +269,29 @@ useEffect(() => {
   }, [brand, model]);
 
   const steps = [
-    { id: 1, title: t("steps_1") },
-    { id: 2, title: t("steps_2") },
-    { id: 3, title: t("steps_3") },
-    { id: 4, title: t("steps_4") },
-    { id: 5, title: t("steps_5") },
-    { id: 6, title: t("steps_6") },
+    { id: 1, title: t("steps_1") }, // Plate Number
+    { id: 2, title: t("steps_2") }, // Car Details
+    { id: 3, title: "Choose Coverage" }, // New Step
+    { id: 4, title: t("steps_3") }, // Additional Protection (now step 4)
+    { id: 5, title: t("steps_4") }, // Personal Details (now step 5)
+    { id: 6, title: t("steps_5") }, // Estimate (now step 6)
+    { id: 7, title: t("steps_6") }, // Confirmation (now step 7)
   ];
+
+  // Update goNext and goBack to handle 7 steps
+  const goNext = () => setStep((s) => Math.min(7, s + 1));
+
+const goBack = () => {
+  // Check if the current step is 5 and the coverage type is not Comprehensive.
+  // This means the user skipped step 4 (Add-ons).
+  if (step === 5 && coverageType !== "Comprehensive") {
+    // If true, go back to step 3 (Choose Coverage Type)
+    setStep(3);
+  } else {
+    // Otherwise, perform the default back action
+    setStep((s) => Math.max(1, s - 1));
+  }
+};
 
   // Plate validation handlers
   const handlePlateValidationClose = () => {
@@ -293,36 +320,43 @@ useEffect(() => {
   };
 
   const canProceedFrom = (currentStep) => {
-  if (currentStep === 1) {
-    return (
-      plateValidation.isValid &&
-      plate.trim() !== "" &&
-      plate.replace(/\s/g, "").length <= 10
-    );
-  }
-  if (currentStep === 2) {
-    return brand && model && year && modelValidation.isValid;
-  }
-  if (currentStep === 3) {
+    if (currentStep === 1) {
+        return (
+            plateValidation.isValid &&
+            plate.trim() !== "" &&
+            plate.replace(/\s/g, "").length <= 10
+        );
+    }
+    if (currentStep === 2) {
+        return brand && model && year && modelValidation.isValid;
+    }
+    // New check for step 3 (Choose Type of Coverage)
+    if (currentStep === 3) {
+        return coverageType !== "";
+    }
+    if (currentStep === 4) {
+    // Check if the user has selected any protections
+    // It's considered valid if the `protections` object is not empty
     return Object.keys(protections).length > 0;
   }
-  if (currentStep === 4) {
-    // Logic for step 4 is now correctly enclosed
-    const isDocumentValid = documentType === 'ic'
-      ? icValidation.isValid === true
-      : passportValidation.isValid === true;
-      
-    // The return statement is now inside the if block
-    return (
-      name.trim() !== "" &&
-      isDocumentValid &&
-      postcodeValidation.isValid === true 
-    );
-  }
-  if (currentStep === 5) {
-    return true;
-  }
-  return false;
+    if (currentStep === 5) { // This was step 3, now it's step 4
+        const isDocumentValid = documentType === 'ic'
+            ? icValidation.isValid === true
+            : passportValidation.isValid === true;
+
+        return (
+            name.trim() !== "" &&
+            isDocumentValid &&
+            postcodeValidation.isValid === true
+        );
+    }
+    if (currentStep === 6) { // This was step 5, now it's step 6
+        return true;
+    }
+    if (currentStep === 7) { // This was step 6, now it's step 7
+        return true;
+    }
+    return false;
 };
 
   const handlePlateInput = (e) => {
@@ -631,309 +665,466 @@ useEffect(() => {
               </div>
             )}
 
-            {step === 3 && (
-              <div>
-                <h2 className="text-xl font-bold text-blue-900 mb-6">
-                  {t("select_additional_protection")}
-                </h2>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  {/* Add the "None" checkbox here */}
-                  <label
-                    key="None"
-                    className="flex items-center space-x-3 p-3 rounded-lg hover:bg-blue-50 cursor-pointer"
-                  >
-                  <input
-                    type="checkbox"
-                    className="h-5 w-5"
-                    checked={!!protections.None}
-                    onChange={() => toggleProtection("None")}
-                  />
-                  <span className="text-blue-900">None</span>
-                  </label>
-                  {[
-                    t("windscreen"),
-                    t("named_driver"),
-                    t("all_driver"),
-                    t("natural_disaster"),
-                    t("strike_riot"),
-                    t("personal_accident"),
-                    t("towing"),
-                    t("passengers_coverage"),
-                  ].map((label) => (
-                    <label
-                      key={label}
-                      className="flex items-center space-x-3 p-3 rounded-lg hover:bg-blue-50 cursor-pointer"
-                    >
-                      <input
-                        type="checkbox"
-                        className="h-5 w-5"
-                        checked={!!protections[label]}
-                        onChange={() => toggleProtection(label)}
-                        disabled={!!protections.None}
-                      />
-                      <span className="text-blue-900">{label}</span>
-                    </label>
-                  ))}
-                </div>
-                <div className="mt-8 flex justify-between">
-                  <button
-                    onClick={goBack}
-                    className="px-8 py-3 rounded-xl font-semibold border border-blue-200 text-blue-900 hover:bg-blue-50"
-                  >
-                    {t("back")}
-                  </button>
-                  <button
-                    onClick={goNext}
-                    disabled={!canProceedFrom(3)} // Check validation for the current step (3)
-                    className={`px-8 py-3 rounded-xl font-semibold text-white ${
-                      canProceedFrom(3)
-                        ? "bg-blue-800 hover:bg-blue-900"
-                        : "bg-gray-400 cursor-not-allowed"
-                    }`}
-                  >
-                    {t("next")}
-                  </button>
-                </div>
-              </div>
-            )}
+           {step === 3 && (
+  <div>
+    <h2 className="text-xl font-bold text-blue-900 mb-6">
+      Choose Your Coverage Type
+    </h2>
+    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+      {/* Third-Party Only Option */}
+      <label className={`flex items-center space-x-3 p-4 rounded-lg border border-blue-200 hover:bg-blue-50 cursor-pointer shadow-sm ${coverageType === "Third-Party Only" ? 'bg-blue-50 border-blue-800' : ''}`}>
+        <input
+          type="radio"
+          name="coverageType"
+          value="Third-Party Only"
+          checked={coverageType === "Third-Party Only"}
+          onChange={(e) => setCoverageType(e.target.value)}
+          className="h-5 w-5 text-blue-600 focus:ring-blue-500"
+        />
+        <div className="flex-1">
+          <h3 className="text-lg font-semibold text-blue-900">
+            Third-Party Only
+          </h3>
+          <p className="text-sm text-gray-600">
+            Covers damages to other parties' vehicles or property.
+          </p>
+          {/* Conditional message for Third-Party Only */}
+          {coverageType === "Third-Party Only" && (
+            <p className="text-sm text-red-500 mt-1">
+              No additional protection available.
+            </p>
+          )}
+        </div>
+      </label>
+
+      {/* Third-Party, Fire & Theft Option */}
+      <label className={`flex items-center space-x-3 p-4 rounded-lg border border-blue-200 hover:bg-blue-50 cursor-pointer shadow-sm ${coverageType === "Third-Party, Fire & Theft" ? 'bg-blue-50 border-blue-800' : ''}`}>
+        <input
+          type="radio"
+          name="coverageType"
+          value="Third-Party, Fire & Theft"
+          checked={coverageType === "Third-Party, Fire & Theft"}
+          onChange={(e) => setCoverageType(e.target.value)}
+          className="h-5 w-5 text-blue-600 focus:ring-blue-500"
+        />
+        <div className="flex-1">
+          <h3 className="text-lg font-semibold text-blue-900">
+            Third-Party, Fire & Theft
+          </h3>
+          <p className="text-sm text-gray-600">
+            Includes Third-Party coverage plus protection against fire and theft.
+          </p>
+          {/* Conditional message for Third-Party, Fire & Theft */}
+          {coverageType === "Third-Party, Fire & Theft" && (
+            <p className="text-sm text-red-500 mt-1">
+              No additional protection available.
+            </p>
+          )}
+        </div>
+      </label>
+
+      {/* Comprehensive Option */}
+      <label className={`flex items-center space-x-3 p-4 rounded-lg border border-blue-200 hover:bg-blue-50 cursor-pointer shadow-sm ${coverageType === "Comprehensive" ? 'bg-blue-50 border-blue-800' : ''}`}>
+        <input
+          type="radio"
+          name="coverageType"
+          value="Comprehensive"
+          checked={coverageType === "Comprehensive"}
+          onChange={(e) => setCoverageType(e.target.value)}
+          className="h-5 w-5 text-blue-600 focus:ring-blue-500"
+        />
+        <div className="flex-1">
+          <h3 className="text-lg font-semibold text-blue-900">
+            Comprehensive
+          </h3>
+          <p className="text-sm text-gray-600">
+            The highest level of protection, covering damage to your vehicle, third parties, fire, and theft.
+          </p>
+        </div>
+      </label>
+    </div>
+
+    {/* Navigation Buttons */}
+    <div className="mt-8 flex justify-between">
+      <button
+        onClick={goBack}
+        className="px-8 py-3 rounded-xl font-semibold border border-blue-200 text-blue-900 hover:bg-blue-50"
+      >
+        {t("back")}
+      </button>
+      <button
+        onClick={() => {
+          if (coverageType === "Comprehensive") {
+            setStep(step + 1); // Move to the next step
+          } else {
+            // For other coverage types, skip to step 5 (assuming step 4 is add-ons)
+            setStep(5);
+          }
+        }}
+        disabled={!coverageType}
+        className={`px-8 py-3 rounded-xl font-semibold text-white ${
+          coverageType ? "bg-blue-800 hover:bg-blue-900" : "bg-gray-400 cursor-not-allowed"
+        }`}
+      >
+        {t("next")}
+      </button>
+    </div>
+  </div>
+)}
 
             {step === 4 && (
-              <div>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                  {/* Vehicle Info (read-only) */}
-                  <div>
-                    <div className="text-blue-900 font-bold mb-2">
-                      {t("Car Plate Number")}{" "}
-                      <span className="font-normal">{plate || "—"}</span>
-                    </div>
-                    <div className="text-blue-900 font-bold mb-2">
-                      {t("car_brand")}{" "}
-                      <span className="font-normal">{brand || "—"}</span>
-                    </div>
-                    <div className="text-blue-900 font-bold mb-2">
-                      {t("car_model")}{" "}
-                      <span className="font-normal">{model || "—"}</span>
-                    </div>
-                    <div className="text-blue-900 font-bold mb-2">
-                      {t("manufactured_year")}{" "}
-                      <span className="font-normal">{year || "—"}</span>
-                    </div>
-                    <div className="text-blue-900 font-bold mb-2">
-                      {t("ncd")}{" "}
-                      <button
-                        className="underline font-normal"
-                        type="button"
-                        onClick={() => setNcd(20)}
-                      >
-                        {t("check_ncd")}
-                      </button>
-                    </div>
-                  </div>
+  <div>
+    <h2 className="text-xl font-bold text-blue-900 mb-6">
+      {t("select_additional_protection")}
+    </h2>
+    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+      {/* Add the "None" checkbox here */}
+      <label
+        key="None"
+        className={`flex items-center space-x-3 p-3 rounded-lg hover:bg-blue-50 cursor-pointer ${
+          protections.None ? "bg-blue-100" : ""
+        }`}
+      >
+        <input
+          type="checkbox"
+          className="h-5 w-5"
+          checked={!!protections.None}
+          onChange={() => toggleProtection("None")}
+        />
+        <span className="text-blue-900">None</span>
+      </label>
 
-                  {/* Personal Info (editable) */}
-                  <div className="space-y-4">
-                    <div>
-                      <label className="block text-blue-900 font-semibold mb-2">
-                        {t("Full Name")}
-                      </label>
-                      <input
-                        value={name}
-                        onChange={(e) => setName(e.target.value)}
-                        className="w-full px-4 py-3 bg-blue-50 rounded-lg text-blue-900 border border-blue-100 focus:ring-2 focus:ring-blue-400"
-                      />
-                    </div>
+      {[
+        t("windscreen"),
+        t("named_driver"),
+        t("all_driver"),
+        t("natural_disaster"),
+        t("strike_riot"),
+        t("personal_accident"),
+        t("towing"),
+        t("passengers_coverage"),
+      ].map((label) => (
+        <label
+          key={label}
+          className={`flex items-center space-x-3 p-3 rounded-lg cursor-pointer ${
+            protections[label] ? "bg-blue-100" : "hover:bg-blue-50"
+          } ${protections.None ? "opacity-50 cursor-not-allowed" : ""}`}
+        >
+          <input
+            type="checkbox"
+            className="h-5 w-5"
+            checked={!!protections[label]}
+            onChange={() => toggleProtection(label)}
+            disabled={!!protections.None}
+          />
+          <span className="text-blue-900">{label}</span>
+        </label>
+      ))}
+    </div>
+    <div className="mt-8 flex justify-between">
+      <button
+        onClick={goBack}
+        className="px-8 py-3 rounded-xl font-semibold border border-blue-200 text-blue-900 hover:bg-blue-50"
+      >
+        {t("back")}
+      </button>
+      <button
+  onClick={goNext}
+  // Change `canProceedFrom(3)` to `canProceedFrom(4)`
+  disabled={!canProceedFrom(4)}
+  className={`px-8 py-3 rounded-xl font-semibold text-white ${
+    canProceedFrom(4)
+      ? "bg-blue-800 hover:bg-blue-900"
+      : "bg-gray-400 cursor-not-allowed"
+  }`}
+>
+  {t("next")}
+</button>
+    </div>
+  </div>
+)}
 
-                    <div className="md:col-span-2 flex items-center mb-4">
-            <span className="text-blue-900 font-semibold mr-4">
-              ID Type:
-            </span>
-            <label className="inline-flex items-center">
-              <input
-                type="radio"
-                className="form-radio text-blue-600"
-                name="documentType"
-                value="ic"
-                checked={documentType === "ic"}
-                onChange={() => {
-                  setDocumentType("ic");
-                  setPassport(""); // Clear passport value
-                }}
-              />
-              <span className="ml-2 text-blue-900">NRIC (IC)</span>
-            </label>
-            <label className="inline-flex items-center ml-6">
-              <input
-                type="radio"
-                className="form-radio text-blue-600"
-                name="documentType"
-                value="passport"
-                checked={documentType === "passport"}
-                onChange={() => {
-                  setDocumentType("passport");
-                  setIc(""); // Clear IC value
-                }}
-              />
-              <span className="ml-2 text-blue-900">Passport</span>
-            </label>
+{step === 5 && (
+  <div>
+    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+      {/* Vehicle Info (read-only) */}
+      <div>
+        <div className="text-blue-900 font-bold mb-2">
+          {t("Car Plate Number:")}{" "}
+          <span className="font-normal">{plate || "—"}</span>
+        </div>
+        <div className="text-blue-900 font-bold mb-2">
+          {t("car_brand")}{" "}
+          <span className="font-normal">{brand || "—"}</span>
+        </div>
+        <div className="text-blue-900 font-bold mb-2">
+          {t("car_model")}{": "}
+          <span className="font-normal">{model || "—"}</span>
+        </div>
+        <div className="text-blue-900 font-bold mb-2">
+          {t("manufactured_year")}{" "}
+          <span className="font-normal">{year || "—"}</span>
+        </div>
+        <div className="text-blue-900 font-bold mb-2">
+          {t("ncd")}{" "}
+          <button
+            className="underline font-normal"
+            type="button"
+            onClick={() => setNcd(20)}
+          >
+            {t("check_ncd")}
+          </button>
+        </div>
+
+{/* New: Display Coverage Type */}
+      <div className="text-blue-900 font-bold mt-4 mb-2">
+        Type of Coverage: {" "}
+        <span className="font-normal">{coverageType || "—"}</span>
+      </div>
+
+      {/* New: Display Additional Protection (conditionally) */}
+      {coverageType === "Comprehensive" && (
+        <div className="text-blue-900 font-bold mb-2">
+          Additional Protection: {" "}
+          <span className="font-normal">
+            {Object.keys(protections).length > 0 && !protections.None
+              ? Object.keys(protections).join(", ")
+              : "None"}
+          </span>
           </div>
+        )}
+      </div>
 
-          {/* Conditional input for IC or Passport */}
-          {documentType === "ic" ? (
-            <div className="mb-4">
-              <label className="block text-blue-900 font-semibold mb-2">
-                NRIC (IC)
-              </label>
-              <input
-                type="text"
-                value={ic}
-                onChange={(e) => {
-                  const formattedIC = formatICNumber(e.target.value);
-                  setIc(formattedIC);}}
-                className={`w-full px-4 py-3 bg-blue-50 rounded-lg text-blue-900 border ${
-                  icValidation.isValid === true
-                    ? "border-green-500"
-                    : icValidation.isValid === false
-                    ? "border-red-500"
-                    : "border-blue-100"
-                }`}
-                placeholder="e.g. 050102-07-0304"
-              />
-            
-              {icValidation.error && (
-                <p className="mt-2 text-sm text-red-600">{icValidation.error}</p>
-              )}
-            </div>
-          ) : (
-            <div className="mb-4">
-              <label className="block text-blue-900 font-semibold mb-2">
-                Passport Number
-              </label>
-              <input
-                type="text"
-                value={passport}
-                onChange={(e) => setPassport(e.target.value)}
-                className={`w-full px-4 py-3 bg-blue-50 rounded-lg text-blue-900 border ${
-                  passportValidation.isValid === true
-                    ? "border-green-500"
-                    : passportValidation.isValid === false
-                    ? "border-red-500"
-                    : "border-blue-100"
-                }`}
-                placeholder="e.g. 123456789"
-              />
-              {passportValidation.error && (
-                <p className="mt-2 text-sm text-red-600">{passportValidation.error}</p>
-              )}
-            </div>
-          )}
-                    <div>
-                      <label className="block text-blue-900 font-semibold mb-2">
-                        {t("postcode")}
-                      </label>
-                      <input
+      {/* Personal Info (editable) */}
+      <div className="space-y-4">
+        {/* ... (rest of your personal info JSX) */}
+        <div>
+          <label className="block text-blue-900 font-semibold mb-2">
+            {t("Full Name: ")}
+          </label>
+          <input
+            value={name}
+            onChange={(e) => setName(e.target.value)}
+            className="w-full px-4 py-3 bg-blue-50 rounded-lg text-blue-900 border border-blue-100 focus:ring-2 focus:ring-blue-400"
+          />
+        </div>
+
+        <div className="md:col-span-2 flex items-center mb-4">
+          <span className="text-blue-900 font-semibold mr-4">
+            ID Type:
+          </span>
+          <label className="inline-flex items-center">
+            <input
+              type="radio"
+              className="form-radio text-blue-600"
+              name="documentType"
+              value="ic"
+              checked={documentType === "ic"}
+              onChange={() => {
+                setDocumentType("ic");
+                setPassport(""); // Clear passport value
+              }}
+            />
+            <span className="ml-2 text-blue-900">NRIC (IC)</span>
+          </label>
+          <label className="inline-flex items-center ml-6">
+            <input
+              type="radio"
+              className="form-radio text-blue-600"
+              name="documentType"
+              value="passport"
+              checked={documentType === "passport"}
+              onChange={() => {
+                setDocumentType("passport");
+                setIc(""); // Clear IC value
+              }}
+            />
+            <span className="ml-2 text-blue-900">Passport</span>
+          </label>
+        </div>
+
+        {/* Conditional input for IC or Passport */}
+        {documentType === "ic" ? (
+          <div className="mb-4">
+            <label className="block text-blue-900 font-semibold mb-2">
+              NRIC (IC):
+            </label>
+            <input
               type="text"
-              value={postcode}
-              onChange={(e) => setPostcode(e.target.value)}
+              value={ic}
+              onChange={(e) => {
+                const formattedIC = formatICNumber(e.target.value);
+                setIc(formattedIC);
+              }}
               className={`w-full px-4 py-3 bg-blue-50 rounded-lg text-blue-900 border ${
-                postcodeValidation.isValid === true
+                icValidation.isValid === true
                   ? "border-green-500"
-                  : postcodeValidation.isValid === false
+                  : icValidation.isValid === false
                   ? "border-red-500"
                   : "border-blue-100"
               }`}
-              placeholder="e.g. 50000"
+              placeholder="e.g. 050102-07-0304"
             />
-            {postcodeValidation.error && (
-              <p className="mt-2 text-sm text-red-600">{postcodeValidation.error}</p>
+
+            {icValidation.error && (
+              <p className="mt-2 text-sm text-red-600">
+                {icValidation.error}
+              </p>
             )}
           </div>
-
-                  </div>
-                </div>
-
-                <div className="mt-8 flex justify-between">
-                  <button
-                    onClick={goBack}
-                    className="px-8 py-3 rounded-xl font-semibold border border-blue-200 text-blue-900 hover:bg-blue-50"
-                  >
-                    {t("back")}
-                  </button>
-                  <button
-                    onClick={() => canProceedFrom(step) && goNext()}
-                    className={`px-8 py-3 rounded-xl font-semibold text-white ${
-                      canProceedFrom(step)
-                        ? "bg-blue-800 hover:bg-blue-900"
-                        : "bg-gray-400 cursor-not-allowed"
-                    }`}
-                  >
-                    {t("next")}
-                  </button>
-                </div>
-              </div>
+        ) : (
+          <div className="mb-4">
+            <label className="block text-blue-900 font-semibold mb-2">
+              Passport Number
+            </label>
+            <input
+              type="text"
+              value={passport}
+              onChange={(e) => setPassport(e.target.value)}
+              className={`w-full px-4 py-3 bg-blue-50 rounded-lg text-blue-900 border ${
+                passportValidation.isValid === true
+                  ? "border-green-500"
+                  : passportValidation.isValid === false
+                  ? "border-red-500"
+                  : "border-blue-100"
+              }`}
+              placeholder="e.g. 123456789"
+            />
+            {passportValidation.error && (
+              <p className="mt-2 text-sm text-red-600">
+                {passportValidation.error}
+              </p>
             )}
+          </div>
+        )}
+        <div>
+          <label className="block text-blue-900 font-semibold mb-2">
+            {t("postcode")}
+          </label>
+          <input
+            type="text"
+            value={postcode}
+            onChange={(e) => setPostcode(e.target.value)}
+            className={`w-full px-4 py-3 bg-blue-50 rounded-lg text-blue-900 border ${
+              postcodeValidation.isValid === true
+                ? "border-green-500"
+                : postcodeValidation.isValid === false
+                ? "border-red-500"
+                : "border-blue-100"
+            }`}
+            placeholder="e.g. 50000"
+          />
+          {postcodeValidation.error && (
+            <p className="mt-2 text-sm text-red-600">
+              {postcodeValidation.error}
+            </p>
+          )}
+        </div>
+      </div>
+    </div>
 
-            {step === 5 && (
-              <div>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                  <div className="space-y-2 text-blue-900">
-                    <div className="font-bold">
-                      {t("car_plate_number")}{" "}
-                      <span className="font-normal">{plate}</span>
-                    </div>
-                    <div className="font-bold">
-                      {t("car_brand")}{" "}
-                      <span className="font-normal">{brand}</span>
-                    </div>
-                    <div className="font-bold">
-                      {t("car_model")}{" "}
-                      <span className="font-normal">{model}</span>
-                    </div>
-                    <div className="font-bold">
-                      {t("manufactured_year")}{" "}
-                      <span className="font-normal">{year}</span>
-                    </div>
-                    <div className="font-bold">
-                      {t("ncd")} <span className="font-normal">{ncd}%</span>
-                    </div>
-                  </div>
-                  <div className="space-y-2 text-blue-900">
-                    <div className="font-bold">
-                      {t("name_as_ic_field")}{" "}
-                      <span className="font-normal">{name}</span>
-                    </div>
-                    <div className="font-bold">
-                      {t("ic")} <span className="font-normal">{ic}</span>
-                    </div>
-                    <div className="font-bold">
-                      {t("postcode")}{" "}
-                      <span className="font-normal">{postcode}</span>
-                    </div>
-                    <div className="font-bold">
-                      {t("estimated_range")}{" "}
-                      <span className="font-normal">
-                        RM{estimateRange.min}-RM{estimateRange.max}
-                      </span>
-                    </div>
-                  </div>
-                </div>
-                <div className="mt-8 flex justify-between">
-                  <button
-                    onClick={goBack}
-                    className="px-8 py-3 rounded-xl font-semibold border border-blue-200 text-blue-900 hover:bg-blue-50"
-                  >
-                    {t("back")}
-                  </button>
-                  <button
-                    onClick={goNext}
-                    className="px-8 py-3 rounded-xl font-semibold text-white bg-blue-800 hover:bg-blue-900"
-                  >
-                    Submit
-                  </button>
-                </div>
-              </div>
-            )}
-
+    <div className="mt-8 flex justify-between">
+      <button
+        onClick={goBack}
+        className="px-8 py-3 rounded-xl font-semibold border border-blue-200 text-blue-900 hover:bg-blue-50"
+      >
+        {t("back")}
+      </button>
+      <button
+        onClick={() => canProceedFrom(step) && goNext()}
+        className={`px-8 py-3 rounded-xl font-semibold text-white ${
+          canProceedFrom(step)
+            ? "bg-blue-800 hover:bg-blue-900"
+            : "bg-gray-400 cursor-not-allowed"
+        }`}
+      >
+        {t("next")}
+      </button>
+    </div>
+  </div>
+)}
             {step === 6 && (
+  <div>
+    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+      <div className="space-y-2 text-blue-900">
+        <div className="font-bold">
+          {t("car_plate_number")}{" "}
+          <span className="font-normal">{plate}</span>
+        </div>
+        <div className="font-bold">
+          {t("car_brand")}{" "}
+          <span className="font-normal">{brand}</span>
+        </div>
+        <div className="font-bold">
+          {t("car_model")}{": "}
+          <span className="font-normal">{model}</span>
+        </div>
+        <div className="font-bold">
+          {t("manufactured_year")}{" "}
+          <span className="font-normal">{year}</span>
+        </div>
+        <div className="font-bold">
+          {t("ncd")} <span className="font-normal">{ncd}%</span>
+        </div>
+
+        {/* New: Display Coverage Type */}
+        <div className="font-bold">
+          Type of Coverage: {" "}
+          <span className="font-normal">{coverageType || "—"}</span>
+        </div>
+
+        {/* New: Display Additional Protection (conditionally) */}
+        {coverageType === "Comprehensive" && (
+          <div className="font-bold">
+            Additional Protection: {" "}
+            <span className="font-normal">
+              {Object.keys(protections).length > 0 && !protections.None
+                ? Object.keys(protections).join(", ")
+                : "None"}
+            </span>
+          </div>
+        )}
+      </div>
+      <div className="space-y-2 text-blue-900">
+        <div className="font-bold">
+          {t("name_as_ic_field")}{" "}
+          <span className="font-normal">{name}</span>
+        </div>
+        <div className="font-bold">
+          {t("ic")}{" "}
+          <span className="font-normal">
+            {documentType === "ic" ? ic : passport}
+          </span>
+        </div>
+        <div className="font-bold">
+          {t("postcode")}{" "}
+          <span className="font-normal">{postcode}</span>
+        </div>
+        <div className="font-bold">
+          {t("estimated_range")}{" "}
+          <span className="font-normal">
+            RM{estimateRange.min}-RM{estimateRange.max}
+          </span>
+        </div>
+      </div>
+    </div>
+    <div className="mt-8 flex justify-between">
+      <button
+        onClick={goBack}
+        className="px-8 py-3 rounded-xl font-semibold border border-blue-200 text-blue-900 hover:bg-blue-50"
+      >
+        {t("back")}
+      </button>
+      <button
+        onClick={goNext}
+        className="px-8 py-3 rounded-xl font-semibold text-white bg-blue-800 hover:bg-blue-900"
+      >
+        Submit
+      </button>
+    </div>
+  </div>
+)}
+            {step === 7 && (
               <div className="text-center">
                 <h2 className="text-xl font-bold text-blue-900 mb-2">
                   {t("your_quotation_sent")}
@@ -973,4 +1164,3 @@ useEffect(() => {
     </>
   );
 }
-  

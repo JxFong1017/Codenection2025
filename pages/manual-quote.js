@@ -67,13 +67,12 @@ export default function ManualQuoteSevenStep() {
   const [postcode, setPostcode] = useState("");
   const [passport, setPassport] = useState("");
   const [phone, setPhone] = useState("");
-
   const [ncdValidation, setNcdValidation] = useState({
     isValid: true,
     error: "",
   });
 
-const handleNcdChange = (e) => {
+  const handleNcdChange = (e) => {
   const value = e.target.value;
   setNcdInput(value); // Always update the input field state
 
@@ -109,7 +108,6 @@ const handleNcdChange = (e) => {
   const handleCheckNcd = () => {
     window.open('https://www.mycarinfo.com.my/NCDCheck/Online', '_blank');
 ``};
-
 
   const [documentType, setDocumentType] = useState("ic");
 
@@ -453,35 +451,33 @@ const goBack = () => {
     if (currentStep === 2) {
         return brandValidation.isValid === true && modelValidation.isValid === true && year !== "";
     }
-    // New check for step 3 (Choose Type of Coverage)
     if (currentStep === 3) {
         return coverageType !== "";
     }
     if (currentStep === 4) {
-    // Check if the user has selected any protections
-    // It's considered valid if the `protections` object is not empty
-    return Object.keys(protections).length > 0;
-  }
-    if (currentStep === 5) { // This was step 3, now it's step 4
-        const isDocumentValid = documentType === 'ic'
-            ? icValidation.isValid === true
-            : passportValidation.isValid === true;
-
-        return (
-            name.trim() !== "" &&
-            isDocumentValid &&
-            postcodeValidation.isValid === true
-        );
+        return Object.keys(protections).length > 0;
     }
-    if (currentStep === 6) { // This was step 5, now it's step 6
+     if (currentStep === 5) {
+    const isDocumentValid = documentType === 'ic'
+      ? icValidation.isValid === true
+      : passportValidation.isValid === true;
+
+    // Check if both the ncdValidation state and other personal info fields are valid
+    return (
+      name.trim() !== "" &&
+      isDocumentValid &&
+      postcodeValidation.isValid === true &&
+      ncdValidation.isValid === true // This is the new, crucial check
+    );
+  }
+    if (currentStep === 6) {
         return true;
     }
-    if (currentStep === 7) { // This was step 6, now it's step 7
+    if (currentStep === 7) {
         return true;
     }
     return false;
 };
-
   const handlePlateInput = (e) => {
     const input = e.target;
     let { selectionStart } = input;
@@ -1027,25 +1023,25 @@ const goBack = () => {
           <span className="font-normal">{year || "—"}</span>
         </div>
 
-{/* New: Display Coverage Type */}
-      <div className="text-blue-900 font-bold mt-4 mb-2">
-        Type of Coverage: {" "}
-        <span className="font-normal">{coverageType || "—"}</span>
-      </div>
-
-      {/* New: Display Additional Protection (conditionally) */}
-      {coverageType === "Comprehensive" && (
+        {/* New: Display Coverage Type */}
         <div className="text-blue-900 font-bold mb-2">
-          Additional Protection: {" "}
-          <span className="font-normal">
-            {Object.keys(protections).length > 0 && !protections.None
-              ? Object.keys(protections).join(", ")
-              : "None"}
-          </span>
+          Type of Coverage: {" "}
+          <span className="font-normal">{coverageType || "—"}</span>
+        </div>
+
+        {/* New: Display Additional Protection (conditionally) */}
+        {coverageType === "Comprehensive" && (
+          <div className="text-blue-900 font-bold mb-2">
+            Additional Protection: {" "}
+            <span className="font-normal">
+              {Object.keys(protections).length > 0 && !protections.None
+                ? Object.keys(protections).join(", ")
+                : "None"}
+            </span>
           </div>
         )}
       </div>
-
+      
       {/* Personal Info (editable) */}
       <div className="space-y-4">
         {/* NCD Section (Moved to be the first item in the personal info column) */}
@@ -1053,7 +1049,7 @@ const goBack = () => {
           <label className="block text-blue-900 font-semibold mb-2">
             {t("Select Your Next NCD:")}
             <span className="font-normal ml-2">
-              (Unsure?{""}
+              (Unsure?{" "}
               <button
                 className="underline"
                 type="button"
@@ -1088,6 +1084,17 @@ const goBack = () => {
           />
         </div>
 
+        <div>
+          <label className="block text-blue-900 font-semibold mb-2">
+            {t("Full Name: ")}
+          </label>
+          <input
+            value={name}
+            onChange={(e) => setName(e.target.value)}
+            className="w-full px-4 py-3 bg-blue-50 rounded-lg text-blue-900 border border-blue-100 focus:ring-2 focus:ring-blue-400"
+          />
+        </div>
+
         <div className="md:col-span-2 flex items-center mb-4">
           <span className="text-blue-900 font-semibold mr-4">
             ID Type:
@@ -1101,7 +1108,7 @@ const goBack = () => {
               checked={documentType === "ic"}
               onChange={() => {
                 setDocumentType("ic");
-                setPassport(""); // Clear passport value
+                setPassport("");
               }}
             />
             <span className="ml-2 text-blue-900">NRIC (IC)</span>
@@ -1115,14 +1122,13 @@ const goBack = () => {
               checked={documentType === "passport"}
               onChange={() => {
                 setDocumentType("passport");
-                setIc(""); // Clear IC value
+                setIc("");
               }}
             />
             <span className="ml-2 text-blue-900">Passport</span>
           </label>
         </div>
 
-        {/* Conditional input for IC or Passport */}
         {documentType === "ic" ? (
           <div className="mb-4">
             <label className="block text-blue-900 font-semibold mb-2">
@@ -1144,7 +1150,6 @@ const goBack = () => {
               }`}
               placeholder="e.g. 050102-07-0304"
             />
-
             {icValidation.error && (
               <p className="mt-2 text-sm text-red-600">
                 {icValidation.error}

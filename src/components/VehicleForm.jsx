@@ -8,7 +8,7 @@ import {
   validateEngineCC,
   validateCarMake
 } from '../utils/validationLogic';
-import { vehicleDatabase } from '../data/vehicleDatabase';
+import { carData } from '../data/carData.js';
 import { useDebounce } from '../hooks/useDebounce';
 
 const VehicleForm = () => {

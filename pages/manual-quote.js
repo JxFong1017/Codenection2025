@@ -68,49 +68,6 @@ export default function ManualQuoteSevenStep() {
   const [passport, setPassport] = useState("");
   const [phone, setPhone] = useState("");
 
-  const [ncdValidation, setNcdValidation] = useState({
-    isValid: true,
-    error: "",
-  });
-
-const handleNcdChange = (e) => {
-  const value = e.target.value;
-  setNcdInput(value); // Always update the input field state
-
-  // If the input is empty, reset and exit
-  if (value.trim() === '') {
-    setNcdValidation({ isValid: null, error: "" });
-    setNcd(0); // You can choose to set this to 0 or leave it empty, but 0 is safe
-    return;
-  }
-  
-  const parsedValue = parseInt(value, 10);
-  const isValueValid = !isNaN(parsedValue) && parsedValue >= 0 && parsedValue <= 55;
-
-  if (isValueValid) {
-    setNcd(parsedValue); // Only update the final ncd state if the value is valid
-    setNcdValidation({ isValid: true, error: "" });
-  } else {
-    // If invalid, show an error and do NOT update the ncd state variable
-    let errorMessage = "Please enter a valid NCD between 0 and 55.";
-    if (parsedValue > 55) {
-      errorMessage = "The maximum NCD rate for cars in Malaysia is 55% according to rates set by the Persatuan Insurans Am Malaysia (PIAM).";
-    }
-    setNcdValidation({
-      isValid: false,
-      error: errorMessage,
-    });
-  }
-};
-
-  const [ncd, setNcd] = useState(20);
-  const [ncdInput, setNcdInput] = useState('');
-  const ncdOptions = [0, 25, 30, 38.3, 45, 55];
-  const handleCheckNcd = () => {
-    window.open('https://www.mycarinfo.com.my/NCDCheck/Online', '_blank');
-``};
-
-
   const [documentType, setDocumentType] = useState("ic");
 
   const currentYear = new Date().getFullYear();
@@ -1048,35 +1005,6 @@ const goBack = () => {
 
       {/* Personal Info (editable) */}
       <div className="space-y-4">
-        {/* NCD Section (Moved to be the first item in the personal info column) */}
-        <div>
-          <label className="block text-blue-900 font-semibold mb-2">
-            {t("Select Your Next NCD:")}
-            <span className="font-normal ml-2">
-              (Unsure?{" "}
-              <button
-                className="underline"
-                type="button"
-                onClick={handleCheckNcd}
-              >
-                Click here to check your NCD
-              </button>
-              )
-            </span>
-          </label>
-          <select
-            value={ncd}
-            onChange={(e) => setNcd(Number(e.target.value))}
-            className="w-full px-4 py-3 bg-blue-50 rounded-lg text-blue-900 border border-blue-100 focus:ring-2 focus:ring-blue-400"
-          >
-            <option value={0}>0%</option>
-            <option value={25}>25%</option>
-            <option value={30}>30%</option>
-            <option value={38.3}>38.3%</option>
-            <option value={45}>45%</option>
-            <option value={55}>55%</option>
-          </select>
-        </div>
         <div>
           <label className="block text-blue-900 font-semibold mb-2">
             {t("Full Name: ")}

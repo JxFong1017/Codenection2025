@@ -1,15 +1,15 @@
 import { useEffect, useMemo, useState } from "react";
 import Head from "next/head";
 import Link from "next/link";
+import Fuse from "fuse.js";
 import { useDebounce } from "../src/hooks/useDebounce";
 import { validatePlateNumber ,validateCarMake,
-  getModelsForMake, // <-- New import
-  getYearsForModel, 
-  validateIC, validatePassport,     // <-- New import
-  validatePostcode, // <-- New import
+  getModelsForMake, 
+  getYearsForModel, getUniqueMakes,
+  validateIC, validatePassport,     
+  validatePostcode, 
   validatePhone,  
 } from "../src/utils/validationLogic";
-import CarBrandInput from "../src/components/CarBrandInput";
 import { useQuote } from "../src/context/QuoteContext";
 import { useT } from "../src/utils/i18n";
 import {
@@ -19,7 +19,6 @@ import {
 import PlateValidationPopup from "../src/components/PlateValidationPopup";
 import { useSession } from "next-auth/react";
 import ContactHelp from "../src/components/ContactHelp";
-
 
 export default function ManualQuoteSevenStep() {
   const { data: session } = useSession();
@@ -45,11 +44,16 @@ export default function ManualQuoteSevenStep() {
   const [model, setModel] = useState("");
   const [year, setYear] = useState("");
 
+  const [brandSearch, setBrandSearch] = useState("");
+  const [showBrandDropdown, setShowBrandDropdown] = useState(false);
+  const [brandValidation, setBrandValidation] = useState({ isValid: null, error: null });
+  const [modelFuse, setModelFuse] = useState(null);
   const [modelSearch, setModelSearch] = useState("");
   const [showModelDropdown, setShowModelDropdown] = useState(false);
-
+  const [availableBrands, setAvailableBrands] = useState([]);
   const [availableModels, setAvailableModels] = useState([]);
   const [availableYears, setAvailableYears] = useState([]);
+  
 
   // Step 3
   const [coverageType, setCoverageType] = useState("");
@@ -63,10 +67,51 @@ export default function ManualQuoteSevenStep() {
   const [postcode, setPostcode] = useState("");
   const [passport, setPassport] = useState("");
   const [phone, setPhone] = useState("");
+
+  const [ncdValidation, setNcdValidation] = useState({
+    isValid: true,
+    error: "",
+  });
+
+const handleNcdChange = (e) => {
+  const value = e.target.value;
+  setNcdInput(value); // Always update the input field state
+
+  // If the input is empty, reset and exit
+  if (value.trim() === '') {
+    setNcdValidation({ isValid: null, error: "" });
+    setNcd(0); // You can choose to set this to 0 or leave it empty, but 0 is safe
+    return;
+  }
+  
+  const parsedValue = parseInt(value, 10);
+  const isValueValid = !isNaN(parsedValue) && parsedValue >= 0 && parsedValue <= 55;
+
+  if (isValueValid) {
+    setNcd(parsedValue); // Only update the final ncd state if the value is valid
+    setNcdValidation({ isValid: true, error: "" });
+  } else {
+    // If invalid, show an error and do NOT update the ncd state variable
+    let errorMessage = "Please enter a valid NCD between 0 and 55.";
+    if (parsedValue > 55) {
+      errorMessage = "The maximum NCD rate for cars in Malaysia is 55% according to rates set by the Persatuan Insurans Am Malaysia (PIAM).";
+    }
+    setNcdValidation({
+      isValid: false,
+      error: errorMessage,
+    });
+  }
+};
+
   const [ncd, setNcd] = useState(20);
+  const [ncdInput, setNcdInput] = useState('');
+  const ncdOptions = [0, 25, 30, 38.3, 45, 55];
+  const handleCheckNcd = () => {
+    window.open('https://www.mycarinfo.com.my/NCDCheck/Online', '_blank');
+``};
+
 
   const [documentType, setDocumentType] = useState("ic");
-
 
   const currentYear = new Date().getFullYear();
   const isCarOlderThan15Years = () => {
@@ -78,7 +123,6 @@ export default function ManualQuoteSevenStep() {
     const selectedYear = parseInt(year, 10); // Convert the string to a number
     return (currentYear - selectedYear) > 15;
 };
-
 
   // Validation state for Step 4
   const [icValidation, setIcValidation] = useState({ isValid: null, error: null });
@@ -92,6 +136,8 @@ export default function ManualQuoteSevenStep() {
   const debouncedPassport = useDebounce(passport, 500);
   const debouncedPhone = useDebounce(phone, 500);
   const debouncedModelSearch = useDebounce(modelSearch, 500);
+  const debouncedBrandSearch = useDebounce(brandSearch, 500);
+  const allBrands = useMemo(() => getUniqueMakes(), []);
 
   // Step 6 (computed estimate)
   const estimateRange = useMemo(() => {
@@ -103,6 +149,15 @@ export default function ManualQuoteSevenStep() {
     const max = 1500;
     return { min, max };
   }, [brand, protections]);
+
+  // Initialize Fuse.js for fuzzy searching
+  const fuse = useMemo(() => {
+    return new Fuse(allBrands, {
+      keys: [], // We are searching the array itself
+      includeScore: true,
+      threshold: 0.3, // Adjust this threshold to control the "fuzziness"
+    });
+  }, [allBrands]);
 
   const formatICNumber = (value) => {
     // 1. Remove all non-digit characters (including existing dashes)
@@ -131,36 +186,71 @@ const toggleProtection = (label) => {
         None: !prevProtections.None, // Toggle the "None" state
       };
     }
-
     // If any other protection is selected, ensure "None" is not
     const newProtections = {
       ...prevProtections,
       [label]: !prevProtections[label], // Toggle the selected protection
     };
-
     // If a new protection is selected, uncheck "None"
     if (newProtections[label]) {
       delete newProtections.None;
     }
-
     return newProtections;
   });
 };
 
-  // This useEffect handles both IC and Passport validation
+// NEW EFFECT FOR BRAND AUTO-SELECTION with partial matching
 useEffect(() => {
-  if (documentType === 'ic') {
-    const result = validateIC(debouncedIC);
-    setIcValidation(result);
-    // Reset passport validation when IC is active
-    setPassportValidation({ isValid: null, error: null });
-  } else if (documentType === 'passport') {
-    const result = validatePassport(debouncedPassport);
-    setPassportValidation(result);
-    // Reset IC validation when Passport is active
-    setIcValidation({ isValid: null, error: null });
+  if (!debouncedBrandSearch) {
+    // If the input is empty, clear validation.
+    setBrandValidation({ isValid: null, error: null });
+    return;
   }
-}, [debouncedIC, debouncedPassport, documentType]);
+  const normalizedSearch = debouncedBrandSearch.toLowerCase();
+  // 2. Check for an exact case-insensitive match (highest priority)
+  const exactMatch = allBrands.find(b => b.toLowerCase() === normalizedSearch);
+  if (exactMatch) {
+    setBrand(exactMatch);
+    setBrandSearch(exactMatch);
+    setBrandValidation({ isValid: true, error: null });
+    setShowBrandDropdown(false);
+    return; // Exit early if we found an exact match
+  }
+  // 3. Perform a fuzzy search for potential misspellings
+  const fuzzyResults = fuse.search(normalizedSearch);
+  
+  if (fuzzyResults.length === 1 && fuzzyResults[0].score < 0.3) {
+    // If there is ONE and only ONE result, and its score is low enough
+    // (indicating a very close fuzzy match), auto-correct and select it.
+    const autoCorrectedBrand = fuzzyResults[0].item;
+    setBrand(autoCorrectedBrand);
+    setBrandSearch(autoCorrectedBrand);
+    setBrandValidation({ isValid: true, error: null });
+    setShowBrandDropdown(false);
+  } else {
+    // 4. If no exact match and no strong fuzzy match, it's invalid
+    setBrand(""); // Clear the brand state to prevent invalid submissions
+    setBrandValidation({
+      isValid: false,
+      error: "Invalid brand. Please choose from the dropdown list.",
+    });
+  }
+}, [debouncedBrandSearch, allBrands, fuse]);
+
+  // This useEffect handles both IC and Passport validation
+  useEffect(() => {
+    if (documentType === 'ic') {
+      const result = validateIC(debouncedIC);
+      setIcValidation(result);
+      // Reset passport validation when IC is active
+      setPassportValidation({ isValid: null, error: null });
+    } else if (documentType === 'passport') {
+      const result = validatePassport(debouncedPassport);
+      setPassportValidation(result);
+      // Reset IC validation when Passport is active
+      setIcValidation({ isValid: null, error: null });
+    }
+  }, [debouncedIC, debouncedPassport, documentType]);
 
   useEffect(() => {
     setPostcodeValidation(validatePostcode(debouncedPostcode));
@@ -215,15 +305,31 @@ useEffect(() => {
   // Effect to update available models when brand changes
   useEffect(() => {
     if (brand) {
-      setAvailableModels(getModelsForMake(brand));
+      const models = getModelsForMake(brand);
+      setAvailableModels(models);
+      // Initialize the Fuse instance for the new set of models
+      setModelFuse(new Fuse(models, {
+        keys: [],
+        includeScore: true,
+        threshold: 0.3, // Adjust for fuzziness
+      }));
     } else {
       setAvailableModels([]);
+      setModelFuse(null); // Clear the Fuse instance if no brand is selected
     }
-    // Reset model and year when brand changes
     setModel("");
     setYear("");
     setModelSearch("");
-  }, [brand]);
+}, [brand]);
+
+  const filteredBrands = useMemo(() => {
+    if (!brandSearch) {
+      return allBrands;
+    }
+     return allBrands.filter((b) =>
+       b.toLowerCase().includes(brandSearch.toLowerCase())
+    );
+  }, [brandSearch, allBrands]);
 
   // Add a new useEffect to filter models based on the search input
   const filteredModels = useMemo(() => {
@@ -235,27 +341,44 @@ useEffect(() => {
     );
   }, [modelSearch, availableModels]);
 
-  useEffect(() => {
-  if (debouncedModelSearch) {
-    // Find a model from the available list that exactly matches the debounced input
-    const matchingModel = availableModels.find(m => m.toLowerCase() === debouncedModelSearch.toLowerCase());
-
-    if (matchingModel) {
-      // If a matching model is found, automatically set it as the selected model
-      setModel(matchingModel);
-      setModelSearch(matchingModel); // Keep the search input consistent
-      setModelValidation({ isValid: true, error: null });
-      // You may also want to close the dropdown here
-      setShowModelDropdown(false); 
-    } else {
-      // If no match is found, set the validation to invalid
-      setModelValidation({ isValid: false, error: "Invalid model. Please choose from the dropdown list." });
+  // --- NEW EFFECT FOR MODEL AUTO-SELECTION with partial matching ---
+useEffect(() => {
+  if (!debouncedModelSearch || !modelFuse) {
+      setModelValidation({ isValid: null, error: null });
+      return;
     }
-  } else {
-    // If the search input is empty, reset the validation state
-    setModelValidation({ isValid: null, error: null });
-  }
-}, [debouncedModelSearch, availableModels, setModel, setModelSearch]);
+    const normalizedSearch = debouncedModelSearch.toLowerCase();
+    // 2. Check for an exact case-insensitive match (highest priority)
+    const exactMatch = availableModels.find(m => m.toLowerCase() === normalizedSearch);
+    if (exactMatch) {
+      setModel(exactMatch);
+      setModelSearch(exactMatch);
+      setModelValidation({ isValid: true, error: null });
+      setShowModelDropdown(false);
+      return; // Exit early if we found an exact match
+    }
+    // 3. Perform a fuzzy search for potential misspellings
+    const fuzzyResults = modelFuse.search(normalizedSearch);
+    if (fuzzyResults.length === 1 && fuzzyResults[0].score < 0.3) {
+      // If there is ONE and only ONE strong fuzzy match, auto-correct and select it.
+      const autoCorrectedModel = fuzzyResults[0].item;
+      setModel(autoCorrectedModel);
+      setModelSearch(autoCorrectedModel);
+      setModelValidation({ isValid: true, error: null });
+      setShowModelDropdown(false);
+    } else {
+      // 4. If no exact match and no strong fuzzy match, it's invalid
+      setModel("");
+      if (debouncedModelSearch.length > 0) {
+        setModelValidation({
+          isValid: false,
+          error: "Invalid model. Please choose from the dropdown list.",
+        });
+      } else {
+        setModelValidation({ isValid: null, error: null });
+      }
+    }
+}, [debouncedModelSearch, availableModels, modelFuse]);
 
   // Effect to update available years when model changes
   useEffect(() => {
@@ -328,7 +451,7 @@ const goBack = () => {
         );
     }
     if (currentStep === 2) {
-        return brand && model && year && modelValidation.isValid;
+        return brandValidation.isValid === true && modelValidation.isValid === true && year !== "";
     }
     // New check for step 3 (Choose Type of Coverage)
     if (currentStep === 3) {
@@ -363,22 +486,14 @@ const goBack = () => {
     const input = e.target;
     let { selectionStart } = input;
     let value = input.value.toUpperCase();
-
     const clean = value.replace(/\s+/g, "");
-
     const formatted = clean
       .replace(/([A-Z]+)(\d+)/gi, "$1 $2")
       .replace(/(\d+)([A-Z]+)/gi, "$1 $2");
-
     if (formatted.length > value.length) selectionStart += 1;
     else if (formatted.length < value.length) selectionStart -= 1;
-
     setPlate(formatted);
-
-    setTimeout(
-      () => input.setSelectionRange(selectionStart, selectionStart),
-      0
-    );
+    setTimeout(() => input.setSelectionRange(selectionStart, selectionStart),0);
   };
 
   return (
@@ -558,8 +673,54 @@ const goBack = () => {
             {t("Car Plate Number: ")} {plate || "—"}
           </div>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            {/* Car Brand input (already a component) */}
-            <CarBrandInput value={brand} onChange={setBrand} />
+            <div className="relative">
+              <label className="block text-blue-900 font-semibold mb-2">
+                {t("Car Brand:")}
+                  </label>
+                     <input
+                       type="text"
+                       value={brandSearch}
+                       onChange={(e) => {
+                        setBrandSearch(e.target.value);
+                        setBrand("");
+                        setShowBrandDropdown(true);
+                       }}
+                       onFocus={() => setShowBrandDropdown(true)}
+                       onBlur={() => setTimeout(() => setShowBrandDropdown(false), 200)}
+                       className={`w-full px-4 py-3 bg-blue-50 rounded-lg text-blue-900 border ${
+                       brandValidation.isValid
+                         ? "border-green-500"
+                         : brandValidation.isValid === false
+                         ? "border-red-500"
+                         : "border-blue-100"
+                       } focus:ring-2 focus:ring-blue-400`}
+                       placeholder="Type to search..."
+                       autoComplete="off"
+                     />
+                     {brandValidation.error && (
+                      <p className="mt-2 text-sm text-red-600">
+                         {brandValidation.error}
+                       </p>
+                     )}
+                     {showBrandDropdown && filteredBrands.length > 0 && (
+                       <ul className="absolute z-20 w-full bg-white border border-gray-200 rounded-lg mt-1 max-h-40 overflow-y-auto shadow-lg">
+                         {filteredBrands.map((b) => (
+                           <li
+                             key={b}
+                               className="px-4 py-2 hover:bg-blue-50 cursor-pointer"
+                               onMouseDown={(e) => {
+                               e.preventDefault();
+                               setBrand(b);
+                               setBrandSearch(b);
+                               setShowBrandDropdown(false);
+                             }}
+                           >
+                           {b}
+                         </li>
+                         ))}
+                       </ul>
+                     )}
+                  </div>
 
             {/* Car Model search input with filtered dropdown */}
             <div className="relative">
@@ -865,16 +1026,6 @@ const goBack = () => {
           {t("manufactured_year")}{" "}
           <span className="font-normal">{year || "—"}</span>
         </div>
-        <div className="text-blue-900 font-bold mb-2">
-          {t("ncd")}{" "}
-          <button
-            className="underline font-normal"
-            type="button"
-            onClick={() => setNcd(20)}
-          >
-            {t("check_ncd")}
-          </button>
-        </div>
 
 {/* New: Display Coverage Type */}
       <div className="text-blue-900 font-bold mt-4 mb-2">
@@ -897,7 +1048,35 @@ const goBack = () => {
 
       {/* Personal Info (editable) */}
       <div className="space-y-4">
-        {/* ... (rest of your personal info JSX) */}
+        {/* NCD Section (Moved to be the first item in the personal info column) */}
+        <div>
+          <label className="block text-blue-900 font-semibold mb-2">
+            {t("Select Your Next NCD:")}
+            <span className="font-normal ml-2">
+              (Unsure?{" "}
+              <button
+                className="underline"
+                type="button"
+                onClick={handleCheckNcd}
+              >
+                Click here to check your NCD
+              </button>
+              )
+            </span>
+          </label>
+          <select
+            value={ncd}
+            onChange={(e) => setNcd(Number(e.target.value))}
+            className="w-full px-4 py-3 bg-blue-50 rounded-lg text-blue-900 border border-blue-100 focus:ring-2 focus:ring-blue-400"
+          >
+            <option value={0}>0%</option>
+            <option value={25}>25%</option>
+            <option value={30}>30%</option>
+            <option value={38.3}>38.3%</option>
+            <option value={45}>45%</option>
+            <option value={55}>55%</option>
+          </select>
+        </div>
         <div>
           <label className="block text-blue-900 font-semibold mb-2">
             {t("Full Name: ")}
@@ -975,7 +1154,7 @@ const goBack = () => {
         ) : (
           <div className="mb-4">
             <label className="block text-blue-900 font-semibold mb-2">
-              Passport Number
+              Passport Number: 
             </label>
             <input
               type="text"

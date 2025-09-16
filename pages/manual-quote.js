@@ -63,7 +63,42 @@ export default function ManualQuoteSevenStep() {
   const [postcode, setPostcode] = useState("");
   const [passport, setPassport] = useState("");
   const [phone, setPhone] = useState("");
+  const [ncdValidation, setNcdValidation] = useState({
+  isValid: true,
+  error: "",
+});
+const handleNcdChange = (e) => {
+  const value = parseInt(e.target.value, 10);
+  const isValueValid = !isNaN(value) && value >= 0 && value <= 55;
+
+  // Always update the input field state to show what the user is typing
+  setNcdInput(value);
+
+  // Use a single if/else block for validation
+  if (isValueValid) {
+    // If the input is valid, update the main ncd state and clear any errors
+    setNcd(value);
+    setNcdValidation({ isValid: true, error: "" });
+  } else {
+    // If the input is invalid (not a number, < 0, or > 55), set ncd to 0 and show an error
+    setNcd(0);
+    // Determine the specific error message based on the invalid value
+    let errorMessage = "Please enter a valid NCD between 0 and 55.";
+    if (value > 55) {
+      errorMessage = "The maximum NCD rate for cars in Malaysia is 55% according to rates set by the Persatuan Insurans Am Malaysia (PIAM).";
+    }
+
+    setNcdValidation({
+      isValid: false,
+      error: errorMessage,
+    });
+  }
+};
   const [ncd, setNcd] = useState(20);
+  const [ncdInput, setNcdInput] = useState('');
+  const handleCheckNcd = () => {
+    window.open('https://compare.myeg.com.my/tools/insurance-ncd-roadtax-checker', '_blank');
+};
 
   const [documentType, setDocumentType] = useState("ic");
 
@@ -330,35 +365,33 @@ const goBack = () => {
     if (currentStep === 2) {
         return brand && model && year && modelValidation.isValid;
     }
-    // New check for step 3 (Choose Type of Coverage)
     if (currentStep === 3) {
         return coverageType !== "";
     }
     if (currentStep === 4) {
-    // Check if the user has selected any protections
-    // It's considered valid if the `protections` object is not empty
-    return Object.keys(protections).length > 0;
-  }
-    if (currentStep === 5) { // This was step 3, now it's step 4
-        const isDocumentValid = documentType === 'ic'
-            ? icValidation.isValid === true
-            : passportValidation.isValid === true;
-
-        return (
-            name.trim() !== "" &&
-            isDocumentValid &&
-            postcodeValidation.isValid === true
-        );
+        return Object.keys(protections).length > 0;
     }
-    if (currentStep === 6) { // This was step 5, now it's step 6
+     if (currentStep === 5) {
+    const isDocumentValid = documentType === 'ic'
+      ? icValidation.isValid === true
+      : passportValidation.isValid === true;
+
+    // Check if both the ncdValidation state and other personal info fields are valid
+    return (
+      name.trim() !== "" &&
+      isDocumentValid &&
+      postcodeValidation.isValid === true &&
+      ncdValidation.isValid === true // This is the new, crucial check
+    );
+  }
+    if (currentStep === 6) {
         return true;
     }
-    if (currentStep === 7) { // This was step 6, now it's step 7
+    if (currentStep === 7) {
         return true;
     }
     return false;
 };
-
   const handlePlateInput = (e) => {
     const input = e.target;
     let { selectionStart } = input;
@@ -865,39 +898,57 @@ const goBack = () => {
           {t("manufactured_year")}{" "}
           <span className="font-normal">{year || "—"}</span>
         </div>
+        {/* New: Display Coverage Type */}
         <div className="text-blue-900 font-bold mb-2">
-          {t("ncd")}{" "}
-          <button
-            className="underline font-normal"
-            type="button"
-            onClick={() => setNcd(20)}
-          >
-            {t("check_ncd")}
-          </button>
+          Type of Coverage: {" "}
+          <span className="font-normal">{coverageType || "—"}</span>
         </div>
 
-{/* New: Display Coverage Type */}
-      <div className="text-blue-900 font-bold mt-4 mb-2">
-        Type of Coverage: {" "}
-        <span className="font-normal">{coverageType || "—"}</span>
-      </div>
-
-      {/* New: Display Additional Protection (conditionally) */}
-      {coverageType === "Comprehensive" && (
-        <div className="text-blue-900 font-bold mb-2">
-          Additional Protection: {" "}
-          <span className="font-normal">
-            {Object.keys(protections).length > 0 && !protections.None
-              ? Object.keys(protections).join(", ")
-              : "None"}
-          </span>
+        {/* New: Display Additional Protection (conditionally) */}
+        {coverageType === "Comprehensive" && (
+          <div className="text-blue-900 font-bold mb-2">
+            Additional Protection: {" "}
+            <span className="font-normal">
+              {Object.keys(protections).length > 0 && !protections.None
+                ? Object.keys(protections).join(", ")
+                : "None"}
+            </span>
           </div>
         )}
       </div>
-
+      
       {/* Personal Info (editable) */}
       <div className="space-y-4">
-        {/* ... (rest of your personal info JSX) */}
+        {/* NCD Section (Moved to be the first item in the personal info column) */}
+        <div>
+          <label className="block text-blue-900 font-semibold mb-2">
+            {t("Enter your NCD:")}
+            <span className="font-normal ml-2">
+              (Unsure?{" "}
+              <button
+                className="underline"
+                type="button"
+                onClick={handleCheckNcd}
+              >
+                Click here to check your NCD
+              </button>
+              )
+            </span>
+          </label>
+          <input
+            type="number"
+            value={ncdInput}
+            onChange={handleNcdChange}
+            className={`w-full px-4 py-3 bg-blue-50 rounded-lg text-blue-900 border ${
+              ncdValidation.isValid ? "border-blue-100" : "border-red-500"
+            }`}
+            placeholder="e.g. 55"
+          />
+          {ncdValidation.error && (
+            <p className="mt-2 text-sm text-red-600">{ncdValidation.error}</p>
+          )}
+        </div>
+                {/* The rest of your personal info JSX */}
         <div>
           <label className="block text-blue-900 font-semibold mb-2">
             {t("Full Name: ")}
@@ -922,7 +973,7 @@ const goBack = () => {
               checked={documentType === "ic"}
               onChange={() => {
                 setDocumentType("ic");
-                setPassport(""); // Clear passport value
+                setPassport("");
               }}
             />
             <span className="ml-2 text-blue-900">NRIC (IC)</span>
@@ -936,14 +987,13 @@ const goBack = () => {
               checked={documentType === "passport"}
               onChange={() => {
                 setDocumentType("passport");
-                setIc(""); // Clear IC value
+                setIc("");
               }}
             />
             <span className="ml-2 text-blue-900">Passport</span>
           </label>
         </div>
 
-        {/* Conditional input for IC or Passport */}
         {documentType === "ic" ? (
           <div className="mb-4">
             <label className="block text-blue-900 font-semibold mb-2">
@@ -965,7 +1015,6 @@ const goBack = () => {
               }`}
               placeholder="e.g. 050102-07-0304"
             />
-
             {icValidation.error && (
               <p className="mt-2 text-sm text-red-600">
                 {icValidation.error}

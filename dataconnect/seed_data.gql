@@ -1,0 +1,27 @@
+mutation SeedDatabase @auth(level: NO_ACCESS) {
+  vehicleMake_insertMany(data: [
+    { name: "Toyota" },
+    { name: "Honda" },
+    { name: "Ford" }
+  ])
+  vehicleModel_insertMany(data: [
+    { name: "Camry", vehicleMake: { id: "MAKE_TOYOTA_ID" } },
+    { name: "Civic", vehicleMake: { id: "MAKE_HONDA_ID" } },
+    { name: "F-150", vehicleMake: { id: "MAKE_FORD_ID" } }
+  ])
+  user_insertMany(data: [
+    { authId: "user1", email: "user1@example.com", createdAt: "2024-01-01T00:00:00Z" },
+    { authId: "user2", email: "user2@example.com", createdAt: "2024-01-02T00:00:00Z" }
+  ])
+  vehicle_insertMany(data: [
+    { make: "Toyota", model: "Camry", plateNumber: "ABC-123", manufacturingYear: 2020, user: { id: "USER_1_ID" } },
+    { make: "Honda", model: "Civic", plateNumber: "DEF-456", manufacturingYear: 2021, user: { id: "USER_2_ID" } }
+  ])
+  insurancePolicy_insertMany(data: [
+    { provider: "State Farm", policyNumber: "12345", coverageType: "Full", premiumAmount: 1200.00, startDate: "2024-01-01", endDate: "2024-12-31", status: "Active", vehicle: { id: "VEHICLE_1_ID" }, user: { id: "USER_1_ID" } },
+    { provider: "Geico", policyNumber: "67890", coverageType: "Liability", premiumAmount: 800.00, startDate: "2024-01-02", endDate: "2024-12-31", status: "Active", vehicle: { id: "VEHICLE_2_ID" }, user: { id: "USER_2_ID" } }
+  ])
+  validationError_insertMany(data: [
+    { field: "plateNumber", value: "XYZ-789", errorMessage: "Invalid plate number format", timestamp: "2024-01-03T00:00:00Z", user: { id: "USER_1_ID" }, vehicle: { id: "VEHICLE_1_ID" } }
+  ])
+}

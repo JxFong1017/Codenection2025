@@ -1,0 +1,34 @@
+mutation CreateVehicle @auth(level: USER) {
+  vehicle_insert(data: {
+    make: "Toyota",
+    model: "Camry",
+    manufacturingYear: 2023,
+    plateNumber: "ABC-123"
+  })
+}
+
+query GetVehicles @auth(level: PUBLIC) {
+  vehicles {
+    id
+    make
+    model
+    manufacturingYear
+    plateNumber
+  }
+}
+
+mutation UpdateUserDisplayName @auth(level: USER) {
+  user_update(
+    key: {id_expr: "auth.uid"}
+    data: {displayName: "New Display Name"}
+  )
+}
+
+query GetUserVehicles @auth(level: USER) {
+  vehicles(where: {userId: {eq_expr: "auth.uid"}}) {
+    id
+    make
+    model
+    plateNumber
+  }
+}

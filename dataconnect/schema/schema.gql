@@ -1,0 +1,50 @@
+type User @table {
+  authId: String!
+  email: String!
+  createdAt: Timestamp!
+  displayName: String
+  phoneNumber: String
+}
+
+type Vehicle @table {
+  user: User
+  plateNumber: String!
+  make: String!
+  model: String!
+  manufacturingYear: Int!
+  createdAt: Timestamp!
+  chassisNumber: String
+  engineNumber: String
+}
+
+type VehicleMake @table {
+  name: String!
+}
+
+type VehicleModel @table {
+  vehicleMake: VehicleMake
+  name: String!
+}
+
+type InsurancePolicy @table {
+  user: User
+  vehicle: Vehicle
+  policyNumber: String!
+  provider: String!
+  startDate: Date!
+  endDate: Date!
+  premiumAmount: Float!
+  status: String!
+  coverageType: String
+  renewalDate: Date
+}
+
+type ValidationError @table {
+  user: User
+  vehicle: Vehicle
+  field: String!
+  value: String!
+  errorMessage: String!
+  timestamp: Timestamp!
+  attemptedPlateNumber: String
+}

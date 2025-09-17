@@ -9,6 +9,7 @@
     "lint": "eslint"
   },
   "dependencies": {
+    "@dataconnect/generated": "file:src/dataconnect-generated",
     "fuse.js": "^7.1.0",
     "next": "^15.5.2",
     "next-auth": "^4.24.11",

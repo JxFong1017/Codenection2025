@@ -1,32 +1,53 @@
-/**
- * Import function triggers from their respective submodules:
- *
- * const {onCall} = require("firebase-functions/v2/https");
- * const {onDocumentWritten} = require("firebase-functions/v2/firestore");
- *
- * See a full list of supported triggers at https://firebase.google.com/docs/functions
- */
+const functions = require('firebase-functions');
+const nodemailer = require('nodemailer');
+const puppeteer = require('puppeteer');
 
-const {setGlobalOptions} = require("firebase-functions");
-const {onRequest} = require("firebase-functions/https");
-const logger = require("firebase-functions/logger");
+// Configure Nodemailer with an email service provider (e.g., SendGrid or Mailgun)
+const transporter = nodemailer.createTransport({
+  host: 'smtp.sendgrid.net', // Example for SendGrid
+  port: 587,
+  secure: false, // Use TLS
+  auth: {
+    user: 'apikey',
+    pass: functions.config().sendgrid.key
+  }
+});
 
-// For cost control, you can set the maximum number of containers that can be
-// running at the same time. This helps mitigate the impact of unexpected
-// traffic spikes by instead downgrading performance. This limit is a
-// per-function limit. You can override the limit for each function using the
-// `maxInstances` option in the function's options, e.g.
-// `onRequest({ maxInstances: 5 }, (req, res) => { ... })`.
-// NOTE: setGlobalOptions does not apply to functions using the v1 API. V1
-// functions should each use functions.runWith({ maxInstances: 10 }) instead.
-// In the v1 API, each function can only serve one request per container, so
-// this will be the maximum concurrent request count.
-setGlobalOptions({ maxInstances: 10 });
+exports.generateAndSendQuotation = functions.https.onCall(async (data, context) => {
+  if (!context.auth) {
+    throw new functions.https.HttpsError('unauthenticated', 'You must be logged in to request a quotation.');
+  }
+  
+  const quotationHtml = `
+    <h1>Car Insurance Quotation</h1>
+    <p>Name: ${data.name}</p>
+    <p>Car Brand: ${data.brand}</p>
+    <p>Estimated Premium Range: ${data.estimatedRange}</p>
+    `;
 
-// Create and deploy your first functions
-// https://firebase.google.com/docs/functions/get-started
+  const browser = await puppeteer.launch();
+  const page = await browser.newPage();
+  await page.setContent(quotationHtml, { waitUntil: 'networkidle0' });
+  const pdfBuffer = await page.pdf({ format: 'A4' });
+  await browser.close();
 
-// exports.helloWorld = onRequest((request, response) => {
-//   logger.info("Hello logs!", {structuredData: true});
-//   response.send("Hello from Firebase!");
-// });
+  const mailOptions = {
+    from: 'your-email@yourdomain.com',
+    to: data.email,
+    subject: 'Your Car Insurance Quotation',
+    html: `Hello ${data.name},<br><br>Your car insurance quotation is attached to this email.`,
+    attachments: [{
+      filename: 'Quotation.pdf',
+      content: pdfBuffer,
+      contentType: 'application/pdf'
+    }]
+  };
+
+  try {
+    await transporter.sendMail(mailOptions);
+    return { status: 'success', message: 'Quotation sent successfully!' };
+  } catch (error) {
+    console.error('Error sending email:', error);
+    throw new functions.https.HttpsError('internal', 'Failed to send quotation email.');
+  }
+});

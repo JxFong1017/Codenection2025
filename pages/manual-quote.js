@@ -19,6 +19,7 @@ import {
 import PlateValidationPopup from "../src/components/PlateValidationPopup";
 import { useSession } from "next-auth/react";
 import ContactHelp from "../src/components/ContactHelp";
+import { carData } from "../src/data/carData";
 
 export default function ManualQuoteSevenStep() {
   const { data: session } = useSession();
@@ -137,16 +138,142 @@ export default function ManualQuoteSevenStep() {
   const debouncedBrandSearch = useDebounce(brandSearch, 500);
   const allBrands = useMemo(() => getUniqueMakes(), []);
 
-  // Step 6 (computed estimate)
-  const estimateRange = useMemo(() => {
-    const base = 900;
-    const brandFactor = brand ? 0 : 100; // encourage filling brand
-    const protectionFactor =
-      Object.values(protections).filter(Boolean).length * 40;
-    const min = base + brandFactor + protectionFactor;
-    const max = 1500;
-    return { min, max };
-  }, [brand, protections]);
+// Step 6 (computed estimate)
+const estimateRange = useMemo(() => {
+  const selectedCar = carData.find(
+    (car) => car.make === brand && car.model === model
+  );
+
+  if (!selectedCar || !year || !coverageType || !postcode) {
+    return { min: 0, max: 0 };
+  }
+
+  const carAge = new Date().getFullYear() - parseInt(year, 10);
+  const depreciationFactor = Math.max(0.3, Math.pow(0.9, carAge));
+  const currentMarketValue = selectedCar.marketValue * depreciationFactor;
+
+  let basicPremium = 0;
+  const { engineCapacity } = selectedCar;
+
+  const firstTwoPostcodeDigits = parseInt(postcode.substring(0, 2), 10);
+  const isEastMalaysia = (firstTwoPostcodeDigits >= 88 && firstTwoPostcodeDigits <= 91) ||
+                         (firstTwoPostcodeDigits >= 93 && firstTwoPostcodeDigits <= 98);
+
+  const comprehensiveRates = {
+    peninsular: {
+      rates: [
+        { cc: 1400, base: 273.80 },
+        { cc: 1650, base: 305.50 },
+        { cc: 2200, base: 339.10 },
+        { cc: 3050, base: 372.60 },
+        { cc: 4100, base: 404.30 },
+        { cc: 4250, base: 436.00 },
+        { cc: 4400, base: 469.60 },
+        { cc: Infinity, base: 501.30 },
+      ],
+      per1000: 26.00,
+    },
+    east: {
+      rates: [
+        { cc: 1400, base: 219.00 },
+        { cc: 1650, base: 244.40 },
+        { cc: 2200, base: 271.30 },
+        { cc: 3050, base: 298.10 },
+        { cc: 4100, base: 323.40 },
+        { cc: 4250, base: 348.80 },
+        { cc: 4400, base: 375.70 },
+        { cc: Infinity, base: 401.10 },
+      ],
+      per1000: 20.30,
+    },
+  };
+
+  const thirdPartyRates = {
+    peninsular: [
+      { cc: 1400, premium: 120.60 },
+      { cc: 1650, premium: 135.00 },
+      { cc: 2200, premium: 151.20 },
+      { cc: 3050, premium: 167.40 },
+      { cc: 4100, premium: 181.80 },
+      { cc: 4250, premium: 196.20 },
+      { cc: 4400, premium: 212.40 },
+      { cc: Infinity, premium: 226.80 },
+    ],
+    east: [
+      { cc: 1400, premium: 95.90 },
+      { cc: 1650, premium: 107.50 },
+      { cc: 2200, premium: 120.60 },
+      { cc: 3050, premium: 133.60 },
+      { cc: 4100, premium: 145.10 },
+      { cc: 4250, premium: 156.50 },
+      { cc: 4400, premium: 169.60 },
+      { cc: Infinity, premium: 181.10 },
+    ],
+  };
+
+  const ratesForComprehensive = isEastMalaysia ? comprehensiveRates.east : comprehensiveRates.peninsular;
+  const ratesForThirdParty = isEastMalaysia ? thirdPartyRates.east : thirdPartyRates.peninsular;
+
+  if (coverageType === "Comprehensive") {
+    const rateTier = ratesForComprehensive.rates.find(tier => engineCapacity <= tier.cc);
+    const rate = rateTier.base;
+    const ratePer1000 = ratesForComprehensive.per1000;
+    
+    const excessValue = Math.max(0, currentMarketValue - 1000);
+    basicPremium = rate + (excessValue / 1000) * ratePer1000;
+
+  } else if (coverageType === "Third-Party, Fire & Theft") {
+    const rateTier = ratesForComprehensive.rates.find(tier => engineCapacity <= tier.cc);
+    const rate = rateTier.base;
+    const ratePer1000 = ratesForComprehensive.per1000;
+
+    const excessValue = Math.max(0, currentMarketValue - 1000);
+    const comprehensivePremium = rate + (excessValue / 1000) * ratePer1000;
+    
+    basicPremium = comprehensivePremium * 0.75;
+    
+  } else {
+    const rateTier = ratesForThirdParty.find(tier => engineCapacity <= tier.cc);
+    basicPremium = rateTier.premium;
+  }
+
+  let additionalCoverageCost = 0;
+  if (coverageType === "Comprehensive" && protections && !protections.None) {
+    additionalCoverageCost = Object.keys(protections).reduce((acc, key) => {
+      if (!protections[key]) return acc;
+      
+      if (key === t("windscreen")) return acc + 150;
+      if (key === t("natural_disaster")) return acc + currentMarketValue * 0.005;
+      if (key === t("strike_riot")) return acc + currentMarketValue * 0.003; 
+      if (key === t("personal_accident")) return acc + 100;
+      if (key === t("towing")) return acc + 50;
+      if (key === t("named_driver")) return acc + 10;
+      if (key === t("all_driver")) return acc + 50;
+      if (key === t("passengers_coverage")) return acc + 25;
+      
+      return acc; 
+    }, 0);
+  }
+
+  const ncdDiscount = basicPremium * (ncd / 100);
+  const premiumPayable = basicPremium - ncdDiscount + additionalCoverageCost;
+  const sst = premiumPayable * 0.06;
+  const stampDuty = 10;
+  const totalPremium = premiumPayable + sst + stampDuty;
+  
+  // This is the key change to create a range for comprehensive and TPFT policies.
+  if (coverageType === "Comprehensive" || coverageType === "Third-Party, Fire & Theft") {
+    // Generate a range of +/- 5% for these policies to represent market variation.
+    const minEstimate = Math.round(totalPremium * 0.95);
+    const maxEstimate = Math.round(totalPremium * 1.05);
+    return { min: minEstimate, max: maxEstimate };
+  } else {
+    // Return a single value for Third-Party Only, as its premium is fixed.
+    const finalEstimate = Math.round(totalPremium);
+    return { min: finalEstimate, max: finalEstimate };
+  }
+
+}, [brand, model, year, coverageType, protections, ncd, t, postcode]);
 
   // Initialize Fuse.js for fuzzy searching
   const fuse = useMemo(() => {
@@ -1217,7 +1344,8 @@ const goBack = () => {
     </div>
   </div>
 )}
-            {step === 6 && (
+
+{step === 6 && (
   <div>
     <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
       <div className="space-y-2 text-blue-900">
@@ -1277,7 +1405,11 @@ const goBack = () => {
         <div className="font-bold">
           {t("estimated_range")}{" "}
           <span className="font-normal">
-            RM{estimateRange.min}-RM{estimateRange.max}
+            {/* The corrected display logic */}
+            {estimateRange.min === estimateRange.max 
+              ? `RM${estimateRange.min}` 
+              : `RM${estimateRange.min}-RM${estimateRange.max}`
+            }
           </span>
         </div>
       </div>

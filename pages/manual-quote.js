@@ -27,10 +27,11 @@ import { carData } from "../src/data/carData";
 
 export default function ManualQuoteSevenStep() {
   const { data: session } = useSession();
+  const t = useT(); // Moved this line here
   const [step, setStep] = useState(1);
   const { quoteDraft, setQuoteDraft } = useQuote();
-  const t = useT();
   const [selectedAddOns, setSelectedAddOns] = useState([]);
+
   // Step 1
   const [plate, setPlate] = useState("");
   const debouncedPlate = useDebounce(plate, 400);
@@ -38,11 +39,7 @@ export default function ManualQuoteSevenStep() {
     isValid: false,
     error: null,
   });
-  const [modelValidation, setModelValidation] = useState({
-    isValid: null,
-    error: null,
-  });
-
+  const [modelValidation, setModelValidation] = useState({ isValid: null, error: null });
   const [showPlateConfirm, setShowPlateConfirm] = useState(false);
   const [showPlateValidation, setShowPlateValidation] = useState(false);
   const [plateValidationResult, setPlateValidationResult] = useState(null);
@@ -53,7 +50,6 @@ export default function ManualQuoteSevenStep() {
   const [brand, setBrand] = useState("");
   const [model, setModel] = useState("");
   const [year, setYear] = useState("");
-
   const [brandSearch, setBrandSearch] = useState("");
   const [showBrandDropdown, setShowBrandDropdown] = useState(false);
   const [brandValidation, setBrandValidation] = useState({
@@ -79,6 +75,7 @@ export default function ManualQuoteSevenStep() {
   const [postcode, setPostcode] = useState("");
   const [passport, setPassport] = useState("");
   const [phone, setPhone] = useState("");
+  const [documentType, setDocumentType] = useState("ic");
   const [ncdValidation, setNcdValidation] = useState({
     isValid: true,
     error: "",
@@ -124,7 +121,7 @@ export default function ManualQuoteSevenStep() {
     ``;
   };
 
-  const [documentType, setDocumentType] = useState("ic");
+
 
   const currentYear = new Date().getFullYear();
   const isCarOlderThan15Years = () => {
@@ -349,16 +346,102 @@ export default function ManualQuoteSevenStep() {
           None: !prevProtections.None, // Toggle the "None" state
         };
       }
-      // If any other protection is selected, ensure "None" is not
-      const newProtections = {
-        ...prevProtections,
-        [label]: !prevProtections[label], // Toggle the selected protection
+    
+    // If any other protection is selected, ensure "None" is not
+    const newProtections = {
+      ...prevProtections,
+      [label]: !prevProtections[label], // Toggle the selected protection
+    };
+    // If a new protection is selected, uncheck "None"
+    if (newProtections[label]) {
+      delete newProtections.None;
+    }
+    return newProtections;
+  });
+};
+
+    // New: handleSubmit function
+    const handleSubmit = async () => {
+      // Construct the data object to send to the API
+      const quotationData = {
+        customer: {
+          name,
+          ic: documentType === "ic" ? ic : passport,
+          postcode,
+        },
+        car: {
+          plate,
+          brand,
+          model,
+          year,
+          ncd,
+        },
+        coverage: {
+          type: coverageType,
+          protections: coverageType === "Comprehensive" ? protections : null,
+        },
+        estimatedPremium: estimateRange,
+        email: session?.user?.email, // Using the email from the session
       };
-      // If a new protection is selected, uncheck "None"
-      if (newProtections[label]) {
-        delete newProtections.None;
+  
+      try {
+        // Send the data to your API endpoint
+        const response = await fetch("/api/generate-quote", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify(quotationData),
+        });
+  
+        if (response.ok) {
+          // If the API call is successful, advance to the next step
+          goNext();
+        } else {
+          // Handle API errors
+          console.error("Failed to generate quotation:", response.statusText);
+          // You might want to display an error message to the user here
+        }
+      } catch (error) {
+        console.error("Error submitting quotation:", error);
+        // Handle network or other errors
       }
-      return newProtections;
+    };
+
+// NEW EFFECT FOR BRAND AUTO-SELECTION with partial matching
+useEffect(() => {
+  if (!debouncedBrandSearch) {
+    // If the input is empty, clear validation.
+    setBrandValidation({ isValid: null, error: null });
+    return;
+  }
+  const normalizedSearch = debouncedBrandSearch.toLowerCase();
+  // 2. Check for an exact case-insensitive match (highest priority)
+  const exactMatch = allBrands.find(b => b.toLowerCase() === normalizedSearch);
+  if (exactMatch) {
+    setBrand(exactMatch);
+    setBrandSearch(exactMatch);
+    setBrandValidation({ isValid: true, error: null });
+    setShowBrandDropdown(false);
+    return; // Exit early if we found an exact match
+  }
+  // 3. Perform a fuzzy search for potential misspellings
+  const fuzzyResults = fuse.search(normalizedSearch);
+  
+  if (fuzzyResults.length === 1 && fuzzyResults[0].score < 0.3) {
+    // If there is ONE and only ONE result, and its score is low enough
+    // (indicating a very close fuzzy match), auto-correct and select it.
+    const autoCorrectedBrand = fuzzyResults[0].item;
+    setBrand(autoCorrectedBrand);
+    setBrandSearch(autoCorrectedBrand);
+    setBrandValidation({ isValid: true, error: null });
+    setShowBrandDropdown(false);
+  } else {
+    // 4. If no exact match and no strong fuzzy match, it's invalid
+    setBrand(""); // Clear the brand state to prevent invalid submissions
+    setBrandValidation({
+      isValid: false,
+      error: "Invalid brand. Please choose from the dropdown list.",
     });
   };
 
@@ -1507,61 +1590,67 @@ export default function ManualQuoteSevenStep() {
                       <span className="font-normal">{coverageType || "—"}</span>
                     </div>
 
-                    {/* New: Display Additional Protection (conditionally) */}
-                    {coverageType === "Comprehensive" && (
-                      <div className="font-bold">
-                        Additional Protection:{" "}
-                        <span className="font-normal">
-                          {Object.keys(protections).length > 0 &&
-                          !protections.None
-                            ? Object.keys(protections).join(", ")
-                            : "None"}
-                        </span>
-                      </div>
-                    )}
-                  </div>
-                  <div className="space-y-2 text-blue-900">
-                    <div className="font-bold">
-                      {t("name_as_ic_field")}{" "}
-                      <span className="font-normal">{name}</span>
-                    </div>
-                    <div className="font-bold">
-                      {t("ic")}{" "}
-                      <span className="font-normal">
-                        {documentType === "ic" ? ic : passport}
-                      </span>
-                    </div>
-                    <div className="font-bold">
-                      {t("postcode")}{" "}
-                      <span className="font-normal">{postcode}</span>
-                    </div>
-                    <div className="font-bold">
-                      {t("estimated_range")}{" "}
-                      <span className="font-normal">
-                        {/* The corrected display logic */}
-                        {estimateRange.min === estimateRange.max
-                          ? `RM${estimateRange.min}`
-                          : `RM${estimateRange.min}-RM${estimateRange.max}`}
-                      </span>
-                    </div>
-                  </div>
-                </div>
-                <div className="mt-8 flex justify-between">
-                  <button
-                    onClick={goBack}
-                    className="px-8 py-3 rounded-xl font-semibold border border-blue-200 text-blue-900 hover:bg-blue-50"
-                  >
-                    {t("back")}
-                  </button>
-                  <button
-                    onClick={goNext}
-                    className="px-8 py-3 rounded-xl font-semibold text-white bg-blue-800 hover:bg-blue-900"
-                  >
-                    Submit
-                  </button>
-                </div>
-              </div>
-            )}
+        {/* New: Display Coverage Type */}
+        <div className="font-bold">
+          Type of Coverage: {" "}
+          <span className="font-normal">{coverageType || "—"}</span>
+        </div>
+
+        {/* New: Display Additional Protection (conditionally) */}
+        {coverageType === "Comprehensive" && (
+          <div className="font-bold">
+            Additional Protection: {" "}
+            <span className="font-normal">
+              {Object.keys(protections).length > 0 && !protections.None
+                ? Object.keys(protections).join(", ")
+                : "None"}
+            </span>
+          </div>
+        )}
+      </div>
+      <div className="space-y-2 text-blue-900">
+        <div className="font-bold">
+          {t("name_as_ic_field")}{" "}
+          <span className="font-normal">{name}</span>
+        </div>
+        <div className="font-bold">
+          {t("ic")}{" "}
+          <span className="font-normal">
+            {documentType === "ic" ? ic : passport}
+          </span>
+        </div>
+        <div className="font-bold">
+          {t("postcode")}{" "}
+          <span className="font-normal">{postcode}</span>
+        </div>
+        <div className="font-bold">
+          {t("estimated_range")}{" "}
+          <span className="font-normal">
+            {/* The corrected display logic */}
+            {estimateRange.min === estimateRange.max 
+              ? `RM${estimateRange.min}` 
+              : `RM${estimateRange.min}-RM${estimateRange.max}`
+            }
+          </span>
+        </div>
+      </div>
+    </div>
+    <div className="mt-8 flex justify-between">
+      <button
+        onClick={goBack}
+        className="px-8 py-3 rounded-xl font-semibold border border-blue-200 text-blue-900 hover:bg-blue-50"
+      >
+        {t("back")}
+      </button>
+      <button
+         onClick={handleSubmit} /* Updated this line */
+        className="px-8 py-3 rounded-xl font-semibold text-white bg-blue-800 hover:bg-blue-900"
+      >
+        Submit
+      </button>
+    </div>
+  </div>
+)}
             {step === 7 && (
               <div className="text-center">
                 <h2 className="text-xl font-bold text-blue-900 mb-2">
@@ -1602,3 +1691,4 @@ export default function ManualQuoteSevenStep() {
     </>
   );
 }
+)}

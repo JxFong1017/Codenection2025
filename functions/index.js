@@ -2,14 +2,13 @@ const functions = require('firebase-functions');
 const nodemailer = require('nodemailer');
 const puppeteer = require('puppeteer');
 
-// Configure Nodemailer with an email service provider (e.g., SendGrid or Mailgun)
 const transporter = nodemailer.createTransport({
-  host: 'smtp.sendgrid.net', // Example for SendGrid
+  host: 'smtp-relay.brevo.com',
   port: 587,
-  secure: false, // Use TLS
+  secure: false, 
   auth: {
-    user: 'apikey',
-    pass: functions.config().sendgrid.key
+    user: '974827001@smtp-brevo.com', 
+    pass: 'c8tDWTYRKUQxBpsC'
   }
 });
 
@@ -17,13 +16,13 @@ exports.generateAndSendQuotation = functions.https.onCall(async (data, context) 
   if (!context.auth) {
     throw new functions.https.HttpsError('unauthenticated', 'You must be logged in to request a quotation.');
   }
-  
+
   const quotationHtml = `
     <h1>Car Insurance Quotation</h1>
     <p>Name: ${data.name}</p>
     <p>Car Brand: ${data.brand}</p>
     <p>Estimated Premium Range: ${data.estimatedRange}</p>
-    `;
+  `;
 
   const browser = await puppeteer.launch();
   const page = await browser.newPage();

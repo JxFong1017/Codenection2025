@@ -1,42 +1,40 @@
-import NextAuth from "next-auth";
-import GoogleProvider from "next-auth/providers/google";
-import CredentialsProvider from "next-auth/providers/credentials";
 
-// Check if Google OAuth credentials are configured
-const isGoogleConfigured =
-  process.env.GOOGLE_CLIENT_ID && process.env.GOOGLE_CLIENT_SECRET;
+import NextAuth from "next-auth";
+import CredentialsProvider from "next-auth/providers/credentials";
+import { signInWithEmailAndPassword } from "firebase/auth";
+import { auth } from "../../../firebaseauth"; // Correctly import the initialized auth instance
 
 const providers = [
-  // Add credentials provider for demo purposes
   CredentialsProvider({
-    name: "credentials",
+    name: "Credentials",
     credentials: {
       email: { label: "Email", type: "email" },
       password: { label: "Password", type: "password" },
     },
-    async authorize(credentials) {
-      // Demo authentication - accept any email/password combination
-      if (credentials?.email && credentials?.password) {
-        return {
-          id: "1",
-          name: "Demo User",
-          email: credentials.email,
-          image: null,
-        };
+    async authorize(credentials, req) {
+      try {
+        const userCredential = await signInWithEmailAndPassword(
+          auth,
+          credentials.email,
+          credentials.password
+        );
+        const user = userCredential.user;
+
+        if (user) {
+          // Return a user object that NextAuth can use
+          return { id: user.uid, email: user.email };
+        } else {
+          return null;
+        }
+      } catch (error) {
+        // You can log the error or handle specific Firebase auth errors
+        console.error("Firebase Auth Error:", error);
+        // Returning null will trigger the `error` response in the UI
+        return null;
       }
-      return null;
     },
   }),
 ];
-
-if (isGoogleConfigured) {
-  providers.push(
-    GoogleProvider({
-      clientId: process.env.GOOGLE_CLIENT_ID,
-      clientSecret: process.env.GOOGLE_CLIENT_SECRET,
-    })
-  );
-}
 
 export default NextAuth({
   providers,
@@ -53,24 +51,12 @@ export default NextAuth({
       return token;
     },
     async redirect({ url, baseUrl }) {
-      // Redirect to dashboard after successful authentication
-      if (url === baseUrl || url === `${baseUrl}/`) {
-        return `${baseUrl}/dashboard`;
-      }
-      // Allow relative callback URLs
-      if (url.startsWith("/")) {
-        return `${baseUrl}${url}`;
-      }
-      // Allow callback URLs on the same origin
-      if (new URL(url).origin === baseUrl) {
-        return url;
-      }
-      return baseUrl;
+      // Always redirect to dashboard after successful authentication
+      return `${baseUrl}/dashboard`;
     },
   },
   pages: {
     signIn: "/auth/signin",
-    signOut: "/auth/signout",
   },
   secret: process.env.NEXTAUTH_SECRET || "your-secret-key-here",
   debug: process.env.NODE_ENV === "development",

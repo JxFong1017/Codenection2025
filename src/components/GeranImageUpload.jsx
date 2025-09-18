@@ -1,33 +1,50 @@
 import { useState, useRef } from "react";
-import { useRouter } from "next/router";
-import { useQuote } from "../context/QuoteContext";
 
-export default function GeranImageUpload({ onFormDataExtracted, onClose }) {
+// Mock dependencies to make the component standalone
+const MockModal = ({ message, onClose }) => {
+  return (
+    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-[100] p-4">
+      <div className="bg-white rounded-lg shadow-xl max-w-sm w-full p-6 text-center">
+        <h3 className="text-lg font-bold mb-4">Notification</h3>
+        <p className="mb-6">{message}</p>
+        <button
+          onClick={onClose}
+          className="px-6 py-2 bg-blue-600 text-white font-medium rounded-md hover:bg-blue-700"
+        >
+          Close
+        </button>
+      </div>
+    </div>
+  );
+};
+
+// GeranImageUpload component is now integrated directly into this file.
+// It will be rendered conditionally by the ManualQuotePage component.
+function GeranImageUpload({ onFormDataExtracted, onClose }) {
   const [isUploading, setIsUploading] = useState(false);
-  const [isProcessing, setIsProcessing] = useState(false);
   const [imagePreview, setImagePreview] = useState(null);
   const [uploadProgress, setUploadProgress] = useState(0);
   const [extractionResult, setExtractionResult] = useState(null);
+  const [modalMessage, setModalMessage] = useState(null);
+
   const fileInputRef = useRef(null);
-  const router = useRouter();
-  const { setQuoteDraft } = useQuote();
+
+  const showAlert = (message) => {
+    setModalMessage(message);
+  };
 
   const handleFileSelect = (event) => {
     const file = event.target.files[0];
     if (file) {
-      // Validate file type
       if (!file.type.startsWith("image/")) {
-        alert("Please select an image file (JPEG, PNG, etc.)");
+        showAlert("Please select an image file (JPEG, PNG, etc.)");
         return;
       }
-
-      // Validate file size (max 10MB)
       if (file.size > 10 * 1024 * 1024) {
-        alert("File size must be less than 10MB");
+        showAlert("File size must be less than 10MB");
         return;
       }
 
-      // Show preview
       const reader = new FileReader();
       reader.onload = (e) => {
         setImagePreview(e.target.result);
@@ -43,47 +60,114 @@ export default function GeranImageUpload({ onFormDataExtracted, onClose }) {
     setIsUploading(true);
     setUploadProgress(0);
 
-    // Simulate upload progress
+    const base64Data = imagePreview.split(",")[1];
+    // IMPORTANT: Add your actual API key here. For production, use a secure method to store and retrieve this key.
+    const apiKey = "AIzaSyByM8oGoRPqZkNZu9d9tpHnHNDN0Dgoano";
+    const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-05-20:generateContent?key=${apiKey}`;
+
     const progressInterval = setInterval(() => {
-      setUploadProgress((prev) => {
-        if (prev >= 90) {
-          clearInterval(progressInterval);
-          return 90;
-        }
-        return prev + 10;
-      });
+      setUploadProgress((prev) => (prev >= 90 ? 90 : prev + 10));
     }, 200);
 
     try {
-      // Simulate API call to process Geran image
-      await new Promise((resolve) => setTimeout(resolve, 3000));
-
-      // Simulate extracted data from Geran
-      const extractedData = {
-        state: "selangor",
-        plateNumber: "PJH 9196",
-        make: "Toyota",
-        model: "Vios",
-        year: "2020",
-        engineCC: "1332",
-        color: "Red",
-        vin: "TOYOTA12345678901",
-        mileage: "45000",
-        registrationDate: "2020-03-15",
-        insuranceType: "comprehensive",
-        confidence: 0.95,
+      const payload = {
+        contents: [
+          {
+            parts: [
+              {
+                text: "Act as an OCR system for a Malaysian vehicle registration document (Geran). Extract the following information and return it in a JSON object with the specified keys: state, plateNumber, make, model, year, engineCC, color, vin, registrationDate, insuranceType, and confidence. Be as accurate as possible.",
+              },
+              {
+                inlineData: {
+                  mimeType: "image/jpeg",
+                  data: base64Data,
+                },
+              },
+            ],
+          },
+        ],
+        generationConfig: {
+          responseMimeType: "application/json",
+          responseSchema: {
+            type: "OBJECT",
+            properties: {
+              state: { type: "STRING" },
+              plateNumber: { type: "STRING" },
+              make: { type: "STRING" },
+              model: { type: "STRING" },
+              year: { type: "STRING" },
+              engineCC: { type: "STRING" },
+              color: { type: "STRING" },
+              vin: { type: "STRING" },
+              registrationDate: { type: "STRING" },
+              insuranceType: { type: "STRING" },
+              confidence: { type: "NUMBER" },
+            },
+            propertyOrdering: [
+              "state",
+              "plateNumber",
+              "make",
+              "model",
+              "year",
+              "engineCC",
+              "color",
+              "vin",
+              "registrationDate",
+              "insuranceType",
+              "confidence",
+            ],
+          },
+        },
       };
+
+      let response;
+      let retries = 0;
+      const maxRetries = 5;
+      while (retries < maxRetries) {
+        try {
+          response = await fetch(apiUrl, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify(payload),
+          });
+
+          if (response.ok) {
+            break;
+          } else {
+            throw new Error(`API error: ${response.status}`);
+          }
+        } catch (error) {
+          retries++;
+          if (retries < maxRetries) {
+            const delay = Math.pow(2, retries) * 1000;
+            await new Promise((res) => setTimeout(res, delay));
+          } else {
+            throw error;
+          }
+        }
+      }
+
+      if (!response || !response.ok) {
+        throw new Error(
+          "Failed to fetch response from API after multiple retries."
+        );
+      }
+
+      const result = await response.json();
+      const extractedData = JSON.parse(
+        result.candidates?.[0]?.content?.parts?.[0]?.text
+      );
 
       setExtractionResult(extractedData);
       setUploadProgress(100);
 
-      // Auto-fill form after a short delay
+      // Pass extracted data to the parent component
       setTimeout(() => {
         onFormDataExtracted(extractedData);
-      }, 1500);
+      }, 500);
     } catch (error) {
       console.error("Error processing image:", error);
-      alert("Error processing image. Please try again.");
+      showAlert("Error processing image. Please try again.");
     } finally {
       setIsUploading(false);
       clearInterval(progressInterval);
@@ -100,58 +184,27 @@ export default function GeranImageUpload({ onFormDataExtracted, onClose }) {
   };
 
   const handleContinueToForm = () => {
-    // Update quote draft with extracted data
     if (extractionResult) {
-      setQuoteDraft({
-        plate: extractionResult.plateNumber,
-        brand: extractionResult.make,
-        model: extractionResult.model,
-        year: extractionResult.year,
-        step: 3, // Navigate to step 3 (Additional Information)
-        fromGeran: true, // Mark that this data came from Geran upload
-      });
+      onExtract(extractionResult); // pass the extracted data
     }
-
-    // Navigate to manual quote form at step 3
-    router.push("/manual-quote");
     onClose();
   };
 
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-      <div className="bg-white rounded-lg shadow-xl max-w-2xl w-full max-h-[90vh] overflow-y-auto">
-        <div className="p-6">
-          {/* Header */}
-          <div className="flex items-center justify-between mb-6">
-            <h2 className="text-2xl font-bold text-gray-900">
-              Upload Geran Image
-            </h2>
-            <button
-              onClick={() => router.push("/dashboard")}
-              className="text-gray-400 hover:text-gray-600 transition-colors duration-200"
-            >
-              <svg
-                className="h-6 w-6"
-                fill="none"
-                stroke="currentColor"
-                viewBox="0 0 24 24"
+    <>
+      <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+        <div className="bg-white rounded-lg shadow-xl max-w-2xl w-full max-h-[90vh] overflow-y-auto">
+          <div className="p-6">
+            <div className="flex items-center justify-between mb-6">
+              <h2 className="text-2xl font-bold text-gray-900">
+                Upload Geran Image
+              </h2>
+              <button
+                onClick={onClose}
+                className="text-gray-400 hover:text-gray-600 transition-colors duration-200"
               >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth={2}
-                  d="M6 18L18 6M6 6l12 12"
-                />
-              </svg>
-            </button>
-          </div>
-
-          {!imagePreview ? (
-            /* Upload Section */
-            <div className="text-center">
-              <div className="mx-auto flex items-center justify-center h-20 w-20 rounded-full bg-blue-100 mb-4">
                 <svg
-                  className="h-10 w-10 text-blue-600"
+                  className="h-6 w-6"
                   fill="none"
                   stroke="currentColor"
                   viewBox="0 0 24 24"
@@ -160,204 +213,325 @@ export default function GeranImageUpload({ onFormDataExtracted, onClose }) {
                     strokeLinecap="round"
                     strokeLinejoin="round"
                     strokeWidth={2}
-                    d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"
+                    d="M6 18L18 6M6 6l12 12"
                   />
                 </svg>
-              </div>
+              </button>
+            </div>
 
-              <h3 className="text-lg font-medium text-gray-900 mb-2">
-                Upload Your Vehicle Geran
-              </h3>
+            {!imagePreview ? (
+              <div className="text-center">
+                <div className="mx-auto flex items-center justify-center h-20 w-20 rounded-full bg-blue-100 mb-4">
+                  <svg
+                    className="h-10 w-10 text-blue-600"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"
+                    />
+                  </svg>
+                </div>
 
-              <p className="text-gray-600 mb-6">
-                Take a clear photo of your vehicle registration document (Geran)
-                and our AI will automatically extract all the details.
-              </p>
-
-              {/* Upload Area */}
-              <div className="border-2 border-dashed border-gray-300 rounded-lg p-8 mb-6">
-                <input
-                  ref={fileInputRef}
-                  type="file"
-                  accept="image/*"
-                  onChange={handleFileSelect}
-                  className="hidden"
-                />
-                <button
-                  onClick={() => fileInputRef.current.click()}
-                  className="px-6 py-3 bg-blue-600 text-white font-medium rounded-lg hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition-colors duration-200"
-                >
-                  Choose Image
-                </button>
-                <p className="mt-3 text-sm text-gray-500">
-                  Supported formats: JPEG, PNG, WebP (Max 10MB)
+                <h3 className="text-lg font-medium text-gray-900 mb-2">
+                  Upload Your Vehicle Geran
+                </h3>
+                <p className="text-gray-600 mb-6">
+                  Take a clear photo of your vehicle registration document
+                  (Geran) and our AI will automatically extract all the details.
                 </p>
-              </div>
 
-              {/* Tips */}
-              <div className="bg-blue-50 rounded-lg p-4 text-left">
-                <h4 className="font-medium text-blue-900 mb-2">
-                  📸 Tips for best results:
-                </h4>
-                <ul className="text-sm text-blue-800 space-y-1">
-                  <li>• Ensure good lighting and clear focus</li>
-                  <li>• Capture the entire document in frame</li>
-                  <li>• Avoid shadows and glare</li>
-                  <li>• Make sure text is readable</li>
-                </ul>
-              </div>
-            </div>
-          ) : !extractionResult ? (
-            /* Processing Section */
-            <div className="text-center">
-              <div className="mx-auto flex items-center justify-center h-20 w-20 rounded-full bg-blue-100 mb-4">
-                <svg
-                  className="h-10 w-10 text-blue-600"
-                  fill="none"
-                  stroke="currentColor"
-                  viewBox="0 0 24 24"
-                >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth={2}
-                    d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"
+                <div className="border-2 border-dashed border-gray-300 rounded-lg p-8 mb-6">
+                  <input
+                    ref={fileInputRef}
+                    type="file"
+                    accept="image/*"
+                    onChange={handleFileSelect}
+                    className="hidden"
                   />
-                </svg>
-              </div>
-
-              {/* Image Preview */}
-              <div className="mb-6">
-                <img
-                  src={imagePreview}
-                  alt="Geran Preview"
-                  className="w-full max-w-md mx-auto rounded-lg border border-gray-300"
-                />
-              </div>
-
-              {/* Upload Progress */}
-              <div className="mb-6">
-                <div className="flex justify-between text-sm text-gray-600 mb-2">
-                  <span>Uploading...</span>
-                  <span>{uploadProgress}%</span>
+                  <button
+                    onClick={() => fileInputRef.current.click()}
+                    className="px-6 py-3 bg-blue-600 text-white font-medium rounded-lg hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition-colors duration-200"
+                  >
+                    Choose Image
+                  </button>
+                  <p className="mt-3 text-sm text-gray-500">
+                    Supported formats: JPEG, PNG, WebP (Max 10MB)
+                  </p>
                 </div>
-                <div className="w-full bg-gray-200 rounded-full h-2">
-                  <div
-                    className="bg-blue-600 h-2 rounded-full transition-all duration-300"
-                    style={{ width: `${uploadProgress}%` }}
-                  ></div>
+
+                <div className="bg-blue-50 rounded-lg p-4 text-left">
+                  <h4 className="font-medium text-blue-900 mb-2">
+                    📸 Tips for best results:
+                  </h4>
+                  <ul className="text-sm text-blue-800 space-y-1">
+                    <li>• Ensure good lighting and clear focus</li>
+                    <li>• Capture the entire document in frame</li>
+                    <li>• Avoid shadows and glare</li>
+                    <li>• Make sure text is readable</li>
+                  </ul>
                 </div>
               </div>
+            ) : !extractionResult ? (
+              <div className="text-center">
+                <div className="mx-auto flex items-center justify-center h-20 w-20 rounded-full bg-blue-100 mb-4 animate-pulse">
+                  <svg
+                    className="h-10 w-10 text-blue-600"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"
+                    />
+                  </svg>
+                </div>
 
-              {/* Action Buttons */}
-              <div className="flex space-x-3 justify-center">
-                <button
-                  onClick={handleRetry}
-                  className="px-4 py-2 border border-gray-300 text-gray-700 rounded-md hover:bg-gray-50 transition-colors duration-200"
-                >
-                  Choose Different Image
-                </button>
-                <button
-                  onClick={handleUpload}
-                  disabled={isUploading}
-                  className="px-6 py-2 bg-blue-600 text-white font-medium rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition-colors duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
-                >
-                  {isUploading ? "Processing..." : "Process Image"}
-                </button>
-              </div>
-            </div>
-          ) : (
-            /* Results Section */
-            <div className="text-center">
-              <div className="mx-auto flex items-center justify-center h-20 w-20 rounded-full bg-green-100 mb-4">
-                <svg
-                  className="h-10 w-10 text-green-600"
-                  fill="none"
-                  stroke="currentColor"
-                  viewBox="0 0 24 24"
-                >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth={2}
-                    d="M5 13l4 4L19 7"
+                <div className="mb-6">
+                  <img
+                    src={imagePreview}
+                    alt="Geran Preview"
+                    className="w-full max-w-md mx-auto rounded-lg border border-gray-300"
                   />
-                </svg>
-              </div>
+                </div>
 
-              <h3 className="text-lg font-medium text-green-900 mb-2">
-                Successfully Extracted Vehicle Details!
-              </h3>
-
-              <p className="text-gray-600 mb-4">
-                Confidence Score:{" "}
-                {(extractionResult.confidence * 100).toFixed(1)}%
-              </p>
-
-              {/* Extracted Data Preview */}
-              <div className="bg-gray-50 rounded-lg p-4 mb-6 text-left">
-                <h4 className="font-medium text-gray-900 mb-3">
-                  Extracted Information:
-                </h4>
-                <div className="grid grid-cols-2 gap-3 text-sm">
-                  <div>
-                    <span className="text-gray-600">Plate:</span>{" "}
-                    <span className="font-medium">
-                      {extractionResult.plateNumber}
-                    </span>
+                <div className="mb-6">
+                  <div className="flex justify-between text-sm text-gray-600 mb-2">
+                    <span>Processing...</span>
+                    <span>{uploadProgress}%</span>
                   </div>
-                  <div>
-                    <span className="text-gray-600">Make:</span>{" "}
-                    <span className="font-medium">{extractionResult.make}</span>
-                  </div>
-                  <div>
-                    <span className="text-gray-600">Model:</span>{" "}
-                    <span className="font-medium">
-                      {extractionResult.model}
-                    </span>
-                  </div>
-                  <div>
-                    <span className="text-gray-600">Year:</span>{" "}
-                    <span className="font-medium">{extractionResult.year}</span>
-                  </div>
-                  <div>
-                    <span className="text-gray-600">Engine:</span>{" "}
-                    <span className="font-medium">
-                      {extractionResult.engineCC}cc
-                    </span>
-                  </div>
-                  <div>
-                    <span className="text-gray-600">Color:</span>{" "}
-                    <span className="font-medium">
-                      {extractionResult.color}
-                    </span>
+                  <div className="w-full bg-gray-200 rounded-full h-2">
+                    <div
+                      className="bg-blue-600 h-2 rounded-full transition-all duration-300"
+                      style={{ width: `${uploadProgress}%` }}
+                    ></div>
                   </div>
                 </div>
-              </div>
 
-              <div className="text-sm text-gray-600 mb-6">
-                ✅ Form will be automatically filled with these details
+                <div className="flex space-x-3 justify-center">
+                  <button
+                    onClick={handleRetry}
+                    className="px-4 py-2 border border-gray-300 text-gray-700 rounded-md hover:bg-gray-50 transition-colors duration-200"
+                  >
+                    Choose Different Image
+                  </button>
+                  <button
+                    onClick={handleUpload}
+                    disabled={isUploading}
+                    className="px-6 py-2 bg-blue-600 text-white font-medium rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition-colors duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
+                  >
+                    {isUploading ? "Processing..." : "Process Image"}
+                  </button>
+                </div>
               </div>
+            ) : (
+              <div className="text-center">
+                <div className="mx-auto flex items-center justify-center h-20 w-20 rounded-full bg-green-100 mb-4">
+                  <svg
+                    className="h-10 w-10 text-green-600"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M5 13l4 4L19 7"
+                    />
+                  </svg>
+                </div>
 
-              {/* Action Buttons */}
-              <div className="flex space-x-3 justify-center">
-                <button
-                  onClick={handleRetry}
-                  className="px-4 py-2 border border-gray-300 text-gray-700 rounded-md hover:bg-gray-50 transition-colors duration-200"
-                >
-                  Upload Different Image
-                </button>
-                <button
-                  onClick={handleContinueToForm}
-                  className="px-6 py-2 bg-blue-600 text-white font-medium rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition-colors duration-200"
-                >
-                  Continue to Form
-                </button>
+                <h3 className="text-lg font-medium text-green-900 mb-2">
+                  Successfully Extracted Vehicle Details!
+                </h3>
+                <p className="text-gray-600 mb-4">
+                  Confidence Score:{" "}
+                  {(extractionResult.confidence * 100).toFixed(1)}%
+                </p>
+
+                <div className="bg-gray-50 rounded-lg p-4 mb-6 text-left">
+                  <h4 className="font-medium text-gray-900 mb-3">
+                    Extracted Information:
+                  </h4>
+                  <div className="grid grid-cols-2 gap-3 text-sm">
+                    <div>
+                      <span className="text-gray-600">Plate:</span>{" "}
+                      <span className="font-medium">
+                        {extractionResult.plateNumber}
+                      </span>
+                    </div>
+                    <div>
+                      <span className="text-gray-600">Make:</span>{" "}
+                      <span className="font-medium">
+                        {extractionResult.make}
+                      </span>
+                    </div>
+                    <div>
+                      <span className="text-gray-600">Model:</span>{" "}
+                      <span className="font-medium">
+                        {extractionResult.model}
+                      </span>
+                    </div>
+                    <div>
+                      <span className="text-gray-600">Year:</span>{" "}
+                      <span className="font-medium">
+                        {extractionResult.year}
+                      </span>
+                    </div>
+                    <div>
+                      <span className="text-gray-600">Engine:</span>{" "}
+                      <span className="font-medium">
+                        {extractionResult.engineCC}cc
+                      </span>
+                    </div>
+                    <div>
+                      <span className="text-gray-600">Color:</span>{" "}
+                      <span className="font-medium">
+                        {extractionResult.color}
+                      </span>
+                    </div>
+                  </div>
+                </div>
+
+                <div className="text-sm text-gray-600 mb-6">
+                  ✅ Form will be automatically filled with these details
+                </div>
+
+                <div className="flex space-x-3 justify-center">
+                  <button
+                    onClick={handleRetry}
+                    className="px-4 py-2 border border-gray-300 text-gray-700 rounded-md hover:bg-gray-50 transition-colors duration-200"
+                  >
+                    Upload Different Image
+                  </button>
+                  <button
+                    onClick={handleContinueToForm}
+                    className="px-6 py-2 bg-blue-600 text-white font-medium rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition-colors duration-200"
+                  >
+                    Continue to Form
+                  </button>
+                </div>
               </div>
-            </div>
-          )}
+            )}
+          </div>
         </div>
       </div>
+      {modalMessage && (
+        <MockModal
+          message={modalMessage}
+          onClose={() => setModalMessage(null)}
+        />
+      )}
+    </>
+  );
+}
+
+// Main component that uses the GeranImageUpload component
+export default function ManualQuotePage() {
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [formData, setFormData] = useState({
+    plateNumber: "",
+    make: "",
+    model: "",
+    year: "",
+  });
+
+  const handleFormDataExtracted = (data) => {
+    console.log("Extracted Data:", data);
+
+    setFormData({
+      plateNumber: data.plateNumber,
+      make: data.make,
+      model: data.model,
+      year: data.year,
+    });
+
+    setIsModalOpen(false);
+  };
+
+  return (
+    <div className="flex flex-col items-center p-8 bg-gray-100 min-h-screen">
+      <div className="bg-white p-8 rounded-xl shadow-lg w-full max-w-lg">
+        <h1 className="text-3xl font-bold mb-6 text-center text-gray-900">
+          Manual Quote Form
+        </h1>
+        <button
+          onClick={() => setIsModalOpen(true)}
+          className="w-full px-6 py-3 mb-6 bg-blue-600 text-white font-medium rounded-lg hover:bg-blue-700"
+        >
+          Open Geran Upload
+        </button>
+
+        <div className="space-y-4">
+          <div>
+            <label className="block text-sm font-medium text-gray-700">
+              Plate Number
+            </label>
+            <input
+              type="text"
+              value={formData.plateNumber}
+              onChange={(e) =>
+                setFormData({ ...formData, plateNumber: e.target.value })
+              }
+              className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
+            />
+          </div>
+          <div>
+            <label className="block text-sm font-medium text-gray-700">
+              Make
+            </label>
+            <input
+              type="text"
+              value={formData.make}
+              onChange={(e) =>
+                setFormData({ ...formData, make: e.target.value })
+              }
+              className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
+            />
+          </div>
+          <div>
+            <label className="block text-sm font-medium text-gray-700">
+              Model
+            </label>
+            <input
+              type="text"
+              value={formData.model}
+              onChange={(e) =>
+                setFormData({ ...formData, model: e.target.value })
+              }
+              className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
+            />
+          </div>
+          <div>
+            <label className="block text-sm font-medium text-gray-700">
+              Year
+            </label>
+            <input
+              type="text"
+              value={formData.year}
+              onChange={(e) =>
+                setFormData({ ...formData, year: e.target.value })
+              }
+              className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
+            />
+          </div>
+        </div>
+      </div>
+
+      {isModalOpen && (
+        <GeranImageUpload
+          onFormDataExtracted={handleFormDataExtracted}
+          onClose={() => setIsModalOpen(false)}
+        />
+      )}
     </div>
   );
 }

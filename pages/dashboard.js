@@ -32,15 +32,15 @@ export default function Dashboard() {
     setShowDecisionPopup(false);
 
     if (decision === "manual") {
-      router.push("/vehicle-validation-form");
+      router.push("/manual-quote");
     } else if (decision === "image") {
-      router.push("/vehicle-validation-form?mode=image");
+      router.push("/manual-quote?mode=image");
     }
   };
 
   const handleClosePopup = () => {
     setShowDecisionPopup(false);
-    router.push("/vehicle-validation-form");
+    router.push("/manual-quote");
   };
 
   if (status === "loading") {

@@ -1,22 +1,22 @@
-import { useSession, signOut } from 'next-auth/react';
-import { useRouter } from 'next/router';
-import { useEffect } from 'react';
-import Head from 'next/head';
+import { useSession, signOut } from "next-auth/react";
+import { useRouter } from "next/router";
+import { useEffect } from "react";
+import Head from "next/head";
 
 export default function Profile() {
   const { data: session, status } = useSession();
   const router = useRouter();
 
   useEffect(() => {
-    if (status === 'unauthenticated') {
-      router.push('/auth/signin');
-    } else if (status === 'authenticated') {
+    if (status === "unauthenticated") {
+      router.push("/auth/signin");
+    } else if (status === "authenticated") {
       // Redirect to vehicle validation form instead of showing profile
-      router.push('/vehicle-validation-form');
+      router.push("/manual-quote");
     }
   }, [status, router]);
 
-  if (status === 'loading') {
+  if (status === "loading") {
     return (
       <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 flex items-center justify-center">
         <div className="text-center">

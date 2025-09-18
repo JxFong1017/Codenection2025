@@ -3,12 +3,16 @@ import Head from "next/head";
 import Link from "next/link";
 import Fuse from "fuse.js";
 import { useDebounce } from "../src/hooks/useDebounce";
-import { validatePlateNumber ,validateCarMake,
-  getModelsForMake, 
-  getYearsForModel, getUniqueMakes,
-  validateIC, validatePassport,     
-  validatePostcode, 
-  validatePhone,  
+import {
+  validatePlateNumber,
+  validateCarMake,
+  getModelsForMake,
+  getYearsForModel,
+  getUniqueMakes,
+  validateIC,
+  validatePassport,
+  validatePostcode,
+  validatePhone,
 } from "../src/utils/validationLogic";
 import { useQuote } from "../src/context/QuoteContext";
 import { useT } from "../src/utils/i18n";
@@ -34,11 +38,16 @@ export default function ManualQuoteSevenStep() {
     isValid: false,
     error: null,
   });
-  const [modelValidation, setModelValidation] = useState({ isValid: null, error: null });
+  const [modelValidation, setModelValidation] = useState({
+    isValid: null,
+    error: null,
+  });
 
   const [showPlateConfirm, setShowPlateConfirm] = useState(false);
   const [showPlateValidation, setShowPlateValidation] = useState(false);
   const [plateValidationResult, setPlateValidationResult] = useState(null);
+
+  const [showGeranModal, setShowGeranModal] = useState(false);
 
   // Step 2
   const [brand, setBrand] = useState("");
@@ -47,14 +56,16 @@ export default function ManualQuoteSevenStep() {
 
   const [brandSearch, setBrandSearch] = useState("");
   const [showBrandDropdown, setShowBrandDropdown] = useState(false);
-  const [brandValidation, setBrandValidation] = useState({ isValid: null, error: null });
+  const [brandValidation, setBrandValidation] = useState({
+    isValid: null,
+    error: null,
+  });
   const [modelFuse, setModelFuse] = useState(null);
   const [modelSearch, setModelSearch] = useState("");
   const [showModelDropdown, setShowModelDropdown] = useState(false);
   const [availableBrands, setAvailableBrands] = useState([]);
   const [availableModels, setAvailableModels] = useState([]);
   const [availableYears, setAvailableYears] = useState([]);
-  
 
   // Step 3
   const [coverageType, setCoverageType] = useState("");
@@ -74,41 +85,44 @@ export default function ManualQuoteSevenStep() {
   });
 
   const handleNcdChange = (e) => {
-  const value = e.target.value;
-  setNcdInput(value); // Always update the input field state
+    const value = e.target.value;
+    setNcdInput(value); // Always update the input field state
 
-  // If the input is empty, reset and exit
-  if (value.trim() === '') {
-    setNcdValidation({ isValid: null, error: "" });
-    setNcd(0); // You can choose to set this to 0 or leave it empty, but 0 is safe
-    return;
-  }
-  
-  const parsedValue = parseInt(value, 10);
-  const isValueValid = !isNaN(parsedValue) && parsedValue >= 0 && parsedValue <= 55;
-
-  if (isValueValid) {
-    setNcd(parsedValue); // Only update the final ncd state if the value is valid
-    setNcdValidation({ isValid: true, error: "" });
-  } else {
-    // If invalid, show an error and do NOT update the ncd state variable
-    let errorMessage = "Please enter a valid NCD between 0 and 55.";
-    if (parsedValue > 55) {
-      errorMessage = "The maximum NCD rate for cars in Malaysia is 55% according to rates set by the Persatuan Insurans Am Malaysia (PIAM).";
+    // If the input is empty, reset and exit
+    if (value.trim() === "") {
+      setNcdValidation({ isValid: null, error: "" });
+      setNcd(0); // You can choose to set this to 0 or leave it empty, but 0 is safe
+      return;
     }
-    setNcdValidation({
-      isValid: false,
-      error: errorMessage,
-    });
-  }
-};
+
+    const parsedValue = parseInt(value, 10);
+    const isValueValid =
+      !isNaN(parsedValue) && parsedValue >= 0 && parsedValue <= 55;
+
+    if (isValueValid) {
+      setNcd(parsedValue); // Only update the final ncd state if the value is valid
+      setNcdValidation({ isValid: true, error: "" });
+    } else {
+      // If invalid, show an error and do NOT update the ncd state variable
+      let errorMessage = "Please enter a valid NCD between 0 and 55.";
+      if (parsedValue > 55) {
+        errorMessage =
+          "The maximum NCD rate for cars in Malaysia is 55% according to rates set by the Persatuan Insurans Am Malaysia (PIAM).";
+      }
+      setNcdValidation({
+        isValid: false,
+        error: errorMessage,
+      });
+    }
+  };
 
   const [ncd, setNcd] = useState(20);
-  const [ncdInput, setNcdInput] = useState('');
+  const [ncdInput, setNcdInput] = useState("");
   const ncdOptions = [0, 25, 30, 38.3, 45, 55];
   const handleCheckNcd = () => {
-    window.open('https://www.mycarinfo.com.my/NCDCheck/Online', '_blank');
-``};
+    window.open("https://www.mycarinfo.com.my/NCDCheck/Online", "_blank");
+    ``;
+  };
 
   const [documentType, setDocumentType] = useState("ic");
 
@@ -116,18 +130,30 @@ export default function ManualQuoteSevenStep() {
   const isCarOlderThan15Years = () => {
     // Check if a year has been selected
     if (!year) {
-        return false;
+      return false;
     }
     const currentYear = new Date().getFullYear();
     const selectedYear = parseInt(year, 10); // Convert the string to a number
-    return (currentYear - selectedYear) > 15;
-};
+    return currentYear - selectedYear > 15;
+  };
 
   // Validation state for Step 4
-  const [icValidation, setIcValidation] = useState({ isValid: null, error: null });
-  const [passportValidation, setPassportValidation] = useState({ isValid: null, error: null }); // New validation state
-  const [postcodeValidation, setPostcodeValidation] = useState({ isValid: null, error: null });
-  const [phoneValidation, setPhoneValidation] = useState({ isValid: null, error: null });
+  const [icValidation, setIcValidation] = useState({
+    isValid: null,
+    error: null,
+  });
+  const [passportValidation, setPassportValidation] = useState({
+    isValid: null,
+    error: null,
+  }); // New validation state
+  const [postcodeValidation, setPostcodeValidation] = useState({
+    isValid: null,
+    error: null,
+  });
+  const [phoneValidation, setPhoneValidation] = useState({
+    isValid: null,
+    error: null,
+  });
 
   // Debounced values for validation
   const debouncedIC = useDebounce(ic, 500);
@@ -138,142 +164,154 @@ export default function ManualQuoteSevenStep() {
   const debouncedBrandSearch = useDebounce(brandSearch, 500);
   const allBrands = useMemo(() => getUniqueMakes(), []);
 
-// Step 6 (computed estimate)
-const estimateRange = useMemo(() => {
-  const selectedCar = carData.find(
-    (car) => car.make === brand && car.model === model
-  );
+  // Step 6 (computed estimate)
+  const estimateRange = useMemo(() => {
+    const selectedCar = carData.find(
+      (car) => car.make === brand && car.model === model
+    );
 
-  if (!selectedCar || !year || !coverageType || !postcode) {
-    return { min: 0, max: 0 };
-  }
+    if (!selectedCar || !year || !coverageType || !postcode) {
+      return { min: 0, max: 0 };
+    }
 
-  const carAge = new Date().getFullYear() - parseInt(year, 10);
-  const depreciationFactor = Math.max(0.3, Math.pow(0.9, carAge));
-  const currentMarketValue = selectedCar.marketValue * depreciationFactor;
+    const carAge = new Date().getFullYear() - parseInt(year, 10);
+    const depreciationFactor = Math.max(0.3, Math.pow(0.9, carAge));
+    const currentMarketValue = selectedCar.marketValue * depreciationFactor;
 
-  let basicPremium = 0;
-  const { engineCapacity } = selectedCar;
+    let basicPremium = 0;
+    const { engineCapacity } = selectedCar;
 
-  const firstTwoPostcodeDigits = parseInt(postcode.substring(0, 2), 10);
-  const isEastMalaysia = (firstTwoPostcodeDigits >= 88 && firstTwoPostcodeDigits <= 91) ||
-                         (firstTwoPostcodeDigits >= 93 && firstTwoPostcodeDigits <= 98);
+    const firstTwoPostcodeDigits = parseInt(postcode.substring(0, 2), 10);
+    const isEastMalaysia =
+      (firstTwoPostcodeDigits >= 88 && firstTwoPostcodeDigits <= 91) ||
+      (firstTwoPostcodeDigits >= 93 && firstTwoPostcodeDigits <= 98);
 
-  const comprehensiveRates = {
-    peninsular: {
-      rates: [
-        { cc: 1400, base: 273.80 },
-        { cc: 1650, base: 305.50 },
-        { cc: 2200, base: 339.10 },
-        { cc: 3050, base: 372.60 },
-        { cc: 4100, base: 404.30 },
-        { cc: 4250, base: 436.00 },
-        { cc: 4400, base: 469.60 },
-        { cc: Infinity, base: 501.30 },
+    const comprehensiveRates = {
+      peninsular: {
+        rates: [
+          { cc: 1400, base: 273.8 },
+          { cc: 1650, base: 305.5 },
+          { cc: 2200, base: 339.1 },
+          { cc: 3050, base: 372.6 },
+          { cc: 4100, base: 404.3 },
+          { cc: 4250, base: 436.0 },
+          { cc: 4400, base: 469.6 },
+          { cc: Infinity, base: 501.3 },
+        ],
+        per1000: 26.0,
+      },
+      east: {
+        rates: [
+          { cc: 1400, base: 219.0 },
+          { cc: 1650, base: 244.4 },
+          { cc: 2200, base: 271.3 },
+          { cc: 3050, base: 298.1 },
+          { cc: 4100, base: 323.4 },
+          { cc: 4250, base: 348.8 },
+          { cc: 4400, base: 375.7 },
+          { cc: Infinity, base: 401.1 },
+        ],
+        per1000: 20.3,
+      },
+    };
+
+    const thirdPartyRates = {
+      peninsular: [
+        { cc: 1400, premium: 120.6 },
+        { cc: 1650, premium: 135.0 },
+        { cc: 2200, premium: 151.2 },
+        { cc: 3050, premium: 167.4 },
+        { cc: 4100, premium: 181.8 },
+        { cc: 4250, premium: 196.2 },
+        { cc: 4400, premium: 212.4 },
+        { cc: Infinity, premium: 226.8 },
       ],
-      per1000: 26.00,
-    },
-    east: {
-      rates: [
-        { cc: 1400, base: 219.00 },
-        { cc: 1650, base: 244.40 },
-        { cc: 2200, base: 271.30 },
-        { cc: 3050, base: 298.10 },
-        { cc: 4100, base: 323.40 },
-        { cc: 4250, base: 348.80 },
-        { cc: 4400, base: 375.70 },
-        { cc: Infinity, base: 401.10 },
+      east: [
+        { cc: 1400, premium: 95.9 },
+        { cc: 1650, premium: 107.5 },
+        { cc: 2200, premium: 120.6 },
+        { cc: 3050, premium: 133.6 },
+        { cc: 4100, premium: 145.1 },
+        { cc: 4250, premium: 156.5 },
+        { cc: 4400, premium: 169.6 },
+        { cc: Infinity, premium: 181.1 },
       ],
-      per1000: 20.30,
-    },
-  };
+    };
 
-  const thirdPartyRates = {
-    peninsular: [
-      { cc: 1400, premium: 120.60 },
-      { cc: 1650, premium: 135.00 },
-      { cc: 2200, premium: 151.20 },
-      { cc: 3050, premium: 167.40 },
-      { cc: 4100, premium: 181.80 },
-      { cc: 4250, premium: 196.20 },
-      { cc: 4400, premium: 212.40 },
-      { cc: Infinity, premium: 226.80 },
-    ],
-    east: [
-      { cc: 1400, premium: 95.90 },
-      { cc: 1650, premium: 107.50 },
-      { cc: 2200, premium: 120.60 },
-      { cc: 3050, premium: 133.60 },
-      { cc: 4100, premium: 145.10 },
-      { cc: 4250, premium: 156.50 },
-      { cc: 4400, premium: 169.60 },
-      { cc: Infinity, premium: 181.10 },
-    ],
-  };
+    const ratesForComprehensive = isEastMalaysia
+      ? comprehensiveRates.east
+      : comprehensiveRates.peninsular;
+    const ratesForThirdParty = isEastMalaysia
+      ? thirdPartyRates.east
+      : thirdPartyRates.peninsular;
 
-  const ratesForComprehensive = isEastMalaysia ? comprehensiveRates.east : comprehensiveRates.peninsular;
-  const ratesForThirdParty = isEastMalaysia ? thirdPartyRates.east : thirdPartyRates.peninsular;
+    if (coverageType === "Comprehensive") {
+      const rateTier = ratesForComprehensive.rates.find(
+        (tier) => engineCapacity <= tier.cc
+      );
+      const rate = rateTier.base;
+      const ratePer1000 = ratesForComprehensive.per1000;
 
-  if (coverageType === "Comprehensive") {
-    const rateTier = ratesForComprehensive.rates.find(tier => engineCapacity <= tier.cc);
-    const rate = rateTier.base;
-    const ratePer1000 = ratesForComprehensive.per1000;
-    
-    const excessValue = Math.max(0, currentMarketValue - 1000);
-    basicPremium = rate + (excessValue / 1000) * ratePer1000;
+      const excessValue = Math.max(0, currentMarketValue - 1000);
+      basicPremium = rate + (excessValue / 1000) * ratePer1000;
+    } else if (coverageType === "Third-Party, Fire & Theft") {
+      const rateTier = ratesForComprehensive.rates.find(
+        (tier) => engineCapacity <= tier.cc
+      );
+      const rate = rateTier.base;
+      const ratePer1000 = ratesForComprehensive.per1000;
 
-  } else if (coverageType === "Third-Party, Fire & Theft") {
-    const rateTier = ratesForComprehensive.rates.find(tier => engineCapacity <= tier.cc);
-    const rate = rateTier.base;
-    const ratePer1000 = ratesForComprehensive.per1000;
+      const excessValue = Math.max(0, currentMarketValue - 1000);
+      const comprehensivePremium = rate + (excessValue / 1000) * ratePer1000;
 
-    const excessValue = Math.max(0, currentMarketValue - 1000);
-    const comprehensivePremium = rate + (excessValue / 1000) * ratePer1000;
-    
-    basicPremium = comprehensivePremium * 0.75;
-    
-  } else {
-    const rateTier = ratesForThirdParty.find(tier => engineCapacity <= tier.cc);
-    basicPremium = rateTier.premium;
-  }
+      basicPremium = comprehensivePremium * 0.75;
+    } else {
+      const rateTier = ratesForThirdParty.find(
+        (tier) => engineCapacity <= tier.cc
+      );
+      basicPremium = rateTier.premium;
+    }
 
-  let additionalCoverageCost = 0;
-  if (coverageType === "Comprehensive" && protections && !protections.None) {
-    additionalCoverageCost = Object.keys(protections).reduce((acc, key) => {
-      if (!protections[key]) return acc;
-      
-      if (key === t("windscreen")) return acc + 150;
-      if (key === t("natural_disaster")) return acc + currentMarketValue * 0.005;
-      if (key === t("strike_riot")) return acc + currentMarketValue * 0.003; 
-      if (key === t("personal_accident")) return acc + 100;
-      if (key === t("towing")) return acc + 50;
-      if (key === t("named_driver")) return acc + 10;
-      if (key === t("all_driver")) return acc + 50;
-      if (key === t("passengers_coverage")) return acc + 25;
-      
-      return acc; 
-    }, 0);
-  }
+    let additionalCoverageCost = 0;
+    if (coverageType === "Comprehensive" && protections && !protections.None) {
+      additionalCoverageCost = Object.keys(protections).reduce((acc, key) => {
+        if (!protections[key]) return acc;
 
-  const ncdDiscount = basicPremium * (ncd / 100);
-  const premiumPayable = basicPremium - ncdDiscount + additionalCoverageCost;
-  const sst = premiumPayable * 0.06;
-  const stampDuty = 10;
-  const totalPremium = premiumPayable + sst + stampDuty;
-  
-  // This is the key change to create a range for comprehensive and TPFT policies.
-  if (coverageType === "Comprehensive" || coverageType === "Third-Party, Fire & Theft") {
-    // Generate a range of +/- 5% for these policies to represent market variation.
-    const minEstimate = Math.round(totalPremium * 0.95);
-    const maxEstimate = Math.round(totalPremium * 1.05);
-    return { min: minEstimate, max: maxEstimate };
-  } else {
-    // Return a single value for Third-Party Only, as its premium is fixed.
-    const finalEstimate = Math.round(totalPremium);
-    return { min: finalEstimate, max: finalEstimate };
-  }
+        if (key === t("windscreen")) return acc + 150;
+        if (key === t("natural_disaster"))
+          return acc + currentMarketValue * 0.005;
+        if (key === t("strike_riot")) return acc + currentMarketValue * 0.003;
+        if (key === t("personal_accident")) return acc + 100;
+        if (key === t("towing")) return acc + 50;
+        if (key === t("named_driver")) return acc + 10;
+        if (key === t("all_driver")) return acc + 50;
+        if (key === t("passengers_coverage")) return acc + 25;
 
-}, [brand, model, year, coverageType, protections, ncd, t, postcode]);
+        return acc;
+      }, 0);
+    }
+
+    const ncdDiscount = basicPremium * (ncd / 100);
+    const premiumPayable = basicPremium - ncdDiscount + additionalCoverageCost;
+    const sst = premiumPayable * 0.06;
+    const stampDuty = 10;
+    const totalPremium = premiumPayable + sst + stampDuty;
+
+    // This is the key change to create a range for comprehensive and TPFT policies.
+    if (
+      coverageType === "Comprehensive" ||
+      coverageType === "Third-Party, Fire & Theft"
+    ) {
+      // Generate a range of +/- 5% for these policies to represent market variation.
+      const minEstimate = Math.round(totalPremium * 0.95);
+      const maxEstimate = Math.round(totalPremium * 1.05);
+      return { min: minEstimate, max: maxEstimate };
+    } else {
+      // Return a single value for Third-Party Only, as its premium is fixed.
+      const finalEstimate = Math.round(totalPremium);
+      return { min: finalEstimate, max: finalEstimate };
+    }
+  }, [brand, model, year, coverageType, protections, ncd, t, postcode]);
 
   // Initialize Fuse.js for fuzzy searching
   const fuse = useMemo(() => {
@@ -286,90 +324,92 @@ const estimateRange = useMemo(() => {
 
   const formatICNumber = (value) => {
     // 1. Remove all non-digit characters (including existing dashes)
-    const cleanedValue = value.replace(/\D/g, '');
+    const cleanedValue = value.replace(/\D/g, "");
     // 2. Apply the dash formatting based on length
-    let formattedValue = '';
+    let formattedValue = "";
     if (cleanedValue.length > 0) {
       formattedValue = cleanedValue.slice(0, 6);
     }
     if (cleanedValue.length > 6) {
-      formattedValue += '-' + cleanedValue.slice(6, 8);
+      formattedValue += "-" + cleanedValue.slice(6, 8);
     }
     if (cleanedValue.length > 8) {
-      formattedValue += '-' + cleanedValue.slice(8, 12);
+      formattedValue += "-" + cleanedValue.slice(8, 12);
     }
     // 3. Return the formatted value
     return formattedValue;
   };
 
-// Update the `toggleProtection` function to handle the new state
-const toggleProtection = (label) => {
-  setProtections((prevProtections) => {
-    // If "None" is selected, clear all other protections
-    if (label === "None") {
-      return {
-        None: !prevProtections.None, // Toggle the "None" state
+  // Update the `toggleProtection` function to handle the new state
+  const toggleProtection = (label) => {
+    setProtections((prevProtections) => {
+      // If "None" is selected, clear all other protections
+      if (label === "None") {
+        return {
+          None: !prevProtections.None, // Toggle the "None" state
+        };
+      }
+      // If any other protection is selected, ensure "None" is not
+      const newProtections = {
+        ...prevProtections,
+        [label]: !prevProtections[label], // Toggle the selected protection
       };
-    }
-    // If any other protection is selected, ensure "None" is not
-    const newProtections = {
-      ...prevProtections,
-      [label]: !prevProtections[label], // Toggle the selected protection
-    };
-    // If a new protection is selected, uncheck "None"
-    if (newProtections[label]) {
-      delete newProtections.None;
-    }
-    return newProtections;
-  });
-};
-
-// NEW EFFECT FOR BRAND AUTO-SELECTION with partial matching
-useEffect(() => {
-  if (!debouncedBrandSearch) {
-    // If the input is empty, clear validation.
-    setBrandValidation({ isValid: null, error: null });
-    return;
-  }
-  const normalizedSearch = debouncedBrandSearch.toLowerCase();
-  // 2. Check for an exact case-insensitive match (highest priority)
-  const exactMatch = allBrands.find(b => b.toLowerCase() === normalizedSearch);
-  if (exactMatch) {
-    setBrand(exactMatch);
-    setBrandSearch(exactMatch);
-    setBrandValidation({ isValid: true, error: null });
-    setShowBrandDropdown(false);
-    return; // Exit early if we found an exact match
-  }
-  // 3. Perform a fuzzy search for potential misspellings
-  const fuzzyResults = fuse.search(normalizedSearch);
-  
-  if (fuzzyResults.length === 1 && fuzzyResults[0].score < 0.3) {
-    // If there is ONE and only ONE result, and its score is low enough
-    // (indicating a very close fuzzy match), auto-correct and select it.
-    const autoCorrectedBrand = fuzzyResults[0].item;
-    setBrand(autoCorrectedBrand);
-    setBrandSearch(autoCorrectedBrand);
-    setBrandValidation({ isValid: true, error: null });
-    setShowBrandDropdown(false);
-  } else {
-    // 4. If no exact match and no strong fuzzy match, it's invalid
-    setBrand(""); // Clear the brand state to prevent invalid submissions
-    setBrandValidation({
-      isValid: false,
-      error: "Invalid brand. Please choose from the dropdown list.",
+      // If a new protection is selected, uncheck "None"
+      if (newProtections[label]) {
+        delete newProtections.None;
+      }
+      return newProtections;
     });
-  }
-}, [debouncedBrandSearch, allBrands, fuse]);
+  };
+
+  // NEW EFFECT FOR BRAND AUTO-SELECTION with partial matching
+  useEffect(() => {
+    if (!debouncedBrandSearch) {
+      // If the input is empty, clear validation.
+      setBrandValidation({ isValid: null, error: null });
+      return;
+    }
+    const normalizedSearch = debouncedBrandSearch.toLowerCase();
+    // 2. Check for an exact case-insensitive match (highest priority)
+    const exactMatch = allBrands.find(
+      (b) => b.toLowerCase() === normalizedSearch
+    );
+    if (exactMatch) {
+      setBrand(exactMatch);
+      setBrandSearch(exactMatch);
+      setBrandValidation({ isValid: true, error: null });
+      setShowBrandDropdown(false);
+      return; // Exit early if we found an exact match
+    }
+    // 3. Perform a fuzzy search for potential misspellings
+    const fuzzyResults = fuse.search(normalizedSearch);
+
+    if (fuzzyResults.length === 1 && fuzzyResults[0].score < 0.3) {
+      // If there is ONE and only ONE result, and its score is low enough
+      // (indicating a very close fuzzy match), auto-correct and select it.
+      const autoCorrectedBrand = fuzzyResults[0].item;
+      setBrand(autoCorrectedBrand);
+      setBrandSearch(autoCorrectedBrand);
+      setBrandValidation({ isValid: true, error: null });
+      setShowBrandDropdown(false);
+    } else {
+      // 4. If no exact match and no strong fuzzy match, it's invalid
+      setBrand(""); // Clear the brand state to prevent invalid submissions
+      setBrandValidation({
+        isValid: false,
+        error: "Invalid brand. Please choose from the dropdown list.",
+      });
+    }
+  }, [debouncedBrandSearch, allBrands, fuse]);
 
   // This useEffect handles both IC and Passport validation
   useEffect(() => {
-    if (documentType === 'ic') {
+    if (documentType === "ic") {
       const result = validateIC(debouncedIC);
       setIcValidation(result);
       // Reset passport validation when IC is active
       setPassportValidation({ isValid: null, error: null });
-    } else if (documentType === 'passport') {
+    } else if (documentType === "passport") {
       const result = validatePassport(debouncedPassport);
       setPassportValidation(result);
       // Reset IC validation when Passport is active
@@ -433,11 +473,13 @@ useEffect(() => {
       const models = getModelsForMake(brand);
       setAvailableModels(models);
       // Initialize the Fuse instance for the new set of models
-      setModelFuse(new Fuse(models, {
-        keys: [],
-        includeScore: true,
-        threshold: 0.3, // Adjust for fuzziness
-      }));
+      setModelFuse(
+        new Fuse(models, {
+          keys: [],
+          includeScore: true,
+          threshold: 0.3, // Adjust for fuzziness
+        })
+      );
     } else {
       setAvailableModels([]);
       setModelFuse(null); // Clear the Fuse instance if no brand is selected
@@ -445,14 +487,14 @@ useEffect(() => {
     setModel("");
     setYear("");
     setModelSearch("");
-}, [brand]);
+  }, [brand]);
 
   const filteredBrands = useMemo(() => {
     if (!brandSearch) {
       return allBrands;
     }
-     return allBrands.filter((b) =>
-       b.toLowerCase().includes(brandSearch.toLowerCase())
+    return allBrands.filter((b) =>
+      b.toLowerCase().includes(brandSearch.toLowerCase())
     );
   }, [brandSearch, allBrands]);
 
@@ -467,14 +509,16 @@ useEffect(() => {
   }, [modelSearch, availableModels]);
 
   // --- NEW EFFECT FOR MODEL AUTO-SELECTION with partial matching ---
-useEffect(() => {
-  if (!debouncedModelSearch || !modelFuse) {
+  useEffect(() => {
+    if (!debouncedModelSearch || !modelFuse) {
       setModelValidation({ isValid: null, error: null });
       return;
     }
     const normalizedSearch = debouncedModelSearch.toLowerCase();
     // 2. Check for an exact case-insensitive match (highest priority)
-    const exactMatch = availableModels.find(m => m.toLowerCase() === normalizedSearch);
+    const exactMatch = availableModels.find(
+      (m) => m.toLowerCase() === normalizedSearch
+    );
     if (exactMatch) {
       setModel(exactMatch);
       setModelSearch(exactMatch);
@@ -503,7 +547,7 @@ useEffect(() => {
         setModelValidation({ isValid: null, error: null });
       }
     }
-}, [debouncedModelSearch, availableModels, modelFuse]);
+  }, [debouncedModelSearch, availableModels, modelFuse]);
 
   // Effect to update available years when model changes
   useEffect(() => {
@@ -529,17 +573,17 @@ useEffect(() => {
   // Update goNext and goBack to handle 7 steps
   const goNext = () => setStep((s) => Math.min(7, s + 1));
 
-const goBack = () => {
-  // Check if the current step is 5 and the coverage type is not Comprehensive.
-  // This means the user skipped step 4 (Add-ons).
-  if (step === 5 && coverageType !== "Comprehensive") {
-    // If true, go back to step 3 (Choose Coverage Type)
-    setStep(3);
-  } else {
-    // Otherwise, perform the default back action
-    setStep((s) => Math.max(1, s - 1));
-  }
-};
+  const goBack = () => {
+    // Check if the current step is 5 and the coverage type is not Comprehensive.
+    // This means the user skipped step 4 (Add-ons).
+    if (step === 5 && coverageType !== "Comprehensive") {
+      // If true, go back to step 3 (Choose Coverage Type)
+      setStep(3);
+    } else {
+      // Otherwise, perform the default back action
+      setStep((s) => Math.max(1, s - 1));
+    }
+  };
 
   // Plate validation handlers
   const handlePlateValidationClose = () => {
@@ -569,42 +613,47 @@ const goBack = () => {
 
   const canProceedFrom = (currentStep) => {
     if (currentStep === 1) {
-        return (
-            plateValidation.isValid &&
-            plate.trim() !== "" &&
-            plate.replace(/\s/g, "").length <= 10
-        );
+      return (
+        plateValidation.isValid &&
+        plate.trim() !== "" &&
+        plate.replace(/\s/g, "").length <= 10
+      );
     }
     if (currentStep === 2) {
-        return brandValidation.isValid === true && modelValidation.isValid === true && year !== "";
+      return (
+        brandValidation.isValid === true &&
+        modelValidation.isValid === true &&
+        year !== ""
+      );
     }
     if (currentStep === 3) {
-        return coverageType !== "";
+      return coverageType !== "";
     }
     if (currentStep === 4) {
-        return Object.keys(protections).length > 0;
+      return Object.keys(protections).length > 0;
     }
-     if (currentStep === 5) {
-    const isDocumentValid = documentType === 'ic'
-      ? icValidation.isValid === true
-      : passportValidation.isValid === true;
+    if (currentStep === 5) {
+      const isDocumentValid =
+        documentType === "ic"
+          ? icValidation.isValid === true
+          : passportValidation.isValid === true;
 
-    // Check if both the ncdValidation state and other personal info fields are valid
-    return (
-      name.trim() !== "" &&
-      isDocumentValid &&
-      postcodeValidation.isValid === true &&
-      ncdValidation.isValid === true // This is the new, crucial check
-    );
-  }
+      // Check if both the ncdValidation state and other personal info fields are valid
+      return (
+        name.trim() !== "" &&
+        isDocumentValid &&
+        postcodeValidation.isValid === true &&
+        ncdValidation.isValid === true // This is the new, crucial check
+      );
+    }
     if (currentStep === 6) {
-        return true;
+      return true;
     }
     if (currentStep === 7) {
-        return true;
+      return true;
     }
     return false;
-};
+  };
   const handlePlateInput = (e) => {
     const input = e.target;
     let { selectionStart } = input;
@@ -616,7 +665,10 @@ const goBack = () => {
     if (formatted.length > value.length) selectionStart += 1;
     else if (formatted.length < value.length) selectionStart -= 1;
     setPlate(formatted);
-    setTimeout(() => input.setSelectionRange(selectionStart, selectionStart),0);
+    setTimeout(
+      () => input.setSelectionRange(selectionStart, selectionStart),
+      0
+    );
   };
 
   return (
@@ -729,10 +781,10 @@ const goBack = () => {
                 <div className="flex justify-center">
                   <input
                     value={plate}
-                    onChange={handlePlateInput}
+                    onChange={(e) => setPlate(e.target.value)}
                     className="w-full max-w-md px-6 py-4 bg-blue-50 rounded-xl text-blue-900 text-xl text-center outline-none border border-blue-100 focus:ring-2 focus:ring-blue-400"
                     placeholder="e.g. PKD 8381"
-                    disabled={showPlateConfirm} // ← disable when confirmation is showing
+                    disabled={showPlateConfirm}
                   />
                 </div>
                 {plate.replace(/\s/g, "").length > 10 && (
@@ -789,142 +841,169 @@ const goBack = () => {
                 </div>
               </div>
             )}
-
             {step === 2 && (
               <div>
-          <div className="text-xl font-bold text-blue-900 mb-6">
-            {t("Car Plate Number: ")} {plate || "—"}
-          </div>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            <div className="relative">
-              <label className="block text-blue-900 font-semibold mb-2">
-                {t("Car Brand:")}
-                  </label>
-                     <input
-                       type="text"
-                       value={brandSearch}
-                       onChange={(e) => {
+                <div className="text-xl font-bold text-blue-900 mb-6">
+                  {t("Car Plate Number: ")} {plate || "—"}
+                </div>
+
+                {/* Geran Upload Button */}
+                <div className="mb-6 text-center">
+                  <button
+                    onClick={() => setShowGeranModal(true)}
+                    className="px-6 py-3 bg-blue-600 text-white font-medium rounded-lg hover:bg-blue-700"
+                  >
+                    Upload Geran (Auto-fill)
+                  </button>
+                </div>
+
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  {/* Plate Number */}
+                  <div className="relative">
+                    <label className="block text-blue-900 font-semibold mb-2">
+                      {t("Car Plate Number:")}
+                    </label>
+                    <input
+                      type="text"
+                      value={plate}
+                      onChange={(e) => setPlate(e.target.value)}
+                      className="w-full px-4 py-3 bg-blue-50 rounded-lg text-blue-900 border border-blue-100 focus:ring-2 focus:ring-blue-400"
+                    />
+                  </div>
+
+                  {/* Car Brand */}
+                  <div className="relative">
+                    <label className="block text-blue-900 font-semibold mb-2">
+                      {t("Car Brand:")}
+                    </label>
+                    <input
+                      type="text"
+                      value={brandSearch}
+                      onChange={(e) => {
                         setBrandSearch(e.target.value);
                         setBrand("");
                         setShowBrandDropdown(true);
-                       }}
-                       onFocus={() => setShowBrandDropdown(true)}
-                       onBlur={() => setTimeout(() => setShowBrandDropdown(false), 200)}
-                       className={`w-full px-4 py-3 bg-blue-50 rounded-lg text-blue-900 border ${
-                       brandValidation.isValid
-                         ? "border-green-500"
-                         : brandValidation.isValid === false
-                         ? "border-red-500"
-                         : "border-blue-100"
-                       } focus:ring-2 focus:ring-blue-400`}
-                       placeholder="Type to search..."
-                       autoComplete="off"
-                     />
-                     {brandValidation.error && (
+                      }}
+                      onFocus={() => setShowBrandDropdown(true)}
+                      onBlur={() =>
+                        setTimeout(() => setShowBrandDropdown(false), 200)
+                      }
+                      className={`w-full px-4 py-3 bg-blue-50 rounded-lg text-blue-900 border ${
+                        brandValidation.isValid
+                          ? "border-green-500"
+                          : brandValidation.isValid === false
+                          ? "border-red-500"
+                          : "border-blue-100"
+                      } focus:ring-2 focus:ring-blue-400`}
+                      placeholder="Type to search..."
+                      autoComplete="off"
+                    />
+                    {brandValidation.error && (
                       <p className="mt-2 text-sm text-red-600">
-                         {brandValidation.error}
-                       </p>
-                     )}
-                     {showBrandDropdown && filteredBrands.length > 0 && (
-                       <ul className="absolute z-20 w-full bg-white border border-gray-200 rounded-lg mt-1 max-h-40 overflow-y-auto shadow-lg">
-                         {filteredBrands.map((b) => (
-                           <li
-                             key={b}
-                               className="px-4 py-2 hover:bg-blue-50 cursor-pointer"
-                               onMouseDown={(e) => {
-                               e.preventDefault();
-                               setBrand(b);
-                               setBrandSearch(b);
-                               setShowBrandDropdown(false);
-                             }}
-                           >
-                           {b}
-                         </li>
-                         ))}
-                       </ul>
-                     )}
+                        {brandValidation.error}
+                      </p>
+                    )}
+                    {showBrandDropdown && filteredBrands.length > 0 && (
+                      <ul className="absolute z-20 w-full bg-white border border-gray-200 rounded-lg mt-1 max-h-40 overflow-y-auto shadow-lg">
+                        {filteredBrands.map((b) => (
+                          <li
+                            key={b}
+                            className="px-4 py-2 hover:bg-blue-50 cursor-pointer"
+                            onMouseDown={(e) => {
+                              e.preventDefault();
+                              setBrand(b);
+                              setBrandSearch(b);
+                              setShowBrandDropdown(false);
+                            }}
+                          >
+                            {b}
+                          </li>
+                        ))}
+                      </ul>
+                    )}
                   </div>
 
-            {/* Car Model search input with filtered dropdown */}
-            <div className="relative">
-              <label className="block text-blue-900 font-semibold mb-2">
-                {t("Car Model:")}
-              </label>
-              {/* This should be a dropdown now */}
-              <input
-          type="text"
-          value={modelSearch}
-          onChange={(e) => {
-            setModelSearch(e.target.value);
-            setModel(""); // Clear selected model
-            setShowModelDropdown(true);
-          }}
-          onFocus={() => setShowModelDropdown(true)}
-          onBlur={() => setTimeout(() => setShowModelDropdown(false), 200)}
-          className={`w-full px-4 py-3 bg-blue-50 rounded-lg text-blue-900 border ${
-            modelValidation.isValid === true
-              ? "border-green-500" // Green border when valid
-              : modelValidation.isValid === false
-              ? "border-red-500" // Red border when invalid
-              : "border-blue-100" // Default border
-            } focus:ring-2 focus:ring-blue-400`}
-          placeholder="Type to search..."
-          disabled={!brand}
-          autoComplete="off"
-        />
+                  {/* Car Model */}
+                  <div className="relative">
+                    <label className="block text-blue-900 font-semibold mb-2">
+                      {t("Car Model:")}
+                    </label>
+                    <input
+                      type="text"
+                      value={modelSearch}
+                      onChange={(e) => {
+                        setModelSearch(e.target.value);
+                        setModel(""); // Clear selected model
+                        setShowModelDropdown(true);
+                      }}
+                      onFocus={() => setShowModelDropdown(true)}
+                      onBlur={() =>
+                        setTimeout(() => setShowModelDropdown(false), 200)
+                      }
+                      className={`w-full px-4 py-3 bg-blue-50 rounded-lg text-blue-900 border ${
+                        modelValidation.isValid === true
+                          ? "border-green-500"
+                          : modelValidation.isValid === false
+                          ? "border-red-500"
+                          : "border-blue-100"
+                      } focus:ring-2 focus:ring-blue-400`}
+                      placeholder="Type to search..."
+                      disabled={!brand}
+                      autoComplete="off"
+                    />
+                    {modelValidation.error && (
+                      <p className="mt-2 text-sm text-red-600">
+                        {modelValidation.error}
+                      </p>
+                    )}
+                    {showModelDropdown && filteredModels.length > 0 && (
+                      <ul className="absolute z-20 w-full bg-white border border-gray-200 rounded-lg mt-1 max-h-40 overflow-y-auto shadow-lg">
+                        {filteredModels.map((m) => (
+                          <li
+                            key={m}
+                            className="px-4 py-2 hover:bg-blue-50 cursor-pointer"
+                            onMouseDown={(e) => {
+                              e.preventDefault();
+                              setModelSearch(m);
+                              setModel(m);
+                              setShowModelDropdown(false);
+                            }}
+                          >
+                            {m}
+                          </li>
+                        ))}
+                      </ul>
+                    )}
+                  </div>
 
-        {/* New: Display error message if the model is invalid */}
-        {modelValidation.error && (
-          <p className="mt-2 text-sm text-red-600">{modelValidation.error}</p>
-        )}
-
-        {showModelDropdown && filteredModels.length > 0 && (
-          <ul className="absolute z-20 w-full bg-white border border-gray-200 rounded-lg mt-1 max-h-40 overflow-y-auto shadow-lg">
-            {filteredModels.map((m) => (
-              <li
-                key={m}
-                className="px-4 py-2 hover:bg-blue-50 cursor-pointer"
-                onMouseDown={(e) => { // Use onMouseDown to prevent blur
-                  e.preventDefault();
-                  setModelSearch(m);
-                  setModel(m);
-                  setShowModelDropdown(false);
-                }}
-              >
-                {m}
-              </li>
-            ))}
-          </ul>
-        )}
-      </div>
-
-            {/* Manufactured Year dropdown */}
-            <div>
-              <label className="block text-blue-900 font-semibold mb-2">
-                {t("manufactured_year")}
-              </label>
-              <select
-                value={year}
-                onChange={(e) => setYear(e.target.value)}
-                className="w-full px-4 py-3 bg-blue-50 rounded-lg text-blue-900 border border-blue-100 focus:ring-2 focus:ring-blue-400"
-                disabled={!model} // Disable until a model is selected
-              >
-                <option value="">Select year</option>
-                {availableYears
-                  .sort((a, b) => b - a) // <-- This is the key change!
-                  .map((y) => (
-                    <option key={y} value={y}>
-                      {y}
-                    </option>
-                ))}
-              </select>
-              {isCarOlderThan15Years() && (
-                <p className="mt-2 text-red-500 font-normal text-center">
-                  Your car is older than 15 years. Coverage may be limited or require special inspection.
-                </p>
-              )}
-            </div>
-          </div>
+                  {/* Manufactured Year */}
+                  <div>
+                    <label className="block text-blue-900 font-semibold mb-2">
+                      {t("manufactured_year")}
+                    </label>
+                    <select
+                      value={year}
+                      onChange={(e) => setYear(e.target.value)}
+                      className="w-full px-4 py-3 bg-blue-50 rounded-lg text-blue-900 border border-blue-100 focus:ring-2 focus:ring-blue-400"
+                      disabled={!model}
+                    >
+                      <option value="">Select year</option>
+                      {availableYears
+                        .sort((a, b) => b - a)
+                        .map((y) => (
+                          <option key={y} value={y}>
+                            {y}
+                          </option>
+                        ))}
+                    </select>
+                    {isCarOlderThan15Years() && (
+                      <p className="mt-2 text-red-500 font-normal text-center">
+                        Your car is older than 15 years. Coverage may be limited
+                        or require special inspection.
+                      </p>
+                    )}
+                  </div>
+                </div>
 
                 {/* Back / Next buttons */}
                 <div className="mt-8 flex justify-between">
@@ -932,504 +1011,557 @@ const goBack = () => {
                     onClick={goBack}
                     className="px-8 py-3 rounded-xl font-semibold border border-blue-200 text-blue-900 hover:bg-blue-50"
                   >
-                  {t("back")}
-                </button>
-                <button
-                  onClick={goNext}
-                  disabled={!canProceedFrom(2)}
-                  className={`px-8 py-3 rounded-xl font-semibold text-white ${
-                    canProceedFrom(2)
-                      ? "bg-blue-800 hover:bg-blue-900"
-                      : "bg-gray-400 cursor-not-allowed"
-                  }`}
-                >
-                {t("next")}
-                </button>
+                    {t("back")}
+                  </button>
+                  <button
+                    onClick={goNext}
+                    disabled={!canProceedFrom(2)}
+                    className={`px-8 py-3 rounded-xl font-semibold text-white ${
+                      canProceedFrom(2)
+                        ? "bg-blue-800 hover:bg-blue-900"
+                        : "bg-gray-400 cursor-not-allowed"
+                    }`}
+                  >
+                    {t("next")}
+                  </button>
+                </div>
+
+                {/* 📌 Geran Upload Modal */}
+                {showGeranModal && (
+                  <GeranImageUpload
+                    onClose={() => setShowGeranModal(false)}
+                    onExtract={(data) => {
+                      // Prefill data
+                      setPlate(data.plateNumber || "");
+                      setBrand(data.make || "");
+                      setBrandSearch(data.make || "");
+                      setModel(data.model || "");
+                      setModelSearch(data.model || "");
+                      setYear(data.year || "");
+
+                      // Automatically skip step 1 confirmation if plate is valid
+                      if (data.plateNumber) {
+                        setShowPlateConfirm(false); // hide confirmation
+                        setStep(2); // go directly to step 2
+                      } else {
+                        setStep(1); // stay on step 1 if plate missing
+                      }
+
+                      setShowGeranModal(false); // close modal
+                    }}
+                  />
+                )}
+              </div>
+            )}
+
+            {step === 3 && (
+              <div>
+                <h2 className="text-xl font-bold text-blue-900 mb-6">
+                  Choose Your Coverage Type
+                </h2>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  {/* Third-Party Only Option */}
+                  <label
+                    className={`flex items-center space-x-3 p-4 rounded-lg border border-blue-200 hover:bg-blue-50 cursor-pointer shadow-sm ${
+                      coverageType === "Third-Party Only"
+                        ? "bg-blue-50 border-blue-800"
+                        : ""
+                    }`}
+                  >
+                    <input
+                      type="radio"
+                      name="coverageType"
+                      value="Third-Party Only"
+                      checked={coverageType === "Third-Party Only"}
+                      onChange={(e) => setCoverageType(e.target.value)}
+                      className="h-5 w-5 text-blue-600 focus:ring-blue-500"
+                    />
+                    <div className="flex-1">
+                      <h3 className="text-lg font-semibold text-blue-900">
+                        Third-Party Only
+                      </h3>
+                      <p className="text-sm text-gray-600">
+                        Covers damages to other parties' vehicles or property.
+                      </p>
+                      {/* Conditional message for Third-Party Only */}
+                      {coverageType === "Third-Party Only" && (
+                        <p className="text-sm text-red-500 mt-1">
+                          No additional protection available.
+                        </p>
+                      )}
+                    </div>
+                  </label>
+
+                  {/* Third-Party, Fire & Theft Option */}
+                  <label
+                    className={`flex items-center space-x-3 p-4 rounded-lg border border-blue-200 hover:bg-blue-50 cursor-pointer shadow-sm ${
+                      coverageType === "Third-Party, Fire & Theft"
+                        ? "bg-blue-50 border-blue-800"
+                        : ""
+                    }`}
+                  >
+                    <input
+                      type="radio"
+                      name="coverageType"
+                      value="Third-Party, Fire & Theft"
+                      checked={coverageType === "Third-Party, Fire & Theft"}
+                      onChange={(e) => setCoverageType(e.target.value)}
+                      className="h-5 w-5 text-blue-600 focus:ring-blue-500"
+                    />
+                    <div className="flex-1">
+                      <h3 className="text-lg font-semibold text-blue-900">
+                        Third-Party, Fire & Theft
+                      </h3>
+                      <p className="text-sm text-gray-600">
+                        Includes Third-Party coverage plus protection against
+                        fire and theft.
+                      </p>
+                      {/* Conditional message for Third-Party, Fire & Theft */}
+                      {coverageType === "Third-Party, Fire & Theft" && (
+                        <p className="text-sm text-red-500 mt-1">
+                          No additional protection available.
+                        </p>
+                      )}
+                    </div>
+                  </label>
+
+                  {/* Comprehensive Option */}
+                  <label
+                    className={`flex items-center space-x-3 p-4 rounded-lg border border-blue-200 hover:bg-blue-50 cursor-pointer shadow-sm ${
+                      coverageType === "Comprehensive"
+                        ? "bg-blue-50 border-blue-800"
+                        : ""
+                    }`}
+                  >
+                    <input
+                      type="radio"
+                      name="coverageType"
+                      value="Comprehensive"
+                      checked={coverageType === "Comprehensive"}
+                      onChange={(e) => setCoverageType(e.target.value)}
+                      className="h-5 w-5 text-blue-600 focus:ring-blue-500"
+                    />
+                    <div className="flex-1">
+                      <h3 className="text-lg font-semibold text-blue-900">
+                        Comprehensive
+                      </h3>
+                      <p className="text-sm text-gray-600">
+                        The highest level of protection, covering damage to your
+                        vehicle, third parties, fire, and theft.
+                      </p>
+                    </div>
+                  </label>
+                </div>
+
+                {/* Navigation Buttons */}
+                <div className="mt-8 flex justify-between">
+                  <button
+                    onClick={goBack}
+                    className="px-8 py-3 rounded-xl font-semibold border border-blue-200 text-blue-900 hover:bg-blue-50"
+                  >
+                    {t("back")}
+                  </button>
+                  <button
+                    onClick={() => {
+                      if (coverageType === "Comprehensive") {
+                        setStep(step + 1); // Move to the next step
+                      } else {
+                        // For other coverage types, skip to step 5 (assuming step 4 is add-ons)
+                        setStep(5);
+                      }
+                    }}
+                    disabled={!coverageType}
+                    className={`px-8 py-3 rounded-xl font-semibold text-white ${
+                      coverageType
+                        ? "bg-blue-800 hover:bg-blue-900"
+                        : "bg-gray-400 cursor-not-allowed"
+                    }`}
+                  >
+                    {t("next")}
+                  </button>
                 </div>
               </div>
             )}
 
-           {step === 3 && (
-  <div>
-    <h2 className="text-xl font-bold text-blue-900 mb-6">
-      Choose Your Coverage Type
-    </h2>
-    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-      {/* Third-Party Only Option */}
-      <label className={`flex items-center space-x-3 p-4 rounded-lg border border-blue-200 hover:bg-blue-50 cursor-pointer shadow-sm ${coverageType === "Third-Party Only" ? 'bg-blue-50 border-blue-800' : ''}`}>
-        <input
-          type="radio"
-          name="coverageType"
-          value="Third-Party Only"
-          checked={coverageType === "Third-Party Only"}
-          onChange={(e) => setCoverageType(e.target.value)}
-          className="h-5 w-5 text-blue-600 focus:ring-blue-500"
-        />
-        <div className="flex-1">
-          <h3 className="text-lg font-semibold text-blue-900">
-            Third-Party Only
-          </h3>
-          <p className="text-sm text-gray-600">
-            Covers damages to other parties' vehicles or property.
-          </p>
-          {/* Conditional message for Third-Party Only */}
-          {coverageType === "Third-Party Only" && (
-            <p className="text-sm text-red-500 mt-1">
-              No additional protection available.
-            </p>
-          )}
-        </div>
-      </label>
-
-      {/* Third-Party, Fire & Theft Option */}
-      <label className={`flex items-center space-x-3 p-4 rounded-lg border border-blue-200 hover:bg-blue-50 cursor-pointer shadow-sm ${coverageType === "Third-Party, Fire & Theft" ? 'bg-blue-50 border-blue-800' : ''}`}>
-        <input
-          type="radio"
-          name="coverageType"
-          value="Third-Party, Fire & Theft"
-          checked={coverageType === "Third-Party, Fire & Theft"}
-          onChange={(e) => setCoverageType(e.target.value)}
-          className="h-5 w-5 text-blue-600 focus:ring-blue-500"
-        />
-        <div className="flex-1">
-          <h3 className="text-lg font-semibold text-blue-900">
-            Third-Party, Fire & Theft
-          </h3>
-          <p className="text-sm text-gray-600">
-            Includes Third-Party coverage plus protection against fire and theft.
-          </p>
-          {/* Conditional message for Third-Party, Fire & Theft */}
-          {coverageType === "Third-Party, Fire & Theft" && (
-            <p className="text-sm text-red-500 mt-1">
-              No additional protection available.
-            </p>
-          )}
-        </div>
-      </label>
-
-      {/* Comprehensive Option */}
-      <label className={`flex items-center space-x-3 p-4 rounded-lg border border-blue-200 hover:bg-blue-50 cursor-pointer shadow-sm ${coverageType === "Comprehensive" ? 'bg-blue-50 border-blue-800' : ''}`}>
-        <input
-          type="radio"
-          name="coverageType"
-          value="Comprehensive"
-          checked={coverageType === "Comprehensive"}
-          onChange={(e) => setCoverageType(e.target.value)}
-          className="h-5 w-5 text-blue-600 focus:ring-blue-500"
-        />
-        <div className="flex-1">
-          <h3 className="text-lg font-semibold text-blue-900">
-            Comprehensive
-          </h3>
-          <p className="text-sm text-gray-600">
-            The highest level of protection, covering damage to your vehicle, third parties, fire, and theft.
-          </p>
-        </div>
-      </label>
-    </div>
-
-    {/* Navigation Buttons */}
-    <div className="mt-8 flex justify-between">
-      <button
-        onClick={goBack}
-        className="px-8 py-3 rounded-xl font-semibold border border-blue-200 text-blue-900 hover:bg-blue-50"
-      >
-        {t("back")}
-      </button>
-      <button
-        onClick={() => {
-          if (coverageType === "Comprehensive") {
-            setStep(step + 1); // Move to the next step
-          } else {
-            // For other coverage types, skip to step 5 (assuming step 4 is add-ons)
-            setStep(5);
-          }
-        }}
-        disabled={!coverageType}
-        className={`px-8 py-3 rounded-xl font-semibold text-white ${
-          coverageType ? "bg-blue-800 hover:bg-blue-900" : "bg-gray-400 cursor-not-allowed"
-        }`}
-      >
-        {t("next")}
-      </button>
-    </div>
-  </div>
-)}
-
             {step === 4 && (
-  <div>
-    <h2 className="text-xl font-bold text-blue-900 mb-6">
-      {t("select_additional_protection")}
-    </h2>
-    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-      {/* Add the "None" checkbox here */}
-      <label
-        key="None"
-        className={`flex items-center space-x-3 p-3 rounded-lg hover:bg-blue-50 cursor-pointer ${
-          protections.None ? "bg-blue-100" : ""
-        }`}
-      >
-        <input
-          type="checkbox"
-          className="h-5 w-5"
-          checked={!!protections.None}
-          onChange={() => toggleProtection("None")}
-        />
-        <span className="text-blue-900">None</span>
-      </label>
+              <div>
+                <h2 className="text-xl font-bold text-blue-900 mb-6">
+                  {t("select_additional_protection")}
+                </h2>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  {/* Add the "None" checkbox here */}
+                  <label
+                    key="None"
+                    className={`flex items-center space-x-3 p-3 rounded-lg hover:bg-blue-50 cursor-pointer ${
+                      protections.None ? "bg-blue-100" : ""
+                    }`}
+                  >
+                    <input
+                      type="checkbox"
+                      className="h-5 w-5"
+                      checked={!!protections.None}
+                      onChange={() => toggleProtection("None")}
+                    />
+                    <span className="text-blue-900">None</span>
+                  </label>
 
-      {[
-        t("windscreen"),
-        t("named_driver"),
-        t("all_driver"),
-        t("natural_disaster"),
-        t("strike_riot"),
-        t("personal_accident"),
-        t("towing"),
-        t("passengers_coverage"),
-      ].map((label) => (
-        <label
-          key={label}
-          className={`flex items-center space-x-3 p-3 rounded-lg cursor-pointer ${
-            protections[label] ? "bg-blue-100" : "hover:bg-blue-50"
-          } ${protections.None ? "opacity-50 cursor-not-allowed" : ""}`}
-        >
-          <input
-            type="checkbox"
-            className="h-5 w-5"
-            checked={!!protections[label]}
-            onChange={() => toggleProtection(label)}
-            disabled={!!protections.None}
-          />
-          <span className="text-blue-900">{label}</span>
-        </label>
-      ))}
-    </div>
-    <div className="mt-8 flex justify-between">
-      <button
-        onClick={goBack}
-        className="px-8 py-3 rounded-xl font-semibold border border-blue-200 text-blue-900 hover:bg-blue-50"
-      >
-        {t("back")}
-      </button>
-      <button
-  onClick={goNext}
-  // Change `canProceedFrom(3)` to `canProceedFrom(4)`
-  disabled={!canProceedFrom(4)}
-  className={`px-8 py-3 rounded-xl font-semibold text-white ${
-    canProceedFrom(4)
-      ? "bg-blue-800 hover:bg-blue-900"
-      : "bg-gray-400 cursor-not-allowed"
-  }`}
->
-  {t("next")}
-</button>
-    </div>
-  </div>
-)}
-
-{step === 5 && (
-  <div>
-    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-      {/* Vehicle Info (read-only) */}
-      <div>
-        <div className="text-blue-900 font-bold mb-2">
-          {t("Car Plate Number:")}{" "}
-          <span className="font-normal">{plate || "—"}</span>
-        </div>
-        <div className="text-blue-900 font-bold mb-2">
-          {t("car_brand")}{" "}
-          <span className="font-normal">{brand || "—"}</span>
-        </div>
-        <div className="text-blue-900 font-bold mb-2">
-          {t("car_model")}{": "}
-          <span className="font-normal">{model || "—"}</span>
-        </div>
-        <div className="text-blue-900 font-bold mb-2">
-          {t("manufactured_year")}{" "}
-          <span className="font-normal">{year || "—"}</span>
-        </div>
-
-        {/* New: Display Coverage Type */}
-        <div className="text-blue-900 font-bold mb-2">
-          Type of Coverage: {" "}
-          <span className="font-normal">{coverageType || "—"}</span>
-        </div>
-
-        {/* New: Display Additional Protection (conditionally) */}
-        {coverageType === "Comprehensive" && (
-          <div className="text-blue-900 font-bold mb-2">
-            Additional Protection: {" "}
-            <span className="font-normal">
-              {Object.keys(protections).length > 0 && !protections.None
-                ? Object.keys(protections).join(", ")
-                : "None"}
-            </span>
-          </div>
-        )}
-      </div>
-      
-      {/* Personal Info (editable) */}
-      <div className="space-y-4">
-        {/* NCD Section (Moved to be the first item in the personal info column) */}
-        <div>
-          <label className="block text-blue-900 font-semibold mb-2">
-            {t("Select Your Next NCD:")}
-            <span className="font-normal ml-2">
-              (Unsure?{" "}
-              <button
-                className="underline"
-                type="button"
-                onClick={handleCheckNcd}
-              >
-                Click here to check your NCD
-              </button>
-              )
-            </span>
-          </label>
-          <select
-            value={ncd}
-            onChange={(e) => setNcd(Number(e.target.value))}
-            className="w-full px-4 py-3 bg-blue-50 rounded-lg text-blue-900 border border-blue-100 focus:ring-2 focus:ring-blue-400"
-          >
-            <option value={0}>0%</option>
-            <option value={25}>25%</option>
-            <option value={30}>30%</option>
-            <option value={38.3}>38.3%</option>
-            <option value={45}>45%</option>
-            <option value={55}>55%</option>
-          </select>
-        </div>
-
-        <div>
-          <label className="block text-blue-900 font-semibold mb-2">
-            {t("Full Name: ")}
-          </label>
-          <input
-            value={name}
-            onChange={(e) => setName(e.target.value)}
-            className="w-full px-4 py-3 bg-blue-50 rounded-lg text-blue-900 border border-blue-100 focus:ring-2 focus:ring-blue-400"
-          />
-        </div>
-
-        <div className="md:col-span-2 flex items-center mb-4">
-          <span className="text-blue-900 font-semibold mr-4">
-            ID Type:
-          </span>
-          <label className="inline-flex items-center">
-            <input
-              type="radio"
-              className="form-radio text-blue-600"
-              name="documentType"
-              value="ic"
-              checked={documentType === "ic"}
-              onChange={() => {
-                setDocumentType("ic");
-                setPassport("");
-              }}
-            />
-            <span className="ml-2 text-blue-900">NRIC (IC)</span>
-          </label>
-          <label className="inline-flex items-center ml-6">
-            <input
-              type="radio"
-              className="form-radio text-blue-600"
-              name="documentType"
-              value="passport"
-              checked={documentType === "passport"}
-              onChange={() => {
-                setDocumentType("passport");
-                setIc("");
-              }}
-            />
-            <span className="ml-2 text-blue-900">Passport</span>
-          </label>
-        </div>
-
-        {documentType === "ic" ? (
-          <div className="mb-4">
-            <label className="block text-blue-900 font-semibold mb-2">
-              NRIC (IC):
-            </label>
-            <input
-              type="text"
-              value={ic}
-              onChange={(e) => {
-                const formattedIC = formatICNumber(e.target.value);
-                setIc(formattedIC);
-              }}
-              className={`w-full px-4 py-3 bg-blue-50 rounded-lg text-blue-900 border ${
-                icValidation.isValid === true
-                  ? "border-green-500"
-                  : icValidation.isValid === false
-                  ? "border-red-500"
-                  : "border-blue-100"
-              }`}
-              placeholder="e.g. 050102-07-0304"
-            />
-            {icValidation.error && (
-              <p className="mt-2 text-sm text-red-600">
-                {icValidation.error}
-              </p>
+                  {[
+                    t("windscreen"),
+                    t("named_driver"),
+                    t("all_driver"),
+                    t("natural_disaster"),
+                    t("strike_riot"),
+                    t("personal_accident"),
+                    t("towing"),
+                    t("passengers_coverage"),
+                  ].map((label) => (
+                    <label
+                      key={label}
+                      className={`flex items-center space-x-3 p-3 rounded-lg cursor-pointer ${
+                        protections[label] ? "bg-blue-100" : "hover:bg-blue-50"
+                      } ${
+                        protections.None ? "opacity-50 cursor-not-allowed" : ""
+                      }`}
+                    >
+                      <input
+                        type="checkbox"
+                        className="h-5 w-5"
+                        checked={!!protections[label]}
+                        onChange={() => toggleProtection(label)}
+                        disabled={!!protections.None}
+                      />
+                      <span className="text-blue-900">{label}</span>
+                    </label>
+                  ))}
+                </div>
+                <div className="mt-8 flex justify-between">
+                  <button
+                    onClick={goBack}
+                    className="px-8 py-3 rounded-xl font-semibold border border-blue-200 text-blue-900 hover:bg-blue-50"
+                  >
+                    {t("back")}
+                  </button>
+                  <button
+                    onClick={goNext}
+                    // Change `canProceedFrom(3)` to `canProceedFrom(4)`
+                    disabled={!canProceedFrom(4)}
+                    className={`px-8 py-3 rounded-xl font-semibold text-white ${
+                      canProceedFrom(4)
+                        ? "bg-blue-800 hover:bg-blue-900"
+                        : "bg-gray-400 cursor-not-allowed"
+                    }`}
+                  >
+                    {t("next")}
+                  </button>
+                </div>
+              </div>
             )}
-          </div>
-        ) : (
-          <div className="mb-4">
-            <label className="block text-blue-900 font-semibold mb-2">
-              Passport Number: 
-            </label>
-            <input
-              type="text"
-              value={passport}
-              onChange={(e) => setPassport(e.target.value)}
-              className={`w-full px-4 py-3 bg-blue-50 rounded-lg text-blue-900 border ${
-                passportValidation.isValid === true
-                  ? "border-green-500"
-                  : passportValidation.isValid === false
-                  ? "border-red-500"
-                  : "border-blue-100"
-              }`}
-              placeholder="e.g. 123456789"
-            />
-            {passportValidation.error && (
-              <p className="mt-2 text-sm text-red-600">
-                {passportValidation.error}
-              </p>
+
+            {step === 5 && (
+              <div>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  {/* Vehicle Info (read-only) */}
+                  <div>
+                    <div className="text-blue-900 font-bold mb-2">
+                      {t("Car Plate Number:")}{" "}
+                      <span className="font-normal">{plate || "—"}</span>
+                    </div>
+                    <div className="text-blue-900 font-bold mb-2">
+                      {t("car_brand")}{" "}
+                      <span className="font-normal">{brand || "—"}</span>
+                    </div>
+                    <div className="text-blue-900 font-bold mb-2">
+                      {t("car_model")}
+                      {": "}
+                      <span className="font-normal">{model || "—"}</span>
+                    </div>
+                    <div className="text-blue-900 font-bold mb-2">
+                      {t("manufactured_year")}{" "}
+                      <span className="font-normal">{year || "—"}</span>
+                    </div>
+
+                    {/* New: Display Coverage Type */}
+                    <div className="text-blue-900 font-bold mb-2">
+                      Type of Coverage:{" "}
+                      <span className="font-normal">{coverageType || "—"}</span>
+                    </div>
+
+                    {/* New: Display Additional Protection (conditionally) */}
+                    {coverageType === "Comprehensive" && (
+                      <div className="text-blue-900 font-bold mb-2">
+                        Additional Protection:{" "}
+                        <span className="font-normal">
+                          {Object.keys(protections).length > 0 &&
+                          !protections.None
+                            ? Object.keys(protections).join(", ")
+                            : "None"}
+                        </span>
+                      </div>
+                    )}
+                  </div>
+
+                  {/* Personal Info (editable) */}
+                  <div className="space-y-4">
+                    {/* NCD Section (Moved to be the first item in the personal info column) */}
+                    <div>
+                      <label className="block text-blue-900 font-semibold mb-2">
+                        {t("Select Your Next NCD:")}
+                        <span className="font-normal ml-2">
+                          (Unsure?{" "}
+                          <button
+                            className="underline"
+                            type="button"
+                            onClick={handleCheckNcd}
+                          >
+                            Click here to check your NCD
+                          </button>
+                          )
+                        </span>
+                      </label>
+                      <select
+                        value={ncd}
+                        onChange={(e) => setNcd(Number(e.target.value))}
+                        className="w-full px-4 py-3 bg-blue-50 rounded-lg text-blue-900 border border-blue-100 focus:ring-2 focus:ring-blue-400"
+                      >
+                        <option value={0}>0%</option>
+                        <option value={25}>25%</option>
+                        <option value={30}>30%</option>
+                        <option value={38.3}>38.3%</option>
+                        <option value={45}>45%</option>
+                        <option value={55}>55%</option>
+                      </select>
+                    </div>
+
+                    <div>
+                      <label className="block text-blue-900 font-semibold mb-2">
+                        {t("Full Name: ")}
+                      </label>
+                      <input
+                        value={name}
+                        onChange={(e) => setName(e.target.value)}
+                        className="w-full px-4 py-3 bg-blue-50 rounded-lg text-blue-900 border border-blue-100 focus:ring-2 focus:ring-blue-400"
+                      />
+                    </div>
+
+                    <div className="md:col-span-2 flex items-center mb-4">
+                      <span className="text-blue-900 font-semibold mr-4">
+                        ID Type:
+                      </span>
+                      <label className="inline-flex items-center">
+                        <input
+                          type="radio"
+                          className="form-radio text-blue-600"
+                          name="documentType"
+                          value="ic"
+                          checked={documentType === "ic"}
+                          onChange={() => {
+                            setDocumentType("ic");
+                            setPassport("");
+                          }}
+                        />
+                        <span className="ml-2 text-blue-900">NRIC (IC)</span>
+                      </label>
+                      <label className="inline-flex items-center ml-6">
+                        <input
+                          type="radio"
+                          className="form-radio text-blue-600"
+                          name="documentType"
+                          value="passport"
+                          checked={documentType === "passport"}
+                          onChange={() => {
+                            setDocumentType("passport");
+                            setIc("");
+                          }}
+                        />
+                        <span className="ml-2 text-blue-900">Passport</span>
+                      </label>
+                    </div>
+
+                    {documentType === "ic" ? (
+                      <div className="mb-4">
+                        <label className="block text-blue-900 font-semibold mb-2">
+                          NRIC (IC):
+                        </label>
+                        <input
+                          type="text"
+                          value={ic}
+                          onChange={(e) => {
+                            const formattedIC = formatICNumber(e.target.value);
+                            setIc(formattedIC);
+                          }}
+                          className={`w-full px-4 py-3 bg-blue-50 rounded-lg text-blue-900 border ${
+                            icValidation.isValid === true
+                              ? "border-green-500"
+                              : icValidation.isValid === false
+                              ? "border-red-500"
+                              : "border-blue-100"
+                          }`}
+                          placeholder="e.g. 050102-07-0304"
+                        />
+                        {icValidation.error && (
+                          <p className="mt-2 text-sm text-red-600">
+                            {icValidation.error}
+                          </p>
+                        )}
+                      </div>
+                    ) : (
+                      <div className="mb-4">
+                        <label className="block text-blue-900 font-semibold mb-2">
+                          Passport Number:
+                        </label>
+                        <input
+                          type="text"
+                          value={passport}
+                          onChange={(e) => setPassport(e.target.value)}
+                          className={`w-full px-4 py-3 bg-blue-50 rounded-lg text-blue-900 border ${
+                            passportValidation.isValid === true
+                              ? "border-green-500"
+                              : passportValidation.isValid === false
+                              ? "border-red-500"
+                              : "border-blue-100"
+                          }`}
+                          placeholder="e.g. 123456789"
+                        />
+                        {passportValidation.error && (
+                          <p className="mt-2 text-sm text-red-600">
+                            {passportValidation.error}
+                          </p>
+                        )}
+                      </div>
+                    )}
+                    <div>
+                      <label className="block text-blue-900 font-semibold mb-2">
+                        {t("postcode")}
+                      </label>
+                      <input
+                        type="text"
+                        value={postcode}
+                        onChange={(e) => setPostcode(e.target.value)}
+                        className={`w-full px-4 py-3 bg-blue-50 rounded-lg text-blue-900 border ${
+                          postcodeValidation.isValid === true
+                            ? "border-green-500"
+                            : postcodeValidation.isValid === false
+                            ? "border-red-500"
+                            : "border-blue-100"
+                        }`}
+                        placeholder="e.g. 50000"
+                      />
+                      {postcodeValidation.error && (
+                        <p className="mt-2 text-sm text-red-600">
+                          {postcodeValidation.error}
+                        </p>
+                      )}
+                    </div>
+                  </div>
+                </div>
+
+                <div className="mt-8 flex justify-between">
+                  <button
+                    onClick={goBack}
+                    className="px-8 py-3 rounded-xl font-semibold border border-blue-200 text-blue-900 hover:bg-blue-50"
+                  >
+                    {t("back")}
+                  </button>
+                  <button
+                    onClick={() => canProceedFrom(step) && goNext()}
+                    className={`px-8 py-3 rounded-xl font-semibold text-white ${
+                      canProceedFrom(step)
+                        ? "bg-blue-800 hover:bg-blue-900"
+                        : "bg-gray-400 cursor-not-allowed"
+                    }`}
+                  >
+                    {t("next")}
+                  </button>
+                </div>
+              </div>
             )}
-          </div>
-        )}
-        <div>
-          <label className="block text-blue-900 font-semibold mb-2">
-            {t("postcode")}
-          </label>
-          <input
-            type="text"
-            value={postcode}
-            onChange={(e) => setPostcode(e.target.value)}
-            className={`w-full px-4 py-3 bg-blue-50 rounded-lg text-blue-900 border ${
-              postcodeValidation.isValid === true
-                ? "border-green-500"
-                : postcodeValidation.isValid === false
-                ? "border-red-500"
-                : "border-blue-100"
-            }`}
-            placeholder="e.g. 50000"
-          />
-          {postcodeValidation.error && (
-            <p className="mt-2 text-sm text-red-600">
-              {postcodeValidation.error}
-            </p>
-          )}
-        </div>
-      </div>
-    </div>
 
-    <div className="mt-8 flex justify-between">
-      <button
-        onClick={goBack}
-        className="px-8 py-3 rounded-xl font-semibold border border-blue-200 text-blue-900 hover:bg-blue-50"
-      >
-        {t("back")}
-      </button>
-      <button
-        onClick={() => canProceedFrom(step) && goNext()}
-        className={`px-8 py-3 rounded-xl font-semibold text-white ${
-          canProceedFrom(step)
-            ? "bg-blue-800 hover:bg-blue-900"
-            : "bg-gray-400 cursor-not-allowed"
-        }`}
-      >
-        {t("next")}
-      </button>
-    </div>
-  </div>
-)}
+            {step === 6 && (
+              <div>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  <div className="space-y-2 text-blue-900">
+                    <div className="font-bold">
+                      {t("car_plate_number")}{" "}
+                      <span className="font-normal">{plate}</span>
+                    </div>
+                    <div className="font-bold">
+                      {t("car_brand")}{" "}
+                      <span className="font-normal">{brand}</span>
+                    </div>
+                    <div className="font-bold">
+                      {t("car_model")}
+                      {": "}
+                      <span className="font-normal">{model}</span>
+                    </div>
+                    <div className="font-bold">
+                      {t("manufactured_year")}{" "}
+                      <span className="font-normal">{year}</span>
+                    </div>
+                    <div className="font-bold">
+                      {t("ncd")} <span className="font-normal">{ncd}%</span>
+                    </div>
 
-{step === 6 && (
-  <div>
-    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-      <div className="space-y-2 text-blue-900">
-        <div className="font-bold">
-          {t("car_plate_number")}{" "}
-          <span className="font-normal">{plate}</span>
-        </div>
-        <div className="font-bold">
-          {t("car_brand")}{" "}
-          <span className="font-normal">{brand}</span>
-        </div>
-        <div className="font-bold">
-          {t("car_model")}{": "}
-          <span className="font-normal">{model}</span>
-        </div>
-        <div className="font-bold">
-          {t("manufactured_year")}{" "}
-          <span className="font-normal">{year}</span>
-        </div>
-        <div className="font-bold">
-          {t("ncd")} <span className="font-normal">{ncd}%</span>
-        </div>
+                    {/* New: Display Coverage Type */}
+                    <div className="font-bold">
+                      Type of Coverage:{" "}
+                      <span className="font-normal">{coverageType || "—"}</span>
+                    </div>
 
-        {/* New: Display Coverage Type */}
-        <div className="font-bold">
-          Type of Coverage: {" "}
-          <span className="font-normal">{coverageType || "—"}</span>
-        </div>
-
-        {/* New: Display Additional Protection (conditionally) */}
-        {coverageType === "Comprehensive" && (
-          <div className="font-bold">
-            Additional Protection: {" "}
-            <span className="font-normal">
-              {Object.keys(protections).length > 0 && !protections.None
-                ? Object.keys(protections).join(", ")
-                : "None"}
-            </span>
-          </div>
-        )}
-      </div>
-      <div className="space-y-2 text-blue-900">
-        <div className="font-bold">
-          {t("name_as_ic_field")}{" "}
-          <span className="font-normal">{name}</span>
-        </div>
-        <div className="font-bold">
-          {t("ic")}{" "}
-          <span className="font-normal">
-            {documentType === "ic" ? ic : passport}
-          </span>
-        </div>
-        <div className="font-bold">
-          {t("postcode")}{" "}
-          <span className="font-normal">{postcode}</span>
-        </div>
-        <div className="font-bold">
-          {t("estimated_range")}{" "}
-          <span className="font-normal">
-            {/* The corrected display logic */}
-            {estimateRange.min === estimateRange.max 
-              ? `RM${estimateRange.min}` 
-              : `RM${estimateRange.min}-RM${estimateRange.max}`
-            }
-          </span>
-        </div>
-      </div>
-    </div>
-    <div className="mt-8 flex justify-between">
-      <button
-        onClick={goBack}
-        className="px-8 py-3 rounded-xl font-semibold border border-blue-200 text-blue-900 hover:bg-blue-50"
-      >
-        {t("back")}
-      </button>
-      <button
-        onClick={goNext}
-        className="px-8 py-3 rounded-xl font-semibold text-white bg-blue-800 hover:bg-blue-900"
-      >
-        Submit
-      </button>
-    </div>
-  </div>
-)}
+                    {/* New: Display Additional Protection (conditionally) */}
+                    {coverageType === "Comprehensive" && (
+                      <div className="font-bold">
+                        Additional Protection:{" "}
+                        <span className="font-normal">
+                          {Object.keys(protections).length > 0 &&
+                          !protections.None
+                            ? Object.keys(protections).join(", ")
+                            : "None"}
+                        </span>
+                      </div>
+                    )}
+                  </div>
+                  <div className="space-y-2 text-blue-900">
+                    <div className="font-bold">
+                      {t("name_as_ic_field")}{" "}
+                      <span className="font-normal">{name}</span>
+                    </div>
+                    <div className="font-bold">
+                      {t("ic")}{" "}
+                      <span className="font-normal">
+                        {documentType === "ic" ? ic : passport}
+                      </span>
+                    </div>
+                    <div className="font-bold">
+                      {t("postcode")}{" "}
+                      <span className="font-normal">{postcode}</span>
+                    </div>
+                    <div className="font-bold">
+                      {t("estimated_range")}{" "}
+                      <span className="font-normal">
+                        {/* The corrected display logic */}
+                        {estimateRange.min === estimateRange.max
+                          ? `RM${estimateRange.min}`
+                          : `RM${estimateRange.min}-RM${estimateRange.max}`}
+                      </span>
+                    </div>
+                  </div>
+                </div>
+                <div className="mt-8 flex justify-between">
+                  <button
+                    onClick={goBack}
+                    className="px-8 py-3 rounded-xl font-semibold border border-blue-200 text-blue-900 hover:bg-blue-50"
+                  >
+                    {t("back")}
+                  </button>
+                  <button
+                    onClick={goNext}
+                    className="px-8 py-3 rounded-xl font-semibold text-white bg-blue-800 hover:bg-blue-900"
+                  >
+                    Submit
+                  </button>
+                </div>
+              </div>
+            )}
             {step === 7 && (
               <div className="text-center">
                 <h2 className="text-xl font-bold text-blue-900 mb-2">

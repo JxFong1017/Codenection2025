@@ -12,7 +12,7 @@ export default function VehicleFormPage() {
       router.push("/auth/signin");
     } else if (status === "authenticated") {
       // Redirect to vehicle validation form instead of showing vehicle form
-      router.push("/vehicle-validation-form");
+      router.push("/manual-quote");
     }
   }, [status, router]);
 

@@ -20,6 +20,7 @@ export default function Home() {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState("");
 
+  const t = useT(); 
   const handleInputChange = (field, value) => {
     setFormData((prev) => ({ ...prev, [field]: value }));
   };
@@ -125,13 +126,13 @@ export default function Home() {
             <div className="bg-white flex items-center justify-center p-8 lg:p-12">
               <div className="max-w-lg">
                 <h2 className="text-4xl lg:text-5xl font-extrabold text-gray-900 mb-6">
-                  {useT()("hero_title")}
+                  {t("hero_title")}
                 </h2>
                 <p className="text-lg text-black-600 font-bold mb-8">
-                  {useT()("hero_subtitle")}
+                  {t("hero_subtitle")}
                 </p>
                 <button className="bg-blue-900 text-white px-8 py-3 font-extrabold hover:bg-blue-800 transition-colors">
-                  {useT()("get_quote_now")}
+                  {t("get_quote_now")}
                 </button>
               </div>
             </div>
@@ -155,7 +156,7 @@ export default function Home() {
               <div className="absolute inset-0 flex items-center justify-center px-6">
                 <div className="w-full max-w-lg">
                   <h3 className="text-2xl font-bold text-white mb-6">
-                    {isLoginMode ? useT()("login") : useT()("signup")}
+                    {isLoginMode ? t("login") : t("signup")}
                   </h3>
 
                   {error && (
@@ -169,7 +170,7 @@ export default function Home() {
                       <>
                         <div>
                           <label className="block text-white text-sm font-medium mb-2">
-                            {useT()("name_as_ic")}
+                            {t("name_as_ic")}
                           </label>
                           <input
                             type="text"
@@ -184,7 +185,7 @@ export default function Home() {
                         </div>
                         <div>
                           <label className="block text-white text-sm font-medium mb-2">
-                            {useT()("identification_number")}
+                            {t("identification_number")}
                           </label>
                           <input
                             type="text"
@@ -202,7 +203,7 @@ export default function Home() {
 
                     <div>
                       <label className="block text-white text-sm font-medium mb-2">
-                        {useT()("email")}
+                        {t("email")}
                       </label>
                       <input
                         type="email"
@@ -220,7 +221,7 @@ export default function Home() {
                     {!isLoginMode && (
                       <div>
                         <label className="block text-white text-sm font-medium mb-2">
-                          {useT()("phone_number")}
+                          {t("phone_number")}
                         </label>
                         <div className="flex">
                           <select className="px-3 py-2 bg-white rounded-l text-gray-900 border-r border-gray-300 focus:outline-none">
@@ -242,7 +243,7 @@ export default function Home() {
 
                     <div>
                       <label className="block text-white text-sm font-medium mb-2">
-                        {useT()("password")}
+                        {t("password")}
                       </label>
                       <input
                         type="password"
@@ -260,7 +261,7 @@ export default function Home() {
                     {!isLoginMode && (
                       <div>
                         <label className="block text-white text-sm font-medium mb-2">
-                          {useT()("confirm_password")}
+                          {t("confirm_password")}
                         </label>
                         <input
                           type="password"
@@ -285,14 +286,14 @@ export default function Home() {
                           required
                         />
                         <label htmlFor="terms" className="text-white text-sm">
-                          {useT()("terms_accept_text")}{" "}
+                          {t("terms_accept_text")}{" "}
                           <Link
                             href="/terms"
                             className="underline text-[#67DABB] hover:text-white"
                           >
-                            {useT()("terms_conditions")}
+                            {t("terms_conditions")}
                           </Link>{" "}
-                          {useT()("terms_accept_suffix")}
+                          {t("terms_accept_suffix")}
                         </label>
                       </div>
                     )}
@@ -303,7 +304,7 @@ export default function Home() {
                         disabled={isLoading}
                         className="w-36 bg-black text-white py-2 rounded font-bold hover:bg-blue-800 transition-colors disabled:bg-gray-500"
                       >
-                        {isLoading ? (isLoginMode ? 'Logging in...' : 'Signing up...') : (isLoginMode ? useT()("login") : useT()("signup"))}
+                        {isLoading ? (isLoginMode ? 'Logging in...' : 'Signing up...') : (isLoginMode ? t("login") : t("signup"))}
                       </button>
 
                       {isLoginMode && (
@@ -318,7 +319,7 @@ export default function Home() {
                             }}
                             className="w-36 bg-transparent text-white py-2 rounded font-bold border border-white hover:bg-white/20 transition-colors"
                           >
-                            {useT()("signup")}
+                            {t("signup")}
                           </button>
                         </>
                       )}
@@ -346,13 +347,13 @@ export default function Home() {
                           href="#"
                           className="block text-[#67DABB] text-sm underline hover:text-white"
                         >
-                          {useT()("forgot_password")}
+                          {t("forgot_password")}
                         </a>
                         <a
                           href="#"
                           className="block text-[#67DABB] text-sm underline hover:text-white"
                         >
-                          {useT()("confirmation_instructions")}
+                          {t("confirmation_instructions")}
                         </a>
                       </div>
                     )}
@@ -380,9 +381,9 @@ export default function Home() {
                   />
                 </div>
                 <h3 className="text-lg font-extrabold text-[#004F9E] mb-2">
-                  {useT()("secure")}
+                  {t("secure")}
                 </h3>
-                <p className="text-black font-bold">{useT()("secure_desc")}</p>
+                <p className="text-black font-bold">{t("secure_desc")}</p>
               </div>
 
               {/* Fast */}
@@ -397,9 +398,9 @@ export default function Home() {
                   />
                 </div>
                 <h3 className="text-lg font-extrabold text-[#004F9E] mb-2">
-                  {useT()("fast")}
+                  {t("fast")}
                 </h3>
-                <p className="text-black font-bold">{useT()("fast_desc")}</p>
+                <p className="text-black font-bold">{t("fast_desc")}</p>
               </div>
 
               {/* Compare */}
@@ -414,9 +415,9 @@ export default function Home() {
                   />
                 </div>
                 <h3 className="text-lg font-extrabold text-[#004F9E] mb-2">
-                  {useT()("compare")}
+                  {t("compare")}
                 </h3>
-                <p className="text-black font-bold">{useT()("compare_desc")}</p>
+                <p className="text-black font-bold">{t("compare_desc")}</p>
               </div>
             </div>
           </div>
@@ -426,31 +427,31 @@ export default function Home() {
         <section className="py-16 bg-[#004F9E]">
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-white">
             <h3 className="text-black text-3xl font-extrabold text-center mb-2">
-              {useT()("insurance_products")}
+              {t("insurance_products")}
             </h3>
             <p className="text-black text-center mb-6">
-              {useT()("insurance_products_subtitle")}
+              {t("insurance_products_subtitle")}
             </p>
             <div className="text-center mb-10">
               <button className="bg-black text-white px-5 py-2 rounded">
-                {useT()("view_all_products")}
+                {t("view_all_products")}
               </button>
             </div>
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
               {[
                 {
-                  title: useT()("basic_insurance"),
-                  desc: useT()("basic_insurance_desc"),
+                  title: t("basic_insurance"),
+                  desc: t("basic_insurance_desc"),
                   imgSrc: ["/images/essential.png"],
                 },
                 {
-                  title: useT()("comprehensive_insurance"),
-                  desc: useT()("comprehensive_insurance_desc"),
+                  title: t("comprehensive_insurance"),
+                  desc: t("comprehensive_insurance_desc"),
                   imgSrc: ["/images/all.png"],
                 },
                 {
-                  title: useT()("third_party_insurance"),
-                  desc: useT()("third_party_insurance_desc"),
+                  title: t("third_party_insurance"),
+                  desc: t("third_party_insurance_desc"),
                   imgSrc: [
                     "/images/third-party-1.png",
                     "/images/third-party-2.png",
@@ -490,9 +491,9 @@ export default function Home() {
 
                   <div className="text-xs text-gray-500 mb-1">
                     {idx === 0
-                      ? useT()("best_seller")
+                      ? t("best_seller")
                       : idx === 1
-                      ? useT()("top_rated")
+                      ? t("top_rated")
                       : ""}
                   </div>
                   <div className="font-semibold">{card.title}</div>
@@ -507,10 +508,10 @@ export default function Home() {
         <section className="py-16 bg-white">
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <h3 className="text-2xl font-extrabold text-gray-900 text-center mb-2">
-              {useT()("customer_reviews")}
+              {t("customer_reviews")}
             </h3>
             <p className="text-center text-gray-500 mb-8">
-              {useT()("customer_reviews_subtitle")}
+              {t("customer_reviews_subtitle")}
             </p>
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
               {["John Doe", "Jane Smith", "Alice Johnson"].map((name, idx) => (
@@ -547,9 +548,9 @@ export default function Home() {
                   </div>
 
                   <p className="text-gray-700 text-sm">
-                    {idx === 0 && useT()("review_1")}
-                    {idx === 1 && useT()("review_2")}
-                    {idx === 2 && useT()("review_3")}
+                    {idx === 0 && t("review_1")}
+                    {idx === 1 && t("review_2")}
+                    {idx === 2 && t("review_3")}
                   </p>
                 </div>
               ))}
@@ -563,36 +564,36 @@ export default function Home() {
             <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
               <div>
                 <h4 className="text-lg font-semibold mb-4">
-                  {useT()("about_us")}
+                  {t("about_us")}
                 </h4>
                 <ul className="space-y-2">
                   <li>
                     <a href="#" className="text-blue-200 hover:text-white">
-                      {useT()("faq")}
+                      {t("faq")}
                     </a>
                   </li>
                 </ul>
               </div>
               <div>
                 <h4 className="text-lg font-semibold mb-4">
-                  {useT()("useful_links")}
+                  {toolbar("useful_links")}
                 </h4>
                 <ul className="space-y-2">
                   <li>
                     <a href="#" className="text-blue-200 hover:text-white">
-                      {useT()("contact_us")}
+                      {t("contact_us")}
                     </a>
                   </li>
                   <li>
                     <a href="#" className="text-blue-200 hover:text-white">
-                      {useT()("personal_data_protection")}
+                      {t("personal_data_protection")}
                     </a>
                   </li>
                 </ul>
               </div>
               <div>
                 <h4 className="text-lg font-semibold mb-4">
-                  {useT()("follow_us")}
+                  {t("follow_us")}
                 </h4>
                 <div className="flex space-x-4">
                   <a href="#" className="text-blue-200 hover:text-white">

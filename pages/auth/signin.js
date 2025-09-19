@@ -205,7 +205,7 @@ export default function SignIn() {
                         href="#"
                         className="block text-blue-200 text-sm hover:text-white"
                       >
-                        Didn't receive confirmation instructions?
+                        Didn&apos;t receive confirmation instructions?
                       </a>
                     </div>
                   </form>

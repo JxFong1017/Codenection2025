@@ -24,6 +24,9 @@ import PlateValidationPopup from "../src/components/PlateValidationPopup";
 import { useSession } from "next-auth/react";
 import ContactHelp from "../src/components/ContactHelp";
 import { carData } from "../src/data/carData";
+import Image from "next/image";
+import GeranImageUpload from "../src/components/GeranImageUpload";
+
 
 export default function ManualQuoteSevenStep() {
   const { data: session } = useSession();
@@ -359,131 +362,129 @@ export default function ManualQuoteSevenStep() {
     return newProtections;
   });
 };
-
-    // New: handleSubmit function
-    const handleSubmit = async () => {
-      // Construct the data object to send to the API
-      const quotationData = {
-        customer: {
-          name,
-          ic: documentType === "ic" ? ic : passport,
-          postcode,
-        },
-        car: {
-          plate,
-          brand,
-          model,
-          year,
-          ncd,
-        },
-        coverage: {
-          type: coverageType,
-          protections: coverageType === "Comprehensive" ? protections : null,
-        },
-        estimatedPremium: estimateRange,
-        email: session?.user?.email, // Using the email from the session
-      };
-  
-      try {
-        // Send the data to your API endpoint
-        const response = await fetch("/api/generate-quote", {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify(quotationData),
-        });
-  
-        if (response.ok) {
-          // If the API call is successful, advance to the next step
-          goNext();
-        } else {
-          // Handle API errors
-          console.error("Failed to generate quotation:", response.statusText);
-          // You might want to display an error message to the user here
-        }
-      } catch (error) {
-        console.error("Error submitting quotation:", error);
-        // Handle network or other errors
-      }
-    };
-
-// NEW EFFECT FOR BRAND AUTO-SELECTION with partial matching
-useEffect(() => {
-  if (!debouncedBrandSearch) {
-    // If the input is empty, clear validation.
-    setBrandValidation({ isValid: null, error: null });
-    return;
-  }
-  const normalizedSearch = debouncedBrandSearch.toLowerCase();
-  // 2. Check for an exact case-insensitive match (highest priority)
-  const exactMatch = allBrands.find(b => b.toLowerCase() === normalizedSearch);
-  if (exactMatch) {
-    setBrand(exactMatch);
-    setBrandSearch(exactMatch);
-    setBrandValidation({ isValid: true, error: null });
-    setShowBrandDropdown(false);
-    return; // Exit early if we found an exact match
-  }
-  // 3. Perform a fuzzy search for potential misspellings
-  const fuzzyResults = fuse.search(normalizedSearch);
-  
-  if (fuzzyResults.length === 1 && fuzzyResults[0].score < 0.3) {
-    // If there is ONE and only ONE result, and its score is low enough
-    // (indicating a very close fuzzy match), auto-correct and select it.
-    const autoCorrectedBrand = fuzzyResults[0].item;
-    setBrand(autoCorrectedBrand);
-    setBrandSearch(autoCorrectedBrand);
-    setBrandValidation({ isValid: true, error: null });
-    setShowBrandDropdown(false);
-  } else {
-    // 4. If no exact match and no strong fuzzy match, it's invalid
-    setBrand(""); // Clear the brand state to prevent invalid submissions
-    setBrandValidation({
-      isValid: false,
-      error: "Invalid brand. Please choose from the dropdown list.",
-    });
+const handleSubmit = async () => {
+  // Construct the data object to send to the API
+  const quotationData = {
+    customer: {
+      name,
+      ic: documentType === "ic" ? ic : passport,
+      postcode,
+    },
+    car: {
+      plate,
+      brand,
+      model,
+      year,
+      ncd,
+    },
+    coverage: {
+      type: coverageType,
+      protections: coverageType === "Comprehensive" ? protections : null,
+    },
+    estimatedPremium: estimateRange,
+    email: session?.user?.email, // Using the email from the session
   };
 
-  // NEW EFFECT FOR BRAND AUTO-SELECTION with partial matching
-  useEffect(() => {
-    if (!debouncedBrandSearch) {
-      // If the input is empty, clear validation.
-      setBrandValidation({ isValid: null, error: null });
-      return;
-    }
-    const normalizedSearch = debouncedBrandSearch.toLowerCase();
-    // 2. Check for an exact case-insensitive match (highest priority)
-    const exactMatch = allBrands.find(
-      (b) => b.toLowerCase() === normalizedSearch
-    );
-    if (exactMatch) {
-      setBrand(exactMatch);
-      setBrandSearch(exactMatch);
-      setBrandValidation({ isValid: true, error: null });
-      setShowBrandDropdown(false);
-      return; // Exit early if we found an exact match
-    }
-    // 3. Perform a fuzzy search for potential misspellings
-    const fuzzyResults = fuse.search(normalizedSearch);
+  try {
+    // 1️⃣ Save quotation to your backend (optional step)
+    const response = await fetch("/api/generate-quote", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(quotationData),
+    });
 
-    if (fuzzyResults.length === 1 && fuzzyResults[0].score < 0.3) {
-      // If there is ONE and only ONE result, and its score is low enough
-      // (indicating a very close fuzzy match), auto-correct and select it.
-      const autoCorrectedBrand = fuzzyResults[0].item;
-      setBrand(autoCorrectedBrand);
-      setBrandSearch(autoCorrectedBrand);
-      setBrandValidation({ isValid: true, error: null });
-      setShowBrandDropdown(false);
-    } else {
-      // 4. If no exact match and no strong fuzzy match, it's invalid
-      setBrand(""); // Clear the brand state to prevent invalid submissions
-      setBrandValidation({
-        isValid: false,
-        error: "Invalid brand. Please choose from the dropdown list.",
+    if (response.ok) {
+      // 2️⃣ Trigger the email with PDF
+      const emailResponse = await fetch("/api/sendQuote", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          recipientEmail: quotationData.email, // send to logged-in user
+          quotationData, // pass the full object instead of text
+        }),
       });
+
+      const result = await emailResponse.json();
+
+      if (result.success) {
+        setNotification({ type: "success", message: "Quotation email sent successfully!" });
+        goNext();
+      } else {
+        setNotification({ type: "error", message: "Failed to send email: " + result.error });
+      }
+    } else {
+      setNotification({ type: "error", message: "Failed to generate quotation." });
     }
-  }, [debouncedBrandSearch, allBrands, fuse]);
+  } catch (error) {
+    setNotification({ type: "error", message: "Something went wrong: " + error.message });
+  }
+};
+return (
+  <div>
+    {/* your existing form code */}
+
+    <button
+      onClick={handleSubmit}
+      className="bg-blue-500 text-white px-4 py-2 rounded"
+    >
+      Submit
+    </button>
+
+    {/* 🔔 Notification */}
+    {notification && (
+      <div
+        className={`mt-4 p-3 rounded-lg text-white ${
+          notification.type === "success" ? "bg-green-500" : "bg-red-500"
+        }`}
+      >
+        {notification.message}
+      </div>
+    )}
+  </div>
+);
+};
+
+
+
+
+    useEffect(() => {
+      if (!debouncedBrandSearch) {
+        // If the input is empty, clear validation.
+        setBrandValidation({ isValid: null, error: null });
+        return;
+      }
+    
+      const normalizedSearch = debouncedBrandSearch.toLowerCase();
+    
+      // 1. Exact match
+      const exactMatch = allBrands.find(b => b.toLowerCase() === normalizedSearch);
+      if (exactMatch) {
+        setBrand(exactMatch);
+        setBrandSearch(exactMatch);
+        setBrandValidation({ isValid: true, error: null });
+        setShowBrandDropdown(false);
+        return; // Exit early
+      }
+    
+      // 2. Fuzzy search
+      const fuzzyResults = fuse.search(normalizedSearch);
+    
+      if (fuzzyResults.length === 1 && fuzzyResults[0].score < 0.3) {
+        const autoCorrectedBrand = fuzzyResults[0].item;
+        setBrand(autoCorrectedBrand);
+        setBrandSearch(autoCorrectedBrand);
+        setBrandValidation({ isValid: true, error: null });
+        setShowBrandDropdown(false);
+      } else {
+        // 3. No match
+        setBrand("");
+        setBrandValidation({
+          isValid: false,
+          error: "Invalid brand. Please choose from the dropdown list.",
+        });
+      }
+    }, [debouncedBrandSearch, allBrands, fuse]);
+    
 
   // This useEffect handles both IC and Passport validation
   useEffect(() => {
@@ -1172,7 +1173,7 @@ useEffect(() => {
                         Third-Party Only
                       </h3>
                       <p className="text-sm text-gray-600">
-                        Covers damages to other parties' vehicles or property.
+                        Covers damages to other parties&apos; vehicles or property.
                       </p>
                       {/* Conditional message for Third-Party Only */}
                       {coverageType === "Third-Party Only" && (
@@ -1698,4 +1699,4 @@ useEffect(() => {
       </div>
     </>
   );
-})}
+}

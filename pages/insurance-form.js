@@ -4,6 +4,7 @@ import { useEffect, useState } from 'react';
 import Head from 'next/head';
 import Link from 'next/link';
 import VehicleForm from '../src/components/VehicleForm';
+import Image from "next/image";
 
 export default function InsuranceForm() {
   const { data: session, status } = useSession();
@@ -111,7 +112,7 @@ export default function InsuranceForm() {
               Welcome, {session.user.name}! 🚗
             </h2>
             <p className="text-xl text-gray-600 max-w-3xl mx-auto">
-              Complete your car insurance application. We'll start by validating your vehicle information 
+              Complete your car insurance application. We&apos;ll start by validating your vehicle information 
               to ensure accurate coverage and pricing.
             </p>
           </div>
@@ -178,7 +179,7 @@ export default function InsuranceForm() {
                   <div className="text-center mb-6">
                     <h3 className="text-2xl font-bold text-gray-900 mb-2">Vehicle Information</h3>
                     <p className="text-gray-600">
-                      Let's start by validating your vehicle details. Our system will check for any errors 
+                      Let&apos;s start by validating your vehicle details. Our system will check for any errors 
                       and suggest corrections to ensure accurate insurance coverage.
                     </p>
                   </div>

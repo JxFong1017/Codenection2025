@@ -11,6 +11,14 @@ const nextConfig = {
       },
     ],
   },
+  async rewrites() {
+    return [
+      {
+        source: '/api/generate-quote',
+        destination: 'http://localhost:3000/generate-quote', // Proxy to Express backend
+      },
+    ]
+  },
 };
 
 export default nextConfig;

@@ -518,8 +518,16 @@ useEffect(() => {
           quoteDraft.model.charAt(0).toUpperCase() + quoteDraft.model.slice(1)
         );
       if (quoteDraft.year) setYear(String(quoteDraft.year));
-      if (quoteDraft.step) setStep(quoteDraft.step);
-      // Reset step and fromGeran flag for future entries
+  
+      // ONLY set the step if it is a valid number
+      if (quoteDraft.step && quoteDraft.step >= 1 && quoteDraft.step <= 7) {
+        setStep(quoteDraft.step);
+      } else {
+        // If the step from the draft is invalid, default to step 1
+        setStep(1);
+      }
+  
+      // Reset step and fromGeran flag once, for future entries
       setQuoteDraft((prev) => ({ ...prev, step: 1, fromGeran: false }));
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -778,7 +786,7 @@ useEffect(() => {
                   href="#"
                   className="flex items-center space-x-2 text-gray-600 hover:text-blue-900"
                 >
-                  <img
+                  <Image
                     src="/images/profile.png"
                     alt="Profile"
                     className="w-5 h-5"
@@ -789,7 +797,7 @@ useEffect(() => {
                   href="#"
                   className="flex items-center space-x-2 text-gray-600 hover:text-blue-900"
                 >
-                  <img
+                  <Image
                     src="/images/get-quotation.png"
                     alt="Get Quotation"
                     className="w-5 h-5"
@@ -800,7 +808,7 @@ useEffect(() => {
                   href="#"
                   className="flex items-center space-x-2 text-gray-600 hover:text-blue-900"
                 >
-                  <img
+                  <Image
                     src="/images/notification.png"
                     alt="Notifications"
                     className="w-5 h-5"
@@ -843,12 +851,12 @@ useEffect(() => {
         <main className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-10 ">
           {/* Background car images */}
           <div className="absolute inset-0 flex justify-center items-center pointer-events-none z-0">
-            <img
+            <Image
               src="/images/car-picture-1.jpg"
               alt="Car Left"
               className="w-130 h-auto mr-90 opacity-100 mt-120"
             />
-            <img
+            <Image
               src="/images/car-picture-2.jpg"
               alt="Car Right"
               className="w-120 h-auto ml-90 opacity-100 mt-120"
@@ -1690,5 +1698,4 @@ useEffect(() => {
       </div>
     </>
   );
-}
-)}
+})}

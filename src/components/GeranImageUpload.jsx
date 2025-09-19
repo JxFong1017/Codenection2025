@@ -53,29 +53,27 @@ function GeranImageUpload({ onFormDataExtracted, onClose }) {
       reader.readAsDataURL(file);
     }
   };
-
   const handleUpload = async () => {
     if (!imagePreview) return;
-
+  
     setIsUploading(true);
     setUploadProgress(0);
-
+  
     const base64Data = imagePreview.split(",")[1];
-    // IMPORTANT: Add your actual API key here. For production, use a secure method to store and retrieve this key.
     const apiKey = "AIzaSyByM8oGoRPqZkNZu9d9tpHnHNDN0Dgoano";
     const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-05-20:generateContent?key=${apiKey}`;
-
+  
     const progressInterval = setInterval(() => {
       setUploadProgress((prev) => (prev >= 90 ? 90 : prev + 10));
     }, 200);
-
+  
     try {
       const payload = {
         contents: [
           {
             parts: [
               {
-                text: "Act as an OCR system for a Malaysian vehicle registration document (Geran). Extract the following information and return it in a JSON object with the specified keys: state, plateNumber, make, model, year, engineCC, color, vin, registrationDate, insuranceType, and confidence. Be as accurate as possible.",
+                text: "Act as an expert OCR system for a Malaysian vehicle registration document (Geran). Your task is to extract specific vehicle details. The document is often referred to as 'Sijil Pemilikan Kenderaan'.  Extract the following information by locating the corresponding labels and their values in the provided image. Return the data in a JSON object with the specified keys. Ensure the extracted values are clean and accurately formatted. If a field cannot be found, return null. The expected keys are: 'plateNumber' for 'No. Pendaftaran', 'ownerName' for 'Nama Pemunya Berdaftar', 'address' for 'Alamat', 'chassisNo' for 'No. Chasis', 'engineNo' for 'No. Enjin', 'makeAndModel' for 'Buatan/Nama Model', 'engineCC' for 'Keupayaan Enjin', 'fuelType' for 'Bahan Bakar', 'registrationDate' for 'Tarikh Pendaftaran'. Be as accurate as possible and handle variations in the document's layout.",
               },
               {
                 inlineData: {
@@ -91,35 +89,20 @@ function GeranImageUpload({ onFormDataExtracted, onClose }) {
           responseSchema: {
             type: "OBJECT",
             properties: {
-              state: { type: "STRING" },
               plateNumber: { type: "STRING" },
-              make: { type: "STRING" },
-              model: { type: "STRING" },
-              year: { type: "STRING" },
+              ownerName: { type: "STRING" },
+              address: { type: "STRING" },
+              chassisNo: { type: "STRING" },
+              engineNo: { type: "STRING" },
+              makeAndModel: { type: "STRING" },
               engineCC: { type: "STRING" },
-              color: { type: "STRING" },
-              vin: { type: "STRING" },
+              fuelType: { type: "STRING" },
               registrationDate: { type: "STRING" },
-              insuranceType: { type: "STRING" },
-              confidence: { type: "NUMBER" },
             },
-            propertyOrdering: [
-              "state",
-              "plateNumber",
-              "make",
-              "model",
-              "year",
-              "engineCC",
-              "color",
-              "vin",
-              "registrationDate",
-              "insuranceType",
-              "confidence",
-            ],
           },
         },
       };
-
+  
       let response;
       let retries = 0;
       const maxRetries = 5;
@@ -130,7 +113,7 @@ function GeranImageUpload({ onFormDataExtracted, onClose }) {
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify(payload),
           });
-
+  
           if (response.ok) {
             break;
           } else {
@@ -146,24 +129,32 @@ function GeranImageUpload({ onFormDataExtracted, onClose }) {
           }
         }
       }
-
+  
       if (!response || !response.ok) {
         throw new Error(
           "Failed to fetch response from API after multiple retries."
         );
       }
-
+  
       const result = await response.json();
       const extractedData = JSON.parse(
         result.candidates?.[0]?.content?.parts?.[0]?.text
       );
-
-      setExtractionResult(extractedData);
+  
+      // Map extracted data to form state keys
+      const mappedData = {
+        plateNumber: extractedData.plateNumber,
+        make: extractedData.makeAndModel.split('/')[0].trim() || '',
+        model: extractedData.makeAndModel.split('/')[1].trim() || '',
+        year: extractedData.registrationDate.split('/')[2].trim() || '',
+        engineCC: extractedData.engineCC || '',
+      };
+      
+      setExtractionResult(mappedData);
       setUploadProgress(100);
-
-      // Pass extracted data to the parent component
+  
       setTimeout(() => {
-        onFormDataExtracted(extractedData);
+        onFormDataExtracted(mappedData);
       }, 500);
     } catch (error) {
       console.error("Error processing image:", error);
@@ -185,10 +176,11 @@ function GeranImageUpload({ onFormDataExtracted, onClose }) {
 
   const handleContinueToForm = () => {
     if (extractionResult) {
-      onExtract(extractionResult); // pass the extracted data
+      onFormDataExtracted(extractionResult); // use the correct prop
     }
     onClose();
   };
+  
 
   return (
     <>
@@ -295,7 +287,7 @@ function GeranImageUpload({ onFormDataExtracted, onClose }) {
                 </div>
 
                 <div className="mb-6">
-                  <img
+                  <Image
                     src={imagePreview}
                     alt="Geran Preview"
                     className="w-full max-w-md mx-auto rounded-lg border border-gray-300"
@@ -353,8 +345,10 @@ function GeranImageUpload({ onFormDataExtracted, onClose }) {
                   Successfully Extracted Vehicle Details!
                 </h3>
                 <p className="text-gray-600 mb-4">
-                  Confidence Score:{" "}
-                  {(extractionResult.confidence * 100).toFixed(1)}%
+                 Confidence Score:{" "}
+                  {extractionResult.confidence
+                    ? (extractionResult.confidence * 100).toFixed(1) + "%"
+                    : "N/A"}
                 </p>
 
                 <div className="bg-gray-50 rounded-lg p-4 mb-6 text-left">
@@ -390,12 +384,6 @@ function GeranImageUpload({ onFormDataExtracted, onClose }) {
                       <span className="text-gray-600">Engine:</span>{" "}
                       <span className="font-medium">
                         {extractionResult.engineCC}cc
-                      </span>
-                    </div>
-                    <div>
-                      <span className="text-gray-600">Color:</span>{" "}
-                      <span className="font-medium">
-                        {extractionResult.color}
                       </span>
                     </div>
                   </div>

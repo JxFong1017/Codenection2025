@@ -88,7 +88,7 @@ export default function Dashboard() {
                     href="#"
                     className="flex items-center space-x-2 text-gray-600 hover:text-blue-900"
                   >
-                    <img
+                    <Image
                       src="/images/profile.png"
                       alt="Profile"
                       className="w-5 h-5"
@@ -99,7 +99,7 @@ export default function Dashboard() {
                     href="#"
                     className="flex items-center space-x-2 text-gray-600 hover:text-blue-900"
                   >
-                    <img
+                    <Image
                       src="/images/get-quotation.png"
                       alt="Get Quotation"
                       className="w-5 h-5"
@@ -110,7 +110,7 @@ export default function Dashboard() {
                     href="#"
                     className="flex items-center space-x-2 text-gray-600 hover:text-blue-900"
                   >
-                    <img
+                    <Image
                       src="/images/notification.png"
                       alt="Notifications"
                       className="w-5 h-5"
@@ -166,16 +166,16 @@ export default function Dashboard() {
             {/* Left Side (Text) */}
             <div className="text-left">
               <h2 className="text-4xl font-bold text-[#F9F871] mb-4">
-                {useT()("get_quote_instantly")}
+                {t("get_quote_instantly")}
               </h2>
               <p className="text-xl text-white mb-6">
-                {useT()("find_best_coverage")}
+                {t("find_best_coverage")}
               </p>
               <button
                 onClick={handleGetQuotation}
                 className="bg-white text-[#162679] px-8 py-3 rounded-lg font-bold hover:bg-blue-200 transition-colors"
               >
-                {useT()("get_quote")}
+                {t("get_quote")}
               </button>
             </div>
 
@@ -209,27 +209,27 @@ export default function Dashboard() {
               </div>
 
               <h3 className="text-xl font-bold text-black">
-                {useT()("reminder")}
+                {t("reminder")}
               </h3>
             </div>
             <div className="space-y-3">
               <div className="flex items-start space-x-2">
                 <span className="text-[#162679] font-bold">•</span>
                 <p className="text-[#162679] font-bold">
-                  {useT()("reminder_1_text")}
+                  {t("reminder_1_text")}
                   <span className="text-[#162679] font-bold">
                     {" "}
-                    {useT()("renew_now")}
+                    {t("renew_now")}
                   </span>
                 </p>
               </div>
               <div className="flex items-start space-x-2">
                 <span className="text-[#162679] font-bold">•</span>
                 <p className="text-[#162679] font-bold">
-                  {useT()("reminder_2_text")}
+                  {t("reminder_2_text")}
                   <span className="text-[#162679] font-bold">
                     {" "}
-                    {useT()("pay_before_due")}
+                    {t("pay_before_due")}
                   </span>
                 </p>
               </div>
@@ -239,7 +239,7 @@ export default function Dashboard() {
           {/* Recent Quotes Section */}
           <div className="mb-8">
             <h3 className="text-xl font-bold text-black mb-4">
-              {useT()("recent_quotes")}
+              {t("recent_quotes")}
             </h3>
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
               {/* Left Quote Card */}
@@ -249,7 +249,7 @@ export default function Dashboard() {
                     <div className="font-bold text-lg">#12346</div>
                   </div>
                   <span className="bg-[#F9F871] text-black px-3 py-1 rounded-full text-sm font-medium">
-                    {useT()("pending")}
+                    {t("pending")}
                   </span>
                 </div>
                 <div className="flex flex-col space-y-1">
@@ -264,7 +264,7 @@ export default function Dashboard() {
                   </span>
                 </div>
                 <button className="w-full mt-4 bg-white text-blue-900 border border-blue-200 py-2 rounded-lg font-medium hover:bg-blue-50">
-                  {useT()("view")}
+                  {t("view")}
                 </button>
               </div>
 
@@ -276,7 +276,7 @@ export default function Dashboard() {
                     <div className="font-bold text-lg">#12345</div>
                   </div>
                   <span className="bg-[#00C898] text-white px-3 py-1 rounded-full text-sm font-medium">
-                    {useT()("confirmed")}
+                    {t("confirmed")}
                   </span>
                 </div>
                 <div className="flex flex-col space-y-1">
@@ -291,7 +291,7 @@ export default function Dashboard() {
                   </span>
                 </div>
                 <button className="w-full mt-4 bg-white text-blue-900 border border-blue-200 py-2 rounded-lg font-medium hover:bg-blue-50">
-                  {useT()("view")}
+                  {t("view")}
                 </button>
               </div>
             </div>
@@ -300,7 +300,7 @@ export default function Dashboard() {
           {/* My Car Records Section */}
           <div className="mb-8">
             <h3 className="text-xl font-bold text-black mb-4">
-              {useT()("my_car_records")}
+              {t("my_car_records")}
             </h3>
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
               {/* Left Car Record */}
@@ -329,11 +329,11 @@ export default function Dashboard() {
                   </div>
                   <div>
                     <div className="text-sm text-red-600 font-medium">
-                      {useT()("insurance_expired_days")}
+                      {t("insurance_expired_days")}
                     </div>
                   </div>
                   <button className="w-full bg-blue-900 text-white py-2 rounded-lg font-medium hover:bg-blue-800">
-                    {useT()("renew")}
+                    {t("renew")}
                   </button>
                 </div>
               </div>
@@ -364,11 +364,11 @@ export default function Dashboard() {
                   </div>
                   <div>
                     <div className="text-sm text-gray-600">
-                      {useT()("insurance_active_until")} 12/08/2026
+                      {t("insurance_active_until")} 12/08/2026
                     </div>
                   </div>
                   <button className="w-full bg-white text-blue-900 border border-blue-200 py-2 rounded-lg font-medium hover:bg-blue-50">
-                    {useT()("view")}
+                    {t("view")}
                   </button>
                 </div>
               </div>
@@ -399,11 +399,11 @@ export default function Dashboard() {
                   </div>
                   <div>
                     <div className="text-sm text-gray-600">
-                      {useT()("insurance_active_until")} 02/01/2026
+                      {t("insurance_active_until")} 02/01/2026
                     </div>
                   </div>
                   <button className="w-full bg-white text-blue-900 border border-blue-200 py-2 rounded-lg font-medium hover:bg-blue-50">
-                    {useT()("view")}
+                    {t("view")}
                   </button>
                 </div>
               </div>
@@ -418,12 +418,12 @@ export default function Dashboard() {
               {/* Left Column - About Us */}
               <div>
                 <h4 className="text-lg font-semibold mb-4">
-                  {useT()("about_us")}
+                  {t("about_us")}
                 </h4>
                 <ul className="space-y-2">
                   <li>
                     <a href="#" className="text-blue-200 hover:text-white">
-                      {useT()("faq")}
+                      {t("faq")}
                     </a>
                   </li>
                 </ul>
@@ -432,17 +432,17 @@ export default function Dashboard() {
               {/* Center Column - Useful Links */}
               <div>
                 <h4 className="text-lg font-semibold mb-4">
-                  {useT()("useful_links")}
+                  {t("useful_links")}
                 </h4>
                 <ul className="space-y-2">
                   <li>
                     <a href="#" className="text-blue-200 hover:text-white">
-                      {useT()("contact_us")}
+                      {t("contact_us")}
                     </a>
                   </li>
                   <li>
                     <a href="#" className="text-blue-200 hover:text-white">
-                      {useT()("personal_data_protection")}
+                      {t("personal_data_protection")}
                     </a>
                   </li>
                 </ul>
@@ -451,7 +451,7 @@ export default function Dashboard() {
               {/* Right Column - Social Media */}
               <div>
                 <h4 className="text-lg font-semibold mb-4">
-                  {useT()("follow_us")}
+                  {t("follow_us")}
                 </h4>
                 <div className="flex space-x-4">
                   {/* Facebook */}

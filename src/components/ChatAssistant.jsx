@@ -134,7 +134,7 @@ export default function ChatAssistant() {
           className="w-14 h-14 rounded-full bg-transparent hover:bg-blue-800 shadow-lg flex items-center justify-center"
           aria-label="Open assistant"
         >
-          <img
+          <Image
             src="/images/robot.png"
             alt="Chat Assistant"
             className="w-14 h-14 object-contain"

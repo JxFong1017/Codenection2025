@@ -4,7 +4,7 @@
     pkgs.nodejs_20
   ];
   idx.extensions = [
-    
+    "esbenp.prettier-vscode"
   ];
   idx.previews = {
     previews = {

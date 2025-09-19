@@ -71,7 +71,7 @@ export default function InsuranceForm() {
               
               <div className="flex items-center space-x-4">
                 <div className="flex items-center space-x-3">
-                  <img
+                  <Image
                     className="h-8 w-8 rounded-full"
                     src={session.user.image || '/default-avatar.png'}
                     alt={session.user.name}

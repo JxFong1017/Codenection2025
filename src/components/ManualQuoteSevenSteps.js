@@ -635,6 +635,7 @@ export default function ManualQuoteSevenStep() {
             >
               CGS
             </Link>
+  
             {/* Navigation Links + Email pushed to the right */}
             <div className="flex items-center ml-auto space-x-6">
               {/* Navigation Links */}
@@ -670,674 +671,899 @@ export default function ManualQuoteSevenStep() {
                   className="flex items-center space-x-2 text-gray-600 hover:text-blue-900"
                 >
                   <NextImage
-                    src="/images/help.png"
-                    alt="Help"
+                    src="/images/notification.png"
+                    alt="Notifications"
                     width={20}
                     height={20}
                     className="w-5 h-5"
                   />
-                  <span>Help</span>
+                  <span>Notifications</span>
                 </a>
               </nav>
-              {/* User Email */}
-              <div className="hidden md:block text-gray-800 font-medium">
+  
+              <div className="bg-black text-white px-4 py-2 rounded text-sm font-medium hover:bg-gray-800 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500">
                 {session?.user?.email || "USERNAME123@GMAIL.COM"}
               </div>
             </div>
-            <div className="md:hidden flex items-center">
-              <button
-                onClick={() => setShowMobileMenu(!showMobileMenu)}
-                className="text-gray-600 hover:text-blue-900 focus:outline-none"
-              >
-                <svg
-                  className="h-6 w-6"
-                  fill="none"
-                  viewBox="0 0 24 24"
-                  stroke="currentColor"
-                >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth="2"
-                    d="M4 6h16M4 12h16m-7 6h7"
-                  />
-                </svg>
-              </button>
-            </div>
           </div>
         </header>
-
-        {/* Main content area */}
-        <main className="bg-gray-100 py-10 min-h-[calc(100vh-64px)]">
-          <div className="max-w-4xl mx-auto bg-white p-8 rounded-xl shadow-lg">
-            <h1 className="text-3xl font-extrabold text-center text-blue-900 mb-6">
-              {t("quotation_title")}
-            </h1>
-            <p className="text-center text-gray-600 mb-8">
-              {t("quotation_subtitle")}
-            </p>
-
-            {/* Progress Bar */}
-            <div className="flex justify-between items-center mb-10">
-              {steps.map((s, index) => (
-                <div key={s.id} className="relative flex-1 flex flex-col items-center">
-                  <div
-                    className={`h-2 w-full absolute top-1/2 -mt-1 ${
-                      index < steps.length - 1 ? "bg-gray-300" : "bg-transparent"
-                    }`}
-                  ></div>
-                  <div
-                    className={`h-2 w-full absolute top-1/2 -mt-1 ${
-                      step > s.id ? "bg-blue-600" : "bg-transparent"
-                    }`}
-                  ></div>
-                  <div
-                    className={`relative w-10 h-10 rounded-full flex items-center justify-center font-bold text-white transition-colors duration-300 z-10 ${
-                      step >= s.id ? "bg-blue-600" : "bg-gray-300"
-                    }`}
-                  >
-                    {s.id}
-                  </div>
-                  <span
-                    className={`mt-2 text-center text-sm transition-colors duration-300 ${
-                      step >= s.id ? "text-blue-800 font-medium" : "text-gray-500"
-                    }`}
-                  >
-                    {s.title}
-                  </span>
+  
+        <section className="relative bg-blue-50 py-16">
+          {/* Step bubbles */}
+          <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex justify-between items-center z-10">
+            {steps.map((s) => (
+              <div key={s.id} className="flex flex-col items-center w-1/6">
+                <div
+                  className={`w-16 h-16 rounded-full flex items-center justify-center text-2xl font-extrabold ${
+                    step === s.id
+                      ? "bg-blue-800 text-white"
+                      : step > s.id
+                      ? "bg-blue-300 text-white"
+                      : "bg-blue-200 text-white"
+                  }`}
+                >
+                  {s.id}
                 </div>
-              ))}
-            </div>
-
-            {/* Form Steps */}
-            <form onSubmit={(e) => e.preventDefault()} className="space-y-6">
-              {/* Step 1: Plate Number */}
-              {step === 1 && (
-                <div>
-                  <h2 className="text-xl font-bold text-blue-900 mb-4">
-                    {t("step_1_title")}
-                  </h2>
-                  <p className="text-gray-600 mb-6">{t("step_1_subtitle")}</p>
+                <div className="mt-2 text-sm text-blue-900 text-center">
+                  {s.title}
+                </div>
+              </div>
+            ))}
+          </div>
+        </section>
+  
+        <main className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-10 ">
+          {/* Background car images */}
+          <div className="absolute inset-0 flex justify-center items-center pointer-events-none z-0">
+            <NextImage
+              src="/images/car-picture-1.jpg"
+              alt="Car Left"
+              width={130}
+              height={80} 
+              className="w-130 h-auto mr-90 opacity-100 mt-120"
+            />
+            <NextImage
+              src="/images/car-picture-2.jpg"
+              alt="Car Right"
+              width={120}
+              height={75}
+              className="w-120 h-auto ml-90 opacity-100 mt-120"
+            />
+          </div>
+  
+          <div className="relative z-10 bg-white rounded-2xl shadow border border-gray-200 p-8">
+            {step === 1 && (
+              <div className="text-center">
+                <h2 className="text-xl font-bold text-blue-900 mb-6">
+                  {t("plate_prompt")}
+                </h2>
+                <div className="flex justify-center">
+                  <input
+                    value={plate}
+                    onChange={(e) => setPlate(e.target.value)}
+                    className="w-full max-w-md px-6 py-4 bg-blue-50 rounded-xl text-blue-900 text-xl text-center outline-none border border-blue-100 focus:ring-2 focus:ring-blue-400"
+                    placeholder="e.g. PKD 8381"
+                    disabled={showPlateConfirm}
+                  />
+                </div>
+                {plate.replace(/\s/g, "").length > 10 && (
+                  <p className="mt-3 text-xs text-red-500">
+                    {t("plate_max_length")}
+                  </p>
+                )}
+  
+                <div className="flex justify-between mt-8 max-w-md mx-auto">
+                  <Link
+                    href="/dashboard"
+                    className="px-6 py-3 rounded-xl font-semibold border border-blue-200 text-blue-900 hover:bg-blue-50"
+                  >
+                    {t("back_to_home")}
+                  </Link>
+  
+                  <button
+                    onClick={() => setShowPlateConfirm(true)}
+                    disabled={!canProceedFrom(1)}
+                    className={`px-10 py-3 rounded-xl font-semibold text-white ${
+                      canProceedFrom(1)
+                        ? "bg-blue-800 hover:bg-blue-900"
+                        : "bg-gray-400 cursor-not-allowed"
+                    }`}
+                  >
+                    {t("submit")}
+                  </button>
+                </div>
+              </div>
+            )}
+  
+            {step === 1 && showPlateConfirm && (
+              <div className="text-center p-6 bg-blue-50 rounded-lg shadow mt-6">
+                <p className="text-blue-700 text-lg font-semibold">
+                  Are you sure your car plate number is{" "}
+                  <span className="font-bold">{plate}</span>?
+                </p>
+                <div className="mt-6 flex justify-center gap-4">
+                  <button
+                    onClick={() => setShowPlateConfirm(false)} // back to edit
+                    className="px-6 py-2 border border-blue-200 rounded-lg text-blue-900 font-semibold hover:bg-blue-50"
+                  >
+                    {t("back")} to Edit
+                  </button>
+                  <button
+                    onClick={() => {
+                      setStep(2);
+                      setShowPlateConfirm(false);
+                    }} // next step
+                    className="px-6 py-2 rounded-lg bg-blue-800 text-white font-semibold hover:bg-blue-900"
+                  >
+                    {t("Yes")}
+                  </button>
+                </div>
+              </div>
+            )}
+            {step === 2 && (
+              <div>
+                <div className="text-xl font-bold text-blue-900 mb-6">
+                  {t("Car Plate Number: ")} {plate || "—"}
+                </div>
+  
+                {/* Geran Upload Button */}
+                <div className="mb-6 text-center">
+                  <button
+                    onClick={() => setShowGeranModal(true)}
+                    className="px-6 py-3 bg-blue-600 text-white font-medium rounded-lg hover:bg-blue-700"
+                  >
+                    Upload Geran (Auto-fill)
+                  </button>
+                </div>
+  
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  {/* Plate Number */}
                   <div className="relative">
+                    <label className="block text-blue-900 font-semibold mb-2">
+                      {t("Car Plate Number:")}
+                    </label>
                     <input
                       type="text"
-                      id="plate"
-                      name="plate"
                       value={plate}
-                      onChange={handlePlateInput}
-                      placeholder={t("step_1_placeholder")}
-                      className={`w-full px-4 py-3 border rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-colors duration-200 ${
-                        plateValidation.isValid === false ? "border-red-500" : "border-gray-300"
-                      }`}
-                      maxLength="10"
+                      onChange={(e) => setPlate(e.target.value)}
+                      className="w-full px-4 py-3 bg-blue-50 rounded-lg text-blue-900 border border-blue-100 focus:ring-2 focus:ring-blue-400"
                     />
-                    {plateValidation.isValid === false && (
-                      <p className="text-red-500 text-sm mt-2">
-                        {plateValidation.error}
+                  </div>
+  
+                  {/* Car Brand */}
+                  <div className="relative">
+                    <label className="block text-blue-900 font-semibold mb-2">
+                      {t("Car Brand:")}
+                    </label>
+                    <input
+                      type="text"
+                      value={brandSearch}
+                      onChange={(e) => {
+                        setBrandSearch(e.target.value);
+                        setBrand("");
+                        setShowBrandDropdown(true);
+                      }}
+                      onFocus={() => setShowBrandDropdown(true)}
+                      onBlur={() =>
+                        setTimeout(() => setShowBrandDropdown(false), 200)
+                      }
+                      className={`w-full px-4 py-3 bg-blue-50 rounded-lg text-blue-900 border ${
+                        brandValidation.isValid
+                          ? "border-green-500"
+                          : brandValidation.isValid === false
+                          ? "border-red-500"
+                          : "border-blue-100"
+                      } focus:ring-2 focus:ring-blue-400`}
+                      placeholder="Type to search..."
+                      autoComplete="off"
+                    />
+                    {brandValidation.error && (
+                      <p className="mt-2 text-sm text-red-600">
+                        {brandValidation.error}
                       </p>
                     )}
+                    {showBrandDropdown && filteredBrands.length > 0 && (
+                      <ul className="absolute z-20 w-full bg-white border border-gray-200 rounded-lg mt-1 max-h-40 overflow-y-auto shadow-lg">
+                        {filteredBrands.map((b) => (
+                          <li
+                            key={b}
+                            className="px-4 py-2 hover:bg-blue-50 cursor-pointer"
+                            onMouseDown={(e) => {
+                              e.preventDefault();
+                              setBrand(b);
+                              setBrandSearch(b);
+                              setShowBrandDropdown(false);
+                            }}
+                          >
+                            {b}
+                          </li>
+                        ))}
+                      </ul>
+                    )}
                   </div>
-                </div>
-              )}
-
-              {/* Step 2: Car Details */}
-              {step === 2 && (
-                <div>
-                  <h2 className="text-xl font-bold text-blue-900 mb-4">
-                    {t("step_2_title")}
-                  </h2>
-                  <p className="text-gray-600 mb-6">{t("step_2_subtitle")}</p>
-
-                  <div className="space-y-4">
-                    {/* Brand Input */}
-                    <div>
-                      <label
-                        htmlFor="brand"
-                        className="block text-sm font-medium text-gray-700"
-                      >
-                        {t("brand")}
-                      </label>
-                      <div className="relative">
-                        <input
-                          id="brand"
-                          name="brand"
-                          type="text"
-                          value={brand}
-                          onChange={(e) => {
-                            setBrand(e.target.value);
-                            setBrandSearch(e.target.value);
-                            setModel("");
-                            setYear("");
-                            setBrandValidation({ isValid: null, error: null });
-                          }}
-                          onFocus={() => setShowBrandDropdown(true)}
-                          onBlur={() =>
-                            setTimeout(() => setShowBrandDropdown(false), 200)
-                          }
-                          className={`w-full px-4 py-3 border rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-colors duration-200 ${
-                            brandValidation.isValid === false ? "border-red-500" : "border-gray-300"
-                          }`}
-                          placeholder={t("select_brand")}
-                        />
-                        {brandValidation.isValid === false && (
-                          <p className="text-red-500 text-sm mt-2">
-                            {brandValidation.error}
-                          </p>
-                        )}
-                        {showBrandDropdown && availableBrands.length > 0 && (
-                          <ul className="absolute z-20 w-full bg-white border border-gray-300 rounded-xl shadow-lg max-h-60 overflow-y-auto mt-1">
-                            {availableBrands.map((b) => (
-                              <li
-                                key={b}
-                                onMouseDown={() => {
-                                  setBrand(b);
-                                  setBrandSearch(b);
-                                  setShowBrandDropdown(false);
-                                  setBrandValidation({ isValid: true, error: null });
-                                }}
-                                className="px-4 py-2 cursor-pointer hover:bg-gray-100"
-                              >
-                                {b}
-                              </li>
-                            ))}
-                          </ul>
-                        )}
-                      </div>
-                    </div>
-
-                    {/* Model Input */}
-                    <div>
-                      <label
-                        htmlFor="model"
-                        className="block text-sm font-medium text-gray-700"
-                      >
-                        {t("model")}
-                      </label>
-                      <div className="relative">
-                        <input
-                          id="model"
-                          name="model"
-                          type="text"
-                          value={model}
-                          onChange={(e) => {
-                            setModel(e.target.value);
-                            setModelSearch(e.target.value);
-                            setYear("");
-                            setModelValidation({ isValid: null, error: null });
-                          }}
-                          onFocus={() => {
-                            if (brand) setShowModelDropdown(true);
-                          }}
-                          onBlur={() =>
-                            setTimeout(() => setShowModelDropdown(false), 200)
-                          }
-                          disabled={!brand}
-                          className={`w-full px-4 py-3 border rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-colors duration-200 ${
-                            modelValidation.isValid === false ? "border-red-500" : "border-gray-300"
-                          } ${!brand ? "bg-gray-200" : ""}`}
-                          placeholder={t("select_model")}
-                        />
-                        {modelValidation.isValid === false && (
-                          <p className="text-red-500 text-sm mt-2">
-                            {modelValidation.error}
-                          </p>
-                        )}
-                        {showModelDropdown && availableModels.length > 0 && (
-                          <ul className="absolute z-20 w-full bg-white border border-gray-300 rounded-xl shadow-lg max-h-60 overflow-y-auto mt-1">
-                            {availableModels.map((m) => (
-                              <li
-                                key={m}
-                                onMouseDown={() => {
-                                  setModel(m);
-                                  setModelSearch(m);
-                                  setShowModelDropdown(false);
-                                  setModelValidation({ isValid: true, error: null });
-                                }}
-                                className="px-4 py-2 cursor-pointer hover:bg-gray-100"
-                              >
-                                {m}
-                              </li>
-                            ))}
-                          </ul>
-                        )}
-                      </div>
-                    </div>
-
-                    {/* Year Dropdown */}
-                    <div>
-                      <label
-                        htmlFor="year"
-                        className="block text-sm font-medium text-gray-700"
-                      >
-                        {t("year")}
-                      </label>
-                      <select
-                        id="year"
-                        name="year"
-                        value={year}
-                        onChange={(e) => setYear(e.target.value)}
-                        disabled={!model}
-                        className={`w-full px-4 py-3 border rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-colors duration-200 ${
-                          year === "" ? "text-gray-400" : "text-gray-900"
-                        } ${!model ? "bg-gray-200" : "border-gray-300"}`}
-                      >
-                        <option value="">{t("select_year")}</option>
-                        {availableYears.map((y) => (
+  
+                  {/* Car Model */}
+                  <div className="relative">
+                    <label className="block text-blue-900 font-semibold mb-2">
+                      {t("Car Model:")}
+                    </label>
+                    <input
+                      type="text"
+                      value={modelSearch}
+                      onChange={(e) => {
+                        setModelSearch(e.target.value);
+                        setModel(""); // Clear selected model
+                        setShowModelDropdown(true);
+                      }}
+                      onFocus={() => setShowModelDropdown(true)}
+                      onBlur={() =>
+                        setTimeout(() => setShowModelDropdown(false), 200)
+                      }
+                      className={`w-full px-4 py-3 bg-blue-50 rounded-lg text-blue-900 border ${
+                        modelValidation.isValid === true
+                          ? "border-green-500"
+                          : modelValidation.isValid === false
+                          ? "border-red-500"
+                          : "border-blue-100"
+                      } focus:ring-2 focus:ring-blue-400`}
+                      placeholder="Type to search..."
+                      disabled={!brand}
+                      autoComplete="off"
+                    />
+                    {modelValidation.error && (
+                      <p className="mt-2 text-sm text-red-600">
+                        {modelValidation.error}
+                      </p>
+                    )}
+                    {showModelDropdown && filteredModels.length > 0 && (
+                      <ul className="absolute z-20 w-full bg-white border border-gray-200 rounded-lg mt-1 max-h-40 overflow-y-auto shadow-lg">
+                        {filteredModels.map((m) => (
+                          <li
+                            key={m}
+                            className="px-4 py-2 hover:bg-blue-50 cursor-pointer"
+                            onMouseDown={(e) => {
+                              e.preventDefault();
+                              setModelSearch(m);
+                              setModel(m);
+                              setShowModelDropdown(false);
+                            }}
+                          >
+                            {m}
+                          </li>
+                        ))}
+                      </ul>
+                    )}
+                  </div>
+  
+                  {/* Manufactured Year */}
+                  <div>
+                    <label className="block text-blue-900 font-semibold mb-2">
+                      {t("manufactured_year")}
+                    </label>
+                    <select
+                      value={year}
+                      onChange={(e) => setYear(e.target.value)}
+                      className="w-full px-4 py-3 bg-blue-50 rounded-lg text-blue-900 border border-blue-100 focus:ring-2 focus:ring-blue-400"
+                      disabled={!model}
+                    >
+                      <option value="">Select year</option>
+                      {availableYears
+                        .sort((a, b) => b - a)
+                        .map((y) => (
                           <option key={y} value={y}>
                             {y}
                           </option>
                         ))}
-                      </select>
-                    </div>
-                  </div>
-                </div>
-              )}
-
-              {/* Step 3: Coverage Type */}
-              {step === 3 && (
-                <div>
-                  <h2 className="text-xl font-bold text-blue-900 mb-4">
-                    {t("step_3_title")}
-                  </h2>
-                  <p className="text-gray-600 mb-6">{t("step_3_subtitle")}</p>
-                  <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                    {["Comprehensive", "Third-Party, Fire & Theft", "Third-Party"].map(
-                      (type) => (
-                        <div
-                          key={type}
-                          onClick={() => setCoverageType(type)}
-                          className={`relative p-6 border rounded-xl text-center cursor-pointer transition-all duration-200 ${
-                            coverageType === type
-                              ? "bg-blue-50 border-blue-500 ring-2 ring-blue-500 shadow-md"
-                              : "bg-gray-50 border-gray-300 hover:bg-gray-100"
-                          }`}
-                        >
-                          {coverageType === type && (
-                            <svg
-                              className="w-6 h-6 text-blue-600 absolute top-2 right-2"
-                              fill="currentColor"
-                              viewBox="0 0 20 20"
-                            >
-                              <path
-                                fillRule="evenodd"
-                                d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z"
-                                clipRule="evenodd"
-                              ></path>
-                            </svg>
-                          )}
-                          <h3 className="font-bold text-lg text-blue-900 mb-1">
-                            {type}
-                          </h3>
-                          <p className="text-sm text-gray-600">
-                            {t(`coverage_${type.toLowerCase().replace(/ /g, "_")}`)}
-                          </p>
-                          {isCarOlderThan15Years() && type === "Comprehensive" && (
-                            <p className="text-xs text-red-500 mt-2 font-medium">
-                              {t("age_warning")}
-                            </p>
-                          )}
-                        </div>
-                      )
+                    </select>
+                    {isCarOlderThan15Years() && (
+                      <p className="mt-2 text-red-500 font-normal text-center">
+                        Your car is older than 15 years. Coverage may be limited
+                        or require special inspection.
+                      </p>
                     )}
                   </div>
                 </div>
-              )}
-
-              {/* Step 4: Additional Protections (Conditional) */}
-              {step === 4 && coverageType === "Comprehensive" && (
-                <div>
-                  <h2 className="text-xl font-bold text-blue-900 mb-4">
-                    {t("step_4_title")}
-                  </h2>
-                  <p className="text-gray-600 mb-6">{t("step_4_subtitle")}</p>
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    {[
-                      t("windscreen"),
-                      t("natural_disaster"),
-                      t("strike_riot"),
-                      t("personal_accident"),
-                      t("towing"),
-                      t("named_driver"),
-                      t("all_driver"),
-                      t("passengers_coverage"),
-                    ].map((label) => (
-                      <div
-                        key={label}
-                        onClick={() => toggleProtection(label)}
-                        className={`p-4 border rounded-xl cursor-pointer transition-all duration-200 ${
-                          protections[label]
-                            ? "bg-blue-50 border-blue-500 ring-2 ring-blue-500 shadow-md"
-                            : "bg-gray-50 border-gray-300 hover:bg-gray-100"
-                        }`}
-                      >
-                        <div className="flex items-center justify-between">
-                          <span className="font-medium text-gray-700">{label}</span>
-                          <input
-                            type="checkbox"
-                            checked={!!protections[label]}
-                            readOnly
-                            className="form-checkbox h-5 w-5 text-blue-600 rounded"
-                          />
-                        </div>
-                      </div>
-                    ))}
-                    <div
-                      onClick={() => toggleProtection("None")}
-                      className={`p-4 border rounded-xl cursor-pointer transition-all duration-200 ${
-                        protections.None
-                          ? "bg-blue-50 border-blue-500 ring-2 ring-blue-500 shadow-md"
-                          : "bg-gray-50 border-gray-300 hover:bg-gray-100"
-                      }`}
-                    >
-                      <div className="flex items-center justify-between">
-                        <span className="font-medium text-gray-700">{t("no_addons")}</span>
-                        <input
-                          type="checkbox"
-                          checked={!!protections.None}
-                          readOnly
-                          className="form-checkbox h-5 w-5 text-blue-600 rounded"
-                        />
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              )}
-
-              {/* Step 5: Personal Details */}
-              {step === 5 && (
-                <div>
-                  <h2 className="text-xl font-bold text-blue-900 mb-4">
-                    {t("step_5_title")}
-                  </h2>
-                  <p className="text-gray-600 mb-6">{t("step_5_subtitle")}</p>
-                  <div className="space-y-4">
-                    <div>
-                      <label
-                        htmlFor="name"
-                        className="block text-sm font-medium text-gray-700"
-                      >
-                        {t("full_name")}
-                      </label>
-                      <input
-                        type="text"
-                        id="name"
-                        name="name"
-                        value={name}
-                        onChange={(e) => setName(e.target.value)}
-                        placeholder={t("enter_full_name")}
-                        className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-colors duration-200"
-                      />
-                    </div>
-
-                    <div>
-                      <label
-                        htmlFor="documentType"
-                        className="block text-sm font-medium text-gray-700 mb-1"
-                      >
-                        {t("document_type")}
-                      </label>
-                      <div className="flex space-x-4">
-                        <label className="inline-flex items-center">
-                          <input
-                            type="radio"
-                            name="documentType"
-                            value="ic"
-                            checked={documentType === "ic"}
-                            onChange={() => setDocumentType("ic")}
-                            className="form-radio h-5 w-5 text-blue-600"
-                          />
-                          <span className="ml-2 text-gray-700">{t("ic_number")}</span>
-                        </label>
-                        <label className="inline-flex items-center">
-                          <input
-                            type="radio"
-                            name="documentType"
-                            value="passport"
-                            checked={documentType === "passport"}
-                            onChange={() => setDocumentType("passport")}
-                            className="form-radio h-5 w-5 text-blue-600"
-                          />
-                          <span className="ml-2 text-gray-700">{t("passport_number")}</span>
-                        </label>
-                      </div>
-                    </div>
-                    <div>
-                      <label
-                        htmlFor="document"
-                        className="block text-sm font-medium text-gray-700"
-                      >
-                        {documentType === "ic" ? t("ic_number") : t("passport_number")}
-                      </label>
-                      <input
-                        type="text"
-                        id="document"
-                        name="document"
-                        value={documentType === "ic" ? formatICNumber(ic) : passport}
-                        onChange={(e) => {
-                          if (documentType === "ic") {
-                            setIc(e.target.value.replace(/-/g, "").slice(0, 12));
-                          } else {
-                            setPassport(e.target.value);
-                          }
-                        }}
-                        placeholder={
-                          documentType === "ic"
-                            ? t("enter_ic_number")
-                            : t("enter_passport_number")
-                        }
-                        className={`w-full px-4 py-3 border rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-colors duration-200 ${
-                          (documentType === "ic" && icValidation.isValid === false) ||
-                          (documentType === "passport" && passportValidation.isValid === false)
-                            ? "border-red-500"
-                            : "border-gray-300"
-                        }`}
-                      />
-                      {documentType === "ic" && icValidation.isValid === false && (
-                        <p className="text-red-500 text-sm mt-2">
-                          {icValidation.error}
-                        </p>
-                      )}
-                      {documentType === "passport" && passportValidation.isValid === false && (
-                        <p className="text-red-500 text-sm mt-2">
-                          {passportValidation.error}
-                        </p>
-                      )}
-                    </div>
-                    <div>
-                      <label
-                        htmlFor="postcode"
-                        className="block text-sm font-medium text-gray-700"
-                      >
-                        {t("postcode")}
-                      </label>
-                      <input
-                        type="text"
-                        id="postcode"
-                        name="postcode"
-                        value={postcode}
-                        onChange={(e) => setPostcode(e.target.value.slice(0, 5))}
-                        placeholder={t("enter_postcode")}
-                        className={`w-full px-4 py-3 border rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-colors duration-200 ${
-                          postcodeValidation.isValid === false
-                            ? "border-red-500"
-                            : "border-gray-300"
-                        }`}
-                        maxLength="5"
-                      />
-                      {postcodeValidation.isValid === false && (
-                        <p className="text-red-500 text-sm mt-2">
-                          {postcodeValidation.error}
-                        </p>
-                      )}
-                    </div>
-                    <div>
-                      <label
-                        htmlFor="ncd"
-                        className="block text-sm font-medium text-gray-700"
-                      >
-                        {t("ncd_rate")}
-                      </label>
-                      <div className="flex items-center space-x-2">
-                        <select
-                          id="ncd"
-                          name="ncd"
-                          value={ncd}
-                          onChange={(e) => setNcd(Number(e.target.value))}
-                          className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-colors duration-200"
-                        >
-                          {ncdOptions.map((rate) => (
-                            <option key={rate} value={rate}>
-                              {rate}%
-                            </option>
-                          ))}
-                        </select>
-                        <button
-                          type="button"
-                          onClick={handleCheckNcd}
-                          className="px-4 py-3 text-sm rounded-xl font-semibold text-blue-700 bg-blue-100 hover:bg-blue-200 transition-colors duration-200"
-                        >
-                          {t("check_ncd")}
-                        </button>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              )}
-
-              {/* Step 6: Quote Summary */}
-              {step === 6 && (
-                <div>
-                  <h2 className="text-xl font-bold text-blue-900 mb-4">
-                    {t("step_6_title")}
-                  </h2>
-                  <p className="text-gray-600 mb-6">{t("step_6_subtitle")}</p>
-                  <div className="bg-blue-50 p-6 rounded-xl space-y-4">
-                    <div className="flex justify-between items-center border-b border-blue-200 pb-2">
-                      <span className="text-blue-800 font-medium">{t("car_details")}</span>
-                      <span className="text-blue-900">
-                        {brand} {model} ({year})
-                      </span>
-                    </div>
-                    <div className="flex justify-between items-center border-b border-blue-200 pb-2">
-                      <span className="text-blue-800 font-medium">{t("plate_number")}</span>
-                      <span className="text-blue-900">{plate}</span>
-                    </div>
-                    <div className="flex justify-between items-center border-b border-blue-200 pb-2">
-                      <span className="text-blue-800 font-medium">{t("coverage")}</span>
-                      <span className="text-blue-900">{coverageType}</span>
-                    </div>
-                    <div className="flex justify-between items-center border-b border-blue-200 pb-2">
-                      <span className="text-blue-800 font-medium">{t("ncd_rate")}</span>
-                      <span className="text-blue-900">{ncd}%</span>
-                    </div>
-                    {coverageType === "Comprehensive" &&
-                      Object.keys(protections).length > 0 &&
-                      !protections.None && (
-                        <div className="border-b border-blue-200 pb-2">
-                          <span className="text-blue-800 font-medium">
-                            {t("additional_protections")}
-                          </span>
-                          <ul className="mt-2 space-y-1">
-                            {Object.keys(protections).map(
-                              (key) =>
-                                protections[key] && (
-                                  <li key={key} className="text-blue-900 ml-4">
-                                    - {key}
-                                  </li>
-                                )
-                            )}
-                          </ul>
-                        </div>
-                      )}
-
-                    <div className="flex flex-col items-center pt-4">
-                      <span className="text-sm font-medium text-blue-800">
-                        {t("estimated_total_premium")}
-                      </span>
-                      <span className="text-4xl font-extrabold text-blue-800 mt-2">
-                        MYR {estimateRange.min} - MYR {estimateRange.max}
-                      </span>
-                      <p className="text-xs text-gray-500 mt-2">
-                        {t("estimate_note")}
-                      </p>
-                    </div>
-                  </div>
-                </div>
-              )}
-
-              {/* Step 7: Confirmation */}
-              {step === 7 && (
-                <div className="text-center">
-                  <h2 className="text-xl font-bold text-blue-900 mb-2">
-                    {t("your_quotation_sent")}
-                  </h2>
-                  <div className="mt-4 text-3xl font-extrabold text-blue-800">
-                    {session?.user?.email || "USERNAME123@GMAIL.COM"}
-                  </div>
-                  <p className="mt-2 text-gray-600">{t("check_email_for_quote")}</p>
-                  <p className="mt-6 text-gray-500">
-                    {t("need_help")} <ContactHelp />
-                  </p>
-                </div>
-              )}
-
-              {/* Navigation Buttons */}
-              <div className="flex justify-between items-center pt-8">
-                {step > 1 && step < 7 && (
+  
+                {/* Back / Next buttons */}
+                <div className="mt-8 flex justify-between">
                   <button
                     onClick={goBack}
-                    className="px-8 py-3 rounded-xl font-semibold text-gray-700 bg-gray-200 hover:bg-gray-300 transition-colors duration-150"
+                    className="px-8 py-3 rounded-xl font-semibold border border-blue-200 text-blue-900 hover:bg-blue-50"
                   >
                     {t("back")}
                   </button>
-                )}
-                {step < 6 && (
                   <button
                     onClick={goNext}
-                    disabled={!canProceedFrom(step)}
-                    className={`px-8 py-3 rounded-xl font-semibold text-white transition-colors duration-150 ${
-                      canProceedFrom(step)
+                    disabled={!canProceedFrom(2)}
+                    className={`px-8 py-3 rounded-xl font-semibold text-white ${
+                      canProceedFrom(2)
                         ? "bg-blue-800 hover:bg-blue-900"
-                        : "bg-blue-300 cursor-not-allowed"
+                        : "bg-gray-400 cursor-not-allowed"
                     }`}
                   >
                     {t("next")}
                   </button>
-                )}
-                {step === 6 && (
-                  <button
-                    onClick={handleSubmit}
-                    className="px-8 py-3 rounded-xl font-semibold text-white bg-blue-800 hover:bg-blue-900"
-                  >
-                    {t("submit_quotation")}
-                  </button>
+                </div>
+  
+                {/* 📌 Geran Upload Modal */}
+                {showGeranModal && (
+                  <GeranImageUpload
+                    onClose={() => setShowGeranModal(false)}
+                    onExtract={(data) => {
+                      // Prefill data
+                      setPlate(data.plateNumber || "");
+                      setBrand(data.make || "");
+                      setBrandSearch(data.make || "");
+                      setModel(data.model || "");
+                      setModelSearch(data.model || "");
+                      setYear(data.year || "");
+  
+                      // Automatically skip step 1 confirmation if plate is valid
+                      if (data.plateNumber) {
+                        setShowPlateConfirm(false); // hide confirmation
+                        setStep(2); // go directly to step 2
+                      } else {
+                        setStep(1); // stay on step 1 if plate missing
+                      }
+  
+                      setShowGeranModal(false); // close modal
+                    }}
+                  />
                 )}
               </div>
-            </form>
+            )}
+  
+            {step === 3 && (
+              <div>
+                <h2 className="text-xl font-bold text-blue-900 mb-6">
+                  Choose Your Coverage Type
+                </h2>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  {/* Third-Party Only Option */}
+                  <label
+                    className={`flex items-center space-x-3 p-4 rounded-lg border border-blue-200 hover:bg-blue-50 cursor-pointer shadow-sm ${
+                      coverageType === "Third-Party Only"
+                        ? "bg-blue-50 border-blue-800"
+                        : ""
+                    }`}
+                  >
+                    <input
+                      type="radio"
+                      name="coverageType"
+                      value="Third-Party Only"
+                      checked={coverageType === "Third-Party Only"}
+                      onChange={(e) => setCoverageType(e.target.value)}
+                      className="h-5 w-5 text-blue-600 focus:ring-blue-500"
+                    />
+                    <div className="flex-1">
+                      <h3 className="text-lg font-semibold text-blue-900">
+                        Third-Party Only
+                      </h3>
+                      <p className="text-sm text-gray-600">
+                        Covers damages to other parties&apos; vehicles or property.
+                      </p>
+                      {/* Conditional message for Third-Party Only */}
+                      {coverageType === "Third-Party Only" && (
+                        <p className="text-sm text-red-500 mt-1">
+                          No additional protection available.
+                        </p>
+                      )}
+                    </div>
+                  </label>
+  
+                  {/* Third-Party, Fire & Theft Option */}
+                  <label
+                    className={`flex items-center space-x-3 p-4 rounded-lg border border-blue-200 hover:bg-blue-50 cursor-pointer shadow-sm ${
+                      coverageType === "Third-Party, Fire & Theft"
+                        ? "bg-blue-50 border-blue-800"
+                        : ""
+                    }`}
+                  >
+                    <input
+                      type="radio"
+                      name="coverageType"
+                      value="Third-Party, Fire & Theft"
+                      checked={coverageType === "Third-Party, Fire & Theft"}
+                      onChange={(e) => setCoverageType(e.target.value)}
+                      className="h-5 w-5 text-blue-600 focus:ring-blue-500"
+                    />
+                    <div className="flex-1">
+                      <h3 className="text-lg font-semibold text-blue-900">
+                        Third-Party, Fire & Theft
+                      </h3>
+                      <p className="text-sm text-gray-600">
+                        Includes Third-Party coverage plus protection against
+                        fire and theft.
+                      </p>
+                      {/* Conditional message for Third-Party, Fire & Theft */}
+                      {coverageType === "Third-Party, Fire & Theft" && (
+                        <p className="text-sm text-red-500 mt-1">
+                          No additional protection available.
+                        </p>
+                      )}
+                    </div>
+                  </label>
+  
+                  {/* Comprehensive Option */}
+                  <label
+                    className={`flex items-center space-x-3 p-4 rounded-lg border border-blue-200 hover:bg-blue-50 cursor-pointer shadow-sm ${
+                      coverageType === "Comprehensive"
+                        ? "bg-blue-50 border-blue-800"
+                        : ""
+                    }`}
+                  >
+                    <input
+                      type="radio"
+                      name="coverageType"
+                      value="Comprehensive"
+                      checked={coverageType === "Comprehensive"}
+                      onChange={(e) => setCoverageType(e.target.value)}
+                      className="h-5 w-5 text-blue-600 focus:ring-blue-500"
+                    />
+                    <div className="flex-1">
+                      <h3 className="text-lg font-semibold text-blue-900">
+                        Comprehensive
+                      </h3>
+                      <p className="text-sm text-gray-600">
+                        The highest level of protection, covering damage to your
+                        vehicle, third parties, fire, and theft.
+                      </p>
+                    </div>
+                  </label>
+                </div>
+  
+                {/* Navigation Buttons */}
+                <div className="mt-8 flex justify-between">
+                  <button
+                    onClick={goBack}
+                    className="px-8 py-3 rounded-xl font-semibold border border-blue-200 text-blue-900 hover:bg-blue-50"
+                  >
+                    {t("back")}
+                  </button>
+                  <button
+                    onClick={() => {
+                      if (coverageType === "Comprehensive") {
+                        setStep(step + 1); // Move to the next step
+                      } else {
+                        // For other coverage types, skip to step 5 (assuming step 4 is add-ons)
+                        setStep(5);
+                      }
+                    }}
+                    disabled={!coverageType}
+                    className={`px-8 py-3 rounded-xl font-semibold text-white ${
+                      coverageType
+                        ? "bg-blue-800 hover:bg-blue-900"
+                        : "bg-gray-400 cursor-not-allowed"
+                    }`}
+                  >
+                    {t("next")}
+                  </button>
+                </div>
+              </div>
+            )}
+  
+            {step === 4 && (
+              <div>
+                <h2 className="text-xl font-bold text-blue-900 mb-6">
+                  {t("select_additional_protection")}
+                </h2>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  {/* Add the "None" checkbox here */}
+                  <label
+                    key="None"
+                    className={`flex items-center space-x-3 p-3 rounded-lg hover:bg-blue-50 cursor-pointer ${
+                      protections.None ? "bg-blue-100" : ""
+                    }`}
+                  >
+                    <input
+                      type="checkbox"
+                      className="h-5 w-5"
+                      checked={!!protections.None}
+                      onChange={() => toggleProtection("None")}
+                    />
+                    <span className="text-blue-900">None</span>
+                  </label>
+  
+                  {[
+                    t("windscreen"),
+                    t("named_driver"),
+                    t("all_driver"),
+                    t("natural_disaster"),
+                    t("strike_riot"),
+                    t("personal_accident"),
+                    t("towing"),
+                    t("passengers_coverage"),
+                  ].map((label) => (
+                    <label
+                      key={label}
+                      className={`flex items-center space-x-3 p-3 rounded-lg cursor-pointer ${
+                        protections[label] ? "bg-blue-100" : "hover:bg-blue-50"
+                      } ${
+                        protections.None ? "opacity-50 cursor-not-allowed" : ""
+                      }`}
+                    >
+                      <input
+                        type="checkbox"
+                        className="h-5 w-5"
+                        checked={!!protections[label]}
+                        onChange={() => toggleProtection(label)}
+                        disabled={!!protections.None}
+                      />
+                      <span className="text-blue-900">{label}</span>
+                    </label>
+                  ))}
+                </div>
+                <div className="mt-8 flex justify-between">
+                  <button
+                    onClick={goBack}
+                    className="px-8 py-3 rounded-xl font-semibold border border-blue-200 text-blue-900 hover:bg-blue-50"
+                  >
+                    {t("back")}
+                  </button>
+                  <button
+                    onClick={goNext}
+                    // Change `canProceedFrom(3)` to `canProceedFrom(4)`
+                    disabled={!canProceedFrom(4)}
+                    className={`px-8 py-3 rounded-xl font-semibold text-white ${
+                      canProceedFrom(4)
+                        ? "bg-blue-800 hover:bg-blue-900"
+                        : "bg-gray-400 cursor-not-allowed"
+                    }`}
+                  >
+                    {t("next")}
+                  </button>
+                </div>
+              </div>
+            )}
+  
+            {step === 5 && (
+              <div>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  {/* Vehicle Info (read-only) */}
+                  <div>
+                    <div className="text-blue-900 font-bold mb-2">
+                      {t("Car Plate Number:")}{" "}
+                      <span className="font-normal">{plate || "—"}</span>
+                    </div>
+                    <div className="text-blue-900 font-bold mb-2">
+                      {t("car_brand")}{" "}
+                      <span className="font-normal">{brand || "—"}</span>
+                    </div>
+                    <div className="text-blue-900 font-bold mb-2">
+                      {t("car_model")}
+                      {": "}
+                      <span className="font-normal">{model || "—"}</span>
+                    </div>
+                    <div className="text-blue-900 font-bold mb-2">
+                      {t("manufactured_year")}{" "}
+                      <span className="font-normal">{year || "—"}</span>
+                    </div>
+  
+                    {/* New: Display Coverage Type */}
+                    <div className="text-blue-900 font-bold mb-2">
+                      Type of Coverage:{" "}
+                      <span className="font-normal">{coverageType || "—"}</span>
+                    </div>
+  
+                    {/* New: Display Additional Protection (conditionally) */}
+                    {coverageType === "Comprehensive" && (
+                      <div className="text-blue-900 font-bold mb-2">
+                        Additional Protection:{" "}
+                        <span className="font-normal">
+                          {Object.keys(protections).length > 0 &&
+                          !protections.None
+                            ? Object.keys(protections).join(", ")
+                            : "None"}
+                        </span>
+                      </div>
+                    )}
+                  </div>
+  
+                  {/* Personal Info (editable) */}
+                  <div className="space-y-4">
+                    {/* NCD Section (Moved to be the first item in the personal info column) */}
+                    <div>
+                      <label className="block text-blue-900 font-semibold mb-2">
+                        {t("Select Your Next NCD:")}
+                        <span className="font-normal ml-2">
+                          (Unsure?{" "}
+                          <button
+                            className="underline"
+                            type="button"
+                            onClick={handleCheckNcd}
+                          >
+                            Click here to check your NCD
+                          </button>
+                          )
+                        </span>
+                      </label>
+                      <select
+                        value={ncd}
+                        onChange={(e) => setNcd(Number(e.target.value))}
+                        className="w-full px-4 py-3 bg-blue-50 rounded-lg text-blue-900 border border-blue-100 focus:ring-2 focus:ring-blue-400"
+                      >
+                        <option value={0}>0%</option>
+                        <option value={25}>25%</option>
+                        <option value={30}>30%</option>
+                        <option value={38.3}>38.3%</option>
+                        <option value={45}>45%</option>
+                        <option value={55}>55%</option>
+                      </select>
+                    </div>
+  
+                    <div>
+                      <label className="block text-blue-900 font-semibold mb-2">
+                        {t("Full Name: ")}
+                      </label>
+                      <input
+                        value={name}
+                        onChange={(e) => setName(e.target.value)}
+                        className="w-full px-4 py-3 bg-blue-50 rounded-lg text-blue-900 border border-blue-100 focus:ring-2 focus:ring-blue-400"
+                      />
+                    </div>
+  
+                    <div className="md:col-span-2 flex items-center mb-4">
+                      <span className="text-blue-900 font-semibold mr-4">
+                        ID Type:
+                      </span>
+                      <label className="inline-flex items-center">
+                        <input
+                          type="radio"
+                          className="form-radio text-blue-600"
+                          name="documentType"
+                          value="ic"
+                          checked={documentType === "ic"}
+                          onChange={() => {
+                            setDocumentType("ic");
+                            setPassport("");
+                          }}
+                        />
+                        <span className="ml-2 text-blue-900">NRIC (IC)</span>
+                      </label>
+                      <label className="inline-flex items-center ml-6">
+                        <input
+                          type="radio"
+                          className="form-radio text-blue-600"
+                          name="documentType"
+                          value="passport"
+                          checked={documentType === "passport"}
+                          onChange={() => {
+                            setDocumentType("passport");
+                            setIc("");
+                          }}
+                        />
+                        <span className="ml-2 text-blue-900">Passport</span>
+                      </label>
+                    </div>
+  
+                    {documentType === "ic" ? (
+                      <div className="mb-4">
+                        <label className="block text-blue-900 font-semibold mb-2">
+                          NRIC (IC):
+                        </label>
+                        <input
+                          type="text"
+                          value={ic}
+                          onChange={(e) => {
+                            const formattedIC = formatICNumber(e.target.value);
+                            setIc(formattedIC);
+                          }}
+                          className={`w-full px-4 py-3 bg-blue-50 rounded-lg text-blue-900 border ${
+                            icValidation.isValid === true
+                              ? "border-green-500"
+                              : icValidation.isValid === false
+                              ? "border-red-500"
+                              : "border-blue-100"
+                          }`}
+                          placeholder="e.g. 050102-07-0304"
+                        />
+                        {icValidation.error && (
+                          <p className="mt-2 text-sm text-red-600">
+                            {icValidation.error}
+                          </p>
+                        )}
+                      </div>
+                    ) : (
+                      <div className="mb-4">
+                        <label className="block text-blue-900 font-semibold mb-2">
+                          Passport Number:
+                        </label>
+                        <input
+                          type="text"
+                          value={passport}
+                          onChange={(e) => setPassport(e.target.value)}
+                          className={`w-full px-4 py-3 bg-blue-50 rounded-lg text-blue-900 border ${
+                            passportValidation.isValid === true
+                              ? "border-green-500"
+                              : passportValidation.isValid === false
+                              ? "border-red-500"
+                              : "border-blue-100"
+                          }`}
+                          placeholder="e.g. 123456789"
+                        />
+                        {passportValidation.error && (
+                          <p className="mt-2 text-sm text-red-600">
+                            {passportValidation.error}
+                          </p>
+                        )}
+                      </div>
+                    )}
+                    <div>
+                      <label className="block text-blue-900 font-semibold mb-2">
+                        {t("postcode")}
+                      </label>
+                      <input
+                        type="text"
+                        value={postcode}
+                        onChange={(e) => setPostcode(e.target.value)}
+                        className={`w-full px-4 py-3 bg-blue-50 rounded-lg text-blue-900 border ${
+                          postcodeValidation.isValid === true
+                            ? "border-green-500"
+                            : postcodeValidation.isValid === false
+                            ? "border-red-500"
+                            : "border-blue-100"
+                        }`}
+                        placeholder="e.g. 50000"
+                      />
+                      {postcodeValidation.error && (
+                        <p className="mt-2 text-sm text-red-600">
+                          {postcodeValidation.error}
+                        </p>
+                      )}
+                    </div>
+                  </div>
+                </div>
+  
+                <div className="mt-8 flex justify-between">
+                  <button
+                    onClick={goBack}
+                    className="px-8 py-3 rounded-xl font-semibold border border-blue-200 text-blue-900 hover:bg-blue-50"
+                  >
+                    {t("back")}
+                  </button>
+                  <button
+                    onClick={() => canProceedFrom(step) && goNext()}
+                    className={`px-8 py-3 rounded-xl font-semibold text-white ${
+                      canProceedFrom(step)
+                        ? "bg-blue-800 hover:bg-blue-900"
+                        : "bg-gray-400 cursor-not-allowed"
+                    }`}
+                  >
+                    {t("next")}
+                  </button>
+                </div>
+              </div>
+            )}
+  
+            {step === 6 && (
+              <div>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  <div className="space-y-2 text-blue-900">
+                    <div className="font-bold">
+                      {t("car_plate_number")}{" "}
+                      <span className="font-normal">{plate}</span>
+                    </div>
+                    <div className="font-bold">
+                      {t("car_brand")}{" "}
+                      <span className="font-normal">{brand}</span>
+                    </div>
+                    <div className="font-bold">
+                      {t("car_model")}
+                      {": "}
+                      <span className="font-normal">{model}</span>
+                    </div>
+                    <div className="font-bold">
+                      {t("manufactured_year")}{" "}
+                      <span className="font-normal">{year}</span>
+                    </div>
+                    <div className="font-bold">
+                      {t("ncd")} <span className="font-normal">{ncd}%</span>
+                    </div>
+  
+                    {/* New: Display Coverage Type */}
+                    <div className="font-bold">
+                      Type of Coverage:{" "}
+                      <span className="font-normal">{coverageType || "—"}</span>
+                    </div>
+  
+        {/* New: Display Coverage Type */}
+        <div className="font-bold">
+          Type of Coverage: {" "}
+          <span className="font-normal">{coverageType || "—"}</span>
+        </div>
+  
+        {/* New: Display Additional Protection (conditionally) */}
+        {coverageType === "Comprehensive" && (
+          <div className="font-bold">
+            Additional Protection: {" "}
+            <span className="font-normal">
+              {Object.keys(protections).length > 0 && !protections.None
+                ? Object.keys(protections).join(", ")
+                : "None"}
+            </span>
+          </div>
+        )}
+      </div>
+      <div className="space-y-2 text-blue-900">
+        <div className="font-bold">
+          {t("name_as_ic_field")}{" "}
+          <span className="font-normal">{name}</span>
+        </div>
+        <div className="font-bold">
+          {t("ic")}{" "}
+          <span className="font-normal">
+            {documentType === "ic" ? ic : passport}
+          </span>
+        </div>
+        <div className="font-bold">
+          {t("postcode")}{" "}
+          <span className="font-normal">{postcode}</span>
+        </div>
+        <div className="font-bold">
+          {t("estimated_range")}{" "}
+          <span className="font-normal">
+            {/* The corrected display logic */}
+            {estimateRange.min === estimateRange.max 
+              ? `RM${estimateRange.min}` 
+              : `RM${estimateRange.min}-RM${estimateRange.max}`
+            }
+          </span>
+        </div>
+      </div>
+    </div>
+    <div className="mt-8 flex justify-between">
+      <button
+        onClick={goBack}
+        className="px-8 py-3 rounded-xl font-semibold border border-blue-200 text-blue-900 hover:bg-blue-50"
+      >
+        {t("back")}
+      </button>
+      <button
+         onClick={handleSubmit} /* Updated this line */
+        className="px-8 py-3 rounded-xl font-semibold text-white bg-blue-800 hover:bg-blue-900"
+      >
+        Submit
+      </button>
+    </div>
+  </div>
+  )}
+            {step === 7 && (
+              <div className="text-center">
+                <h2 className="text-xl font-bold text-blue-900 mb-2">
+                  {t("your_quotation_sent")}
+                </h2>
+                <div className="mt-4 text-3xl font-extrabold text-blue-800">
+                  {session?.user?.email || "USERNAME123@GMAIL.COM"}
+                </div>
+  
+                {/* Contact Help with underlined links */}
+                <div className="mt-6 text-gray-700">
+                  <ContactHelp />
+                </div>
+  
+                <div className="mt-8">
+                  <Link
+                    href="/dashboard"
+                    className="inline-block px-10 py-3 rounded-xl font-semibold text-white bg-blue-800 hover:bg-blue-900"
+                  >
+                    {t("done")}
+                  </Link>
+                </div>
+              </div>
+            )}
           </div>
         </main>
-
-        {/* Plate Validation Pop-up */}
-        {showPlateValidation && plateValidationResult && (
-          <PlateValidationPopup
-            status={getPolicyStatusMessage(plateValidationResult.status)}
-            expiryDate={plateValidationResult.expiryDate}
-            onClose={handlePlateValidationClose}
-            onRenewEarly={handleRenewEarly}
-            onTransferOwnership={handleTransferOwnership}
-            onProceedAnyway={handlePlateValidationProceed}
-          />
-        )}
-        {showGeranModal && (
-          <GeranImageUpload
-            isOpen={showGeranModal}
-            onClose={() => setShowGeranModal(false)}
-            onImageUpload={() => {
-              setShowGeranModal(false);
-            }}
-          />
-        )}
+  
+        {/* Plate Validation Popup */}
+        <PlateValidationPopup
+          isOpen={showPlateValidation}
+          onClose={handlePlateValidationClose}
+          onProceed={handlePlateValidationProceed}
+          onRenew={handleRenewEarly}
+          onTransfer={handleTransferOwnership}
+          validationResult={plateValidationResult}
+        />
       </div>
     </>
   );
-}
+}  

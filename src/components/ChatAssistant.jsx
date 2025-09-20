@@ -138,9 +138,10 @@ export default function ChatAssistant() {
           <Image
             src="/images/robot.png"
             alt="Chat Assistant"
-            className="w-14 h-14 object-contain"
             width={56}
             height={56}
+            className="w-14 h-14 object-contain"
+            priority
           />
         </button>
       )}

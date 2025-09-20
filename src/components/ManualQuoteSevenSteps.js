@@ -646,6 +646,8 @@ export default function ManualQuoteSevenStep() {
                   <NextImage
                     src="/images/profile.png"
                     alt="Profile"
+                    width={20}
+                    height={20}
                     className="w-5 h-5"
                   />
                   <span>Profile</span>
@@ -657,6 +659,8 @@ export default function ManualQuoteSevenStep() {
                   <NextImage
                     src="/images/get-quotation.png"
                     alt="Get Quotation"
+                    width={20}
+                    height={20}
                     className="w-5 h-5"
                   />
                   <span>Get Quotation</span>

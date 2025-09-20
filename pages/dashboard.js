@@ -91,6 +91,8 @@ export default function Dashboard() {
                     <Image
                       src="/images/profile.png"
                       alt="Profile"
+                      width={20}
+                      height={20}
                       className="w-5 h-5"
                     />
                     <span>Profile</span>
@@ -102,6 +104,8 @@ export default function Dashboard() {
                     <Image
                       src="/images/get-quotation.png"
                       alt="Get Quotation"
+                      width={20}
+                      height={20}
                       className="w-5 h-5"
                     />
                     <span>Get Quotation</span>
@@ -113,6 +117,8 @@ export default function Dashboard() {
                     <Image
                       src="/images/notification.png"
                       alt="Notifications"
+                      width={20}
+                      height={20}
                       className="w-5 h-5"
                     />
                     <span>Notifications</span>
@@ -186,7 +192,9 @@ export default function Dashboard() {
                 alt="Car Hero"
                 width={400}
                 height={200}
+                style={{ width: "auto", height: "auto" }}
                 className="object-contain -mt-8 md:-mt-12"
+                priority
               />
             </div>
           </div>
@@ -204,6 +212,7 @@ export default function Dashboard() {
                   alt="Reminder Icon"
                   width={48}
                   height={48}
+                  style={{ width: "auto", height: "auto" }}
                   className="object-contain"
                 />
               </div>

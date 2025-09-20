@@ -672,6 +672,8 @@ export default function ManualQuoteSevenStep() {
                   <NextImage
                     src="/images/help.png"
                     alt="Help"
+                    width={20}
+                    height={20}
                     className="w-5 h-5"
                   />
                   <span>Help</span>

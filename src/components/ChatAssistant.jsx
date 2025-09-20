@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from "react";
+import Image from "next/image";
 import { useRouter } from "next/router";
 import { useQuote } from "../context/QuoteContext";
 import { useT } from "../utils/i18n";
@@ -138,6 +139,8 @@ export default function ChatAssistant() {
             src="/images/robot.png"
             alt="Chat Assistant"
             className="w-14 h-14 object-contain"
+            width={56}
+            height={56}
           />
         </button>
       )}

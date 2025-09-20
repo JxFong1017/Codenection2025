@@ -1,4 +1,5 @@
 import { useState, useRef } from "react";
+import Image from "next/image";
 
 // Mock dependencies to make the component standalone
 const MockModal = ({ message, onClose }) => {

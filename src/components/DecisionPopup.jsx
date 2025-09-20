@@ -6,13 +6,13 @@ export default function DecisionPopup({ isOpen, onClose, onDecision }) {
   const router = useRouter();
 
   const handleManualInput = () => {
-    onDecision('manual');
-    // Don't navigate - we're already on the vehicle validation form
+    onDecision("manual");
+    onClose();
   };
 
   const handleImageUpload = () => {
-    onDecision('image');
-    // Don't navigate - we're already on the vehicle validation form
+    onUploadImage();
+    onClose();
   };
 
   if (!isOpen) return null;
@@ -56,10 +56,9 @@ export default function DecisionPopup({ isOpen, onClose, onDecision }) {
               </div>
             </button>
 
-            {/* Image Upload Option */}
             <button
               onClick={handleImageUpload}
-              className="w-full flex items-center justify-center px-4 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition-colors duration-200"
+              className="w-full flex items-center justify-center px-4 py-3 border border-gray-300 rounded-lg hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition-colors duration-200"
             >
               <div className="flex items-center space-x-3">
                 <div className="flex-shrink-0">

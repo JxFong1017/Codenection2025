@@ -101,11 +101,9 @@ export default function ManualQuoteSevenStep() {
       setNcd(0);
       return;
     }
-
     const parsedValue = parseInt(value, 10);
     const isValueValid =
       !isNaN(parsedValue) && parsedValue >= 0 && parsedValue <= 55;
-
     if (isValueValid) {
       setNcd(parsedValue);
       setNcdValidation({ isValid: true, error: "" });
@@ -281,7 +279,6 @@ export default function ManualQuoteSevenStep() {
         if (key === t("named_driver")) return acc + 10;
         if (key === t("all_driver")) return acc + 50;
         if (key === t("passengers_coverage")) return acc + 25;
-
         return acc;
       }, 0);
     }
@@ -345,6 +342,177 @@ export default function ManualQuoteSevenStep() {
       return newProtections;
     });
   };
+
+  // NEW EFFECT FOR BRAND AUTO-SELECTION with partial matching
+  useEffect(() => {
+    if (!debouncedBrandSearch) {
+      // If the input is empty, clear validation.
+      setBrandValidation({ isValid: null, error: null });
+      return;
+    }
+    const normalizedSearch = debouncedBrandSearch.toLowerCase();
+    // 2. Check for an exact case-insensitive match (highest priority)
+    const exactMatch = allBrands.find(b => b.toLowerCase() === normalizedSearch);
+    if (exactMatch) {
+      setBrand(exactMatch);
+      setBrandSearch(exactMatch);
+      setBrandValidation({ isValid: true, error: null });
+      setShowBrandDropdown(false);
+      return; // Exit early if we found an exact match
+    }
+    // 3. Perform a fuzzy search for potential misspellings
+    const fuzzyResults = fuse.search(normalizedSearch);
+    
+    if (fuzzyResults.length === 1 && fuzzyResults[0].score < 0.3) {
+      // If there is ONE and only ONE result, and its score is low enough
+      // (indicating a very close fuzzy match), auto-correct and select it.
+      const autoCorrectedBrand = fuzzyResults[0].item;
+      setBrand(autoCorrectedBrand);
+      setBrandSearch(autoCorrectedBrand);
+      setBrandValidation({ isValid: true, error: null });
+      setShowBrandDropdown(false);
+    } else {
+      // 4. If no exact match and no strong fuzzy match, it's invalid
+      setBrand(""); // Clear the brand state to prevent invalid submissions
+      setBrandValidation({
+        isValid: false,
+        error: "Invalid brand. Please choose from the dropdown list.",
+      });
+    }
+  }, [debouncedBrandSearch, allBrands, fuse]);
+
+  // This useEffect handles both IC and Passport validation
+  useEffect(() => {
+    if (documentType === 'ic') {
+      const result = validateIC(debouncedIC);
+      setIcValidation(result);
+      // Reset passport validation when IC is active
+      setPassportValidation({ isValid: null, error: null });
+    } else if (documentType === 'passport') {
+      const result = validatePassport(debouncedPassport);
+      setPassportValidation(result);
+      // Reset IC validation when Passport is active
+      setIcValidation({ isValid: null, error: null });
+    }
+  }, [debouncedIC, debouncedPassport, documentType]);
+
+  useEffect(() => {
+    setPostcodeValidation(validatePostcode(debouncedPostcode));
+  }, [debouncedPostcode]);
+
+  useEffect(() => {
+    if (!debouncedPlate) {
+      setPlateValidation({ isValid: false, error: null });
+      return;
+    }
+    const result = validatePlateNumber(debouncedPlate, "default");
+    setPlateValidation({ isValid: result.isValid, error: result.error });
+  }, [debouncedPlate]);
+
+// Check for existing policy when plate is valid (only for manual entry, not from Geran upload)
+  // Only show policy validation for specific plate "ABC 1234"
+  useEffect(() => {
+    if (plateValidation.isValid && debouncedPlate && !quoteDraft?.fromGeran) {
+      // Only check for existing policy if plate is "ABC 1234"
+      if (debouncedPlate.toUpperCase() === "ABC 1234") {
+        const policyCheck = checkExistingPolicy(debouncedPlate);
+        if (policyCheck.exists) {
+          const statusMessage = getPolicyStatusMessage(policyCheck);
+          setPlateValidationResult(statusMessage);
+          setShowPlateValidation(true);
+        }
+      }
+    }
+  }, [plateValidation.isValid, debouncedPlate, quoteDraft?.fromGeran]);
+
+  // Effect to update available models when brand changes
+  useEffect(() => {
+    if (brand) {
+      const models = getModelsForMake(brand);
+      setAvailableModels(models);
+      // Initialize the Fuse instance for the new set of models
+      setModelFuse(new Fuse(models, {
+        keys: [],
+        includeScore: true,
+        threshold: 0.3, // Adjust for fuzziness
+      }));
+    } else {
+      setAvailableModels([]);
+      setModelFuse(null); // Clear the Fuse instance if no brand is selected
+    }
+    setModel("");
+    setYear("");
+    setModelSearch("");
+  }, [brand]);
+
+  const filteredBrands = useMemo(() => {
+    if (!brandSearch) {
+      return allBrands;
+    }
+     return allBrands.filter((b) =>
+       b.toLowerCase().includes(brandSearch.toLowerCase())
+    );
+  }, [brandSearch, allBrands]);
+
+  // Add a new useEffect to filter models based on the search input
+  const filteredModels = useMemo(() => {
+    if (!modelSearch) {
+      return availableModels;
+    }
+    return availableModels.filter((m) =>
+      m.toLowerCase().includes(modelSearch.toLowerCase())
+    );
+  }, [modelSearch, availableModels]);
+
+// --- NEW EFFECT FOR MODEL AUTO-SELECTION with partial matching ---
+useEffect(() => {
+  if (!debouncedModelSearch || !modelFuse) {
+      setModelValidation({ isValid: null, error: null });
+      return;
+    }
+    const normalizedSearch = debouncedModelSearch.toLowerCase();
+    // 2. Check for an exact case-insensitive match (highest priority)
+    const exactMatch = availableModels.find(m => m.toLowerCase() === normalizedSearch);
+    if (exactMatch) {
+      setModel(exactMatch);
+      setModelSearch(exactMatch);
+      setModelValidation({ isValid: true, error: null });
+      setShowModelDropdown(false);
+      return; // Exit early if we found an exact match
+    }
+    // 3. Perform a fuzzy search for potential misspellings
+    const fuzzyResults = modelFuse.search(normalizedSearch);
+    if (fuzzyResults.length === 1 && fuzzyResults[0].score < 0.3) {
+      // If there is ONE and only ONE strong fuzzy match, auto-correct and select it.
+      const autoCorrectedModel = fuzzyResults[0].item;
+      setModel(autoCorrectedModel);
+      setModelSearch(autoCorrectedModel);
+      setModelValidation({ isValid: true, error: null });
+      setShowModelDropdown(false);
+    } else {
+      // 4. If no exact match and no strong fuzzy match, it's invalid
+      setModel("");
+      if (debouncedModelSearch.length > 0) {
+        setModelValidation({
+          isValid: false,
+          error: "Invalid model. Please choose from the dropdown list.",
+        });
+      } else {
+        setModelValidation({ isValid: null, error: null });
+      }
+    }
+  }, [debouncedModelSearch, availableModels, modelFuse]);
+
+  // Effect to update available years when model changes
+  useEffect(() => {
+    if (brand && model) {
+      setAvailableYears(getYearsForModel(brand, model));
+    } else {
+      setAvailableYears([]);
+    }
+    // Reset year when model changes
+    setYear("");
+  }, [brand, model]);
 
   const handleSubmit = async () => {
     if (!session?.user?.email) {

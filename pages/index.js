@@ -12,7 +12,6 @@ export default function Home() {
     email: "",
     password: "",
     name: "",
-    ic: "",
     phone: "",
     confirmPassword: "",
   });
@@ -67,7 +66,6 @@ export default function Home() {
           formData.email,
           formData.password,
           formData.name,
-          formData.ic,
           formData.phone
         );
 
@@ -79,7 +77,6 @@ export default function Home() {
           email: formData.email, // Keep email for user convenience
           password: "",
           name: "",
-          ic: "",
           phone: "",
           confirmPassword: "",
         });
@@ -189,21 +186,7 @@ export default function Home() {
                             required={!isLoginMode}
                           />
                         </div>
-                        <div>
-                          <label className="block text-white text-sm font-medium mb-2">
-                            {t("identification_number")}
-                          </label>
-                          <input
-                            type="text"
-                            value={formData.ic}
-                            onChange={(e) =>
-                              handleInputChange("ic", e.target.value)
-                            }
-                            className="w-full px-4 py-2 bg-white rounded text-gray-900 placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-300"
-                            placeholder="Enter your IC number"
-                            required={!isLoginMode}
-                          />
-                        </div>
+                        
                       </>
                     )}
 
@@ -321,7 +304,7 @@ export default function Home() {
                             onClick={() => {
                               setIsLoginMode(!isLoginMode);
                               setError("");
-                              setFormData({ email: "", password: "", name: "", ic: "", phone: "", confirmPassword: "" });
+                              setFormData({ email: "", password: "", name: "", phone: "", confirmPassword: "" });
                             }}
                             className="w-36 bg-transparent text-white py-2 rounded font-bold border border-white hover:bg-white/20 transition-colors"
                           >
@@ -337,7 +320,7 @@ export default function Home() {
                             onClick={() => {
                               setIsLoginMode(true);
                               setError("");
-                              setFormData({ email: "", password: "", name: "", ic: "", phone: "", confirmPassword: "" });
+                              setFormData({ email: "", password: "", name: "", phone: "", confirmPassword: "" });
                             }}
                             className="underline cursor-pointer font-bold text-[#67DABB]"
                           >

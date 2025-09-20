@@ -142,6 +142,10 @@ export const carData = [
   { make: "Perodua", model: "Viva 1.0M", years: Array.from({ length: 2014 - 2007 + 1 }, (_, i) => 2007 + i), marketValue: 20000, engineCapacity: 1000 },
   { make: "Perodua", model: "Viva 1.0E", years: Array.from({ length: 2014 - 2007 + 1 }, (_, i) => 2007 + i), marketValue: 22000, engineCapacity: 1000 },
 
+  // Perodua Kenari
+  { make: "Perodua", model: "Kenari 1.0 EX", years: Array.from({ length: 2009 - 2000 + 1 }, (_, i) => 2000 + i), marketValue: 23000, engineCapacity: 1000 },
+  { make: "Perodua", model: "Kenari 1.0 EZ", years: Array.from({ length: 2009 - 2000 + 1 }, (_, i) => 2000 + i), marketValue: 25000, engineCapacity: 1000 },
+
   //NISSAN
   // Nissan Almera
   { make: "Nissan", model: "Almera 1.5E", years: Array.from({ length: 2025 - 2012 + 1 }, (_, i) => 2012 + i), marketValue: 82000, engineCapacity: 1500 },

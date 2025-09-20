@@ -495,31 +495,28 @@ export default function ManualQuoteSevenStep() {
   };
 
   const handlePlateInput = (e) => {
-    const input = e.target;
-    let { selectionStart } = input;
-    let value = input.value.toUpperCase();
-    const clean = value.replace(/\s+/g, "");
+    const { value } = e.target;
+    // Convert to uppercase and remove extra whitespace
+    const clean = value.toUpperCase().replace(/\s+/g, "");
+  
+    // Format the plate number with a space between letters and numbers
     const formatted = clean
-      .replace(/([A-Z]+)(\d+)/gi, "$1 $2")
-      .replace(/(\d+)([A-Z]+)/gi, "$1 $2");
-    if (formatted.length > value.length) selectionStart += 1;
-    else if (formatted.length < value.length) selectionStart -= 1;
+      .replace(/([A-Z]+)(\d+)/, "$1 $2")
+      .replace(/(\d+)([A-Z]+)/, "$1 $2");
+  
     setPlate(formatted);
-    setTimeout(
-      () => input.setSelectionRange(selectionStart, selectionStart),
-      0
-    );
   };
 
   useEffect(() => {
     if (debouncedPlate) {
       const { isValid, error } = validatePlateNumber(debouncedPlate);
       setPlateValidation({ isValid, error });
-
+  
       if (isValid) {
-        const policyStatus = checkExistingPolicy(debouncedPlate);
-        if (policyStatus) {
-          setPlateValidationResult(policyStatus);
+        const checkResult = checkExistingPolicy(debouncedPlate);
+  
+        if (checkResult && checkResult.exists) { // Change this line
+          setPlateValidationResult(getPolicyStatusMessage(checkResult));
           setShowPlateValidation(true);
         } else {
           setQuoteDraft((prev) => ({ ...prev, plate: debouncedPlate }));
@@ -740,7 +737,7 @@ export default function ManualQuoteSevenStep() {
                 <div className="flex justify-center">
                   <input
                     value={plate}
-                    onChange={(e) => setPlate(e.target.value)}
+                    onChange={handlePlateInput}
                     className="w-full max-w-md px-6 py-4 bg-blue-50 rounded-xl text-blue-900 text-xl text-center outline-none border border-blue-100 focus:ring-2 focus:ring-blue-400"
                     placeholder="e.g. PKD 8381"
                     disabled={showPlateConfirm}
@@ -804,16 +801,6 @@ export default function ManualQuoteSevenStep() {
               <div>
                 <div className="text-xl font-bold text-blue-900 mb-6">
                   {t("Car Plate Number: ")} {plate || "—"}
-                </div>
-  
-                {/* Geran Upload Button */}
-                <div className="mb-6 text-center">
-                  <button
-                    onClick={() => setShowGeranModal(true)}
-                    className="px-6 py-3 bg-blue-600 text-white font-medium rounded-lg hover:bg-blue-700"
-                  >
-                    Upload Geran (Auto-fill)
-                  </button>
                 </div>
   
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">

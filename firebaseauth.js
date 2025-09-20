@@ -26,14 +26,13 @@ const app = initializeApp(firebaseConfig);
 const auth = getAuth(app);
 const db = getFirestore(app);
 
-const signUpWithEmailAndPassword = async (email, password, name, icNumber, phoneNumber) => {
+const signUpWithEmailAndPassword = async (email, password, name,  phoneNumber) => {
   try {
     const userCredential = await createUserWithEmailAndPassword(auth, email, password);
     const user = userCredential.user;
     const userData = {
       email: user.email,
       name: name,
-      icNumber: icNumber,
       phoneNumber: phoneNumber
     };
     

@@ -26,7 +26,7 @@ import PlateValidationPopup from "./PlateValidationPopup";
 import { useSession } from "next-auth/react";
 import ContactHelp from "./ContactHelp";
 import { carData } from "../data/carData";
-import Image from "next/image";
+import NextImage from "next/image";
 import GeranImageUpload from "./GeranImageUpload";
 
 export default function ManualQuoteSevenStep() {
@@ -643,7 +643,7 @@ export default function ManualQuoteSevenStep() {
                   href="#"
                   className="flex items-center space-x-2 text-gray-600 hover:text-blue-900"
                 >
-                  <Image
+                  <NextImage
                     src="/images/profile.png"
                     alt="Profile"
                     className="w-5 h-5"
@@ -654,7 +654,7 @@ export default function ManualQuoteSevenStep() {
                   href="#"
                   className="flex items-center space-x-2 text-gray-600 hover:text-blue-900"
                 >
-                  <Image
+                  <NextImage
                     src="/images/get-quotation.png"
                     alt="Get Quotation"
                     className="w-5 h-5"
@@ -665,7 +665,7 @@ export default function ManualQuoteSevenStep() {
                   href="#"
                   className="flex items-center space-x-2 text-gray-600 hover:text-blue-900"
                 >
-                  <Image
+                  <NextImage
                     src="/images/help.png"
                     alt="Help"
                     className="w-5 h-5"

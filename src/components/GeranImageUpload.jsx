@@ -1,5 +1,6 @@
+"use client";
 import { useState, useRef } from "react";
-import Image from "next/image";
+import NextImage from "next/image";
 
 // Mock dependencies to make the component standalone
 const MockModal = ({ message, onClose }) => {
@@ -56,25 +57,25 @@ function GeranImageUpload({ onFormDataExtracted, onClose }) {
   };
   const handleUpload = async () => {
     if (!imagePreview) return;
-  
+
     setIsUploading(true);
     setUploadProgress(0);
-  
+
     const base64Data = imagePreview.split(",")[1];
     const apiKey = "AIzaSyByM8oGoRPqZkNZu9d9tpHnHNDN0Dgoano";
     const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-05-20:generateContent?key=${apiKey}`;
-  
+
     const progressInterval = setInterval(() => {
       setUploadProgress((prev) => (prev >= 90 ? 90 : prev + 10));
     }, 200);
-  
+
     try {
       const payload = {
         contents: [
           {
             parts: [
               {
-                text: "Act as an expert OCR system for a Malaysian vehicle registration document (Geran). Your task is to extract specific vehicle details. The document is often referred to as 'Sijil Pemilikan Kenderaan'.  Extract the following information by locating the corresponding labels and their values in the provided image. Return the data in a JSON object with the specified keys. Ensure the extracted values are clean and accurately formatted. If a field cannot be found, return null. The expected keys are: 'plateNumber' for 'No. Pendaftaran', 'ownerName' for 'Nama Pemunya Berdaftar', 'address' for 'Alamat', 'chassisNo' for 'No. Chasis', 'engineNo' for 'No. Enjin', 'makeAndModel' for 'Buatan/Nama Model', 'engineCC' for 'Keupayaan Enjin', 'fuelType' for 'Bahan Bakar', 'registrationDate' for 'Tarikh Pendaftaran'. Be as accurate as possible and handle variations in the document's layout.",
+                text: "Act as an expert OCR system for a Malaysian vehicle registration document (Geran). Your task is to extract specific vehicle details. The document is often referred to as 'Sijil Pemilikan Kenderaan'.  Extract the following information by locating the corresponding labels and their values in the provided image. Return the data in a JSON object with the specified keys. Ensure the extracted values are clean and accurately formatted. If a field cannot be found, return null. The expected keys are: 'plateNumber' for 'No. Pendaftaran', 'ownerName' for 'Nama Pemunya Berdaftar', 'address' for 'Alamat', 'chassisNo' for 'No. Chasis', 'engineNo' for 'No. Enjin', 'makeAndModel' for 'Buatan/Nama Model', 'engineCC' for 'Keupayaan Enjin', 'fuelType' for 'Bahan Bakar', 'registrationDate' for 'Tarikh Pendaftaran'. Be as accurate as possible and handle variations in the document's layout.",
               },
               {
                 inlineData: {
@@ -103,7 +104,7 @@ function GeranImageUpload({ onFormDataExtracted, onClose }) {
           },
         },
       };
-  
+
       let response;
       let retries = 0;
       const maxRetries = 5;
@@ -114,7 +115,7 @@ function GeranImageUpload({ onFormDataExtracted, onClose }) {
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify(payload),
           });
-  
+
           if (response.ok) {
             break;
           } else {
@@ -130,18 +131,18 @@ function GeranImageUpload({ onFormDataExtracted, onClose }) {
           }
         }
       }
-  
+
       if (!response || !response.ok) {
         throw new Error(
           "Failed to fetch response from API after multiple retries."
         );
       }
-  
+
       const result = await response.json();
       const extractedData = JSON.parse(
         result.candidates?.[0]?.content?.parts?.[0]?.text
       );
-  
+
       // Map extracted data to form state keys
       const mappedData = {
         plateNumber: extractedData.plateNumber,
@@ -153,7 +154,7 @@ function GeranImageUpload({ onFormDataExtracted, onClose }) {
       
       setExtractionResult(mappedData);
       setUploadProgress(100);
-  
+
       setTimeout(() => {
         onFormDataExtracted(mappedData);
       }, 500);
@@ -271,7 +272,7 @@ function GeranImageUpload({ onFormDataExtracted, onClose }) {
               </div>
             ) : !extractionResult ? (
               <div className="text-center">
-                <div className="mx-auto flex items-center justify-center h-20 w-20 rounded-full bg-blue-100 mb-4 animate-pulse">
+                <div className="mx-auto flex items-center justify-center h-20 w-20 rounded--full bg-blue-100 mb-4 animate-pulse">
                   <svg
                     className="h-10 w-10 text-blue-600"
                     fill="none"
@@ -288,9 +289,11 @@ function GeranImageUpload({ onFormDataExtracted, onClose }) {
                 </div>
 
                 <div className="mb-6">
-                  <Image
+                  <NextImage
                     src={imagePreview}
                     alt="Geran Preview"
+                    width={500}
+                    height={300}
                     className="w-full max-w-md mx-auto rounded-lg border border-gray-300"
                   />
                 </div>
@@ -346,7 +349,7 @@ function GeranImageUpload({ onFormDataExtracted, onClose }) {
                   Successfully Extracted Vehicle Details!
                 </h3>
                 <p className="text-gray-600 mb-4">
-                 Confidence Score:{" "}
+                  Confidence Score:{" "}
                   {extractionResult.confidence
                     ? (extractionResult.confidence * 100).toFixed(1) + "%"
                     : "N/A"}

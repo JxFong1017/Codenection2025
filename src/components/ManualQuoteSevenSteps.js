@@ -28,6 +28,7 @@ import ContactHelp from "./ContactHelp";
 import { carData } from "../data/carData";
 import NextImage from "next/image";
 import GeranImageUpload from "./GeranImageUpload";
+import DecisionPopup from "./DecisionPopup";
 
 export default function ManualQuoteSevenStep() {
   const { data: session } = useSession();
@@ -36,6 +37,17 @@ export default function ManualQuoteSevenStep() {
   const { quoteDraft, setQuoteDraft } = useQuote();
   const [selectedAddOns, setSelectedAddOns] = useState([]);
   const [notification, setNotification] = useState(null);
+
+  const [showDecisionPopup, setShowDecisionPopup] = useState(true);
+
+  const handleDecision = (decision) => {
+    if (decision === 'manual') {
+      setShowDecisionPopup(false);
+    } else if (decision === 'image') {
+      setShowDecisionPopup(false);
+      setShowGeranModal(true);
+    }
+  };
 
   // Step 1
   const [plate, setPlate] = useState("");
@@ -69,6 +81,62 @@ export default function ManualQuoteSevenStep() {
   const [availableBrands, setAvailableBrands] = useState([]);
   const [availableModels, setAvailableModels] = useState([]);
   const [availableYears, setAvailableYears] = useState([]);
+
+  const [chatInput, setChatInput] = useState("");
+  const [chatMessages, setChatMessages] = useState([]);
+  const [isChatTyping, setIsChatTyping] = useState(false);
+
+  useEffect(() => {
+    const latestBotMessage = chatMessages[chatMessages.length - 1];
+  
+    if (latestBotMessage && latestBotMessage.sender === 'bot') {
+      try {
+        // Attempt to parse the bot's reply as JSON
+        const data = JSON.parse(latestBotMessage.text);
+        if (data.action === 'fillForm') {
+          // Update the form state with the extracted data
+          if (data.plate) setPlate(data.plate);
+          if (data.make) setBrand(data.make);
+          if (data.model) setModel(data.model);
+  
+          // Move to the next step if crucial data is filled
+          if (data.plate && data.make && data.model && step < 2) {
+            setStep(2); 
+          }
+        }
+      } catch (e) {
+        // If the reply is not JSON, it's a conversational answer. Do nothing to the form.
+        console.log("Bot replied with text, not form data.");
+      }
+    }
+  }, [chatMessages, setPlate, setBrand, setModel, setStep]);
+
+  const handleChatSubmit = async (e) => {
+    e.preventDefault();
+    if (!chatInput.trim()) return;
+  
+    const userMessage = chatInput;
+    setChatMessages((prev) => [...prev, { text: userMessage, sender: 'user' }]);
+    setChatInput("");
+    setIsChatTyping(true);
+  
+    try {
+      const response = await fetch('https://us-central1-codenection2025-19a07.cloudfunctions.net/chatAssistant', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ message: userMessage }),
+      });
+      const data = await response.json();
+  
+      setChatMessages((prev) => [...prev, { text: data.reply, sender: 'bot' }]);
+  
+    } catch (error) {
+      console.error("Failed to fetch from chatbot API:", error);
+      setChatMessages((prev) => [...prev, { text: "Sorry, I'm having trouble connecting right now.", sender: 'bot' }]);
+    } finally {
+      setIsChatTyping(false);
+    }
+  };
 
   // Step 3
   const [coverageType, setCoverageType] = useState("");
@@ -522,7 +590,7 @@ useEffect(() => {
       });
       return;
     }
-
+    
     const quotationData = {
       customer: {
         name,
@@ -543,37 +611,24 @@ useEffect(() => {
       estimatedPremium: estimateRange,
       email: session.user.email,
     };
-
+  
     try {
       const response = await fetch("/api/generate-quote", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(quotationData),
       });
-
-      if (response.ok) {
-        const emailResponse = await fetch("/api/sendQuote", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            recipientEmail: quotationData.email,
-            quotationData,
-          }),
-        });
-
-        const result = await emailResponse.json();
-
-        if (result.success) {
-          setNotification({ type: "success", message: "Quotation email sent successfully!" });
-          goNext();
-        } else {
-          setNotification({ type: "error", message: "Failed to send email: " + result.error });
-        }
+  
+      const result = await response.json();
+  
+      if (response.ok && result.success) {
+        setNotification({ type: "success", message: "Quotation email sent successfully!" });
+        goNext();
       } else {
-        setNotification({ type: "error", message: "Failed to generate quotation." });
+        setNotification({ type: "error", message: `Failed to generate quotation: ${result.error || "Unknown error"}` });
       }
     } catch (error) {
-      setNotification({ type: "error", message: "Something went wrong: " + error.message });
+      setNotification({ type: "error", message: `Something went wrong: ${error.message}` });
     }
   };
 
@@ -644,8 +699,8 @@ useEffect(() => {
     if (currentStep === 5) {
       const isDocumentValid =
         documentType === "ic" ?
-        icValidation.isValid === true :
-        passportValidation.isValid === true;
+        icValidation.isValid :
+        passportValidation.isValid;
       return (
         name.trim() !== "" &&
         isDocumentValid &&
@@ -692,15 +747,6 @@ useEffect(() => {
       }
     }
   }, [debouncedPlate, setQuoteDraft]);
-
-  useEffect(() => {
-    if (debouncedIC.length === 12) {
-      const { isValid, error } = validateIC(debouncedIC);
-      setIcValidation({ isValid, error });
-    } else {
-      setIcValidation({ isValid: null, error: null });
-    }
-  }, [debouncedIC]);
 
   useEffect(() => {
     if (debouncedPassport) {
@@ -939,7 +985,44 @@ useEffect(() => {
                 </div>
               </div>
             )}
-  
+            
+  {notification && (
+  <div className={`mb-6 rounded-lg p-4 ${notification.type === 'error' ? 'bg-red-50 border-red-200' : 'bg-green-50 border-green-200'} border`}>
+    <div className="flex">
+      <div className="flex-shrink-0">
+        {/* Icon: Heroicon name: solid/x-circle for error, check-circle for success */}
+        <svg className={`h-5 w-5 ${notification.type === 'error' ? 'text-red-400' : 'text-green-400'}`} xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
+          {notification.type === 'error' ? (
+            <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clipRule="evenodd" />
+          ) : (
+            <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
+          )}
+        </svg>
+      </div>
+      <div className="ml-3">
+        <p className={`text-sm font-medium ${notification.type === 'error' ? 'text-red-800' : 'text-green-800'}`}>
+          {notification.message}
+        </p>
+      </div>
+      <div className="ml-auto pl-3">
+        <div className="-mx-1.5 -my-1.5">
+          <button
+            type="button"
+            onClick={() => setNotification(null)}
+            className={`inline-flex rounded-md p-1.5 ${notification.type === 'error' ? 'bg-red-50 text-red-500 hover:bg-red-100' : 'bg-green-50 text-green-500 hover:bg-green-100'}`}
+          >
+            <span className="sr-only">Dismiss</span>
+            {/* Heroicon name: solid/x */}
+            <svg className="h-5 w-5" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
+              <path fillRule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clipRule="evenodd" />
+            </svg>
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+)}
+
             {step === 1 && showPlateConfirm && (
               <div className="text-center p-6 bg-blue-50 rounded-lg shadow mt-6">
                 <p className="text-blue-700 text-lg font-semibold">
@@ -1621,12 +1704,6 @@ useEffect(() => {
                       <span className="font-normal">{coverageType || "—"}</span>
                     </div>
   
-        {/* New: Display Coverage Type */}
-        <div className="font-bold">
-          Type of Coverage: {" "}
-          <span className="font-normal">{coverageType || "—"}</span>
-        </div>
-  
         {/* New: Display Additional Protection (conditionally) */}
         {coverageType === "Comprehensive" && (
           <div className="font-bold">
@@ -1708,6 +1785,21 @@ useEffect(() => {
             )}
           </div>
         </main>
+
+        <DecisionPopup
+          isOpen={showDecisionPopup}
+          onClose={() => setShowDecisionPopup(false)}
+          onDecision={handleDecision}
+          onUploadImage={() => setShowGeranModal(true)}
+        />
+
+        {/* Geran Image Upload Modal */}
+        {showGeranModal && (
+          <GeranImageUpload
+          onClose={() => setShowGeranModal(false)}
+          onFormDataExtracted={handleGeranDataExtracted}
+          />
+        )}
   
         {/* Plate Validation Popup */}
         <PlateValidationPopup

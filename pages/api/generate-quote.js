@@ -1,23 +1,20 @@
 
-// pages/api/generate-quote.js
-
 import { generateQuotationAndSendEmail } from '../../lib/quotationService';
 
 export default async function handler(req, res) {
   if (req.method === 'POST') {
-    const quotationData = req.body;
-    
     try {
-      // Call the service function to handle the entire process
-      await generateQuotationAndSendEmail(quotationData);
-      
-      res.status(200).json({ status: 'success', message: 'Quotation sent successfully!' });
+      const result = await generateQuotationAndSendEmail(req.body);
+      if (result.success) {
+        res.status(200).json({ success: true, message: 'Quotation sent successfully' });
+      } else {
+        res.status(500).json({ success: false, error: 'Failed to send quotation' });
+      }
     } catch (error) {
-      console.error('API Error:', error);
-      res.status(500).json({ status: 'error', message: 'Failed to generate and send quotation.' });
+      console.error('Error in generate-quote API:', error);
+      res.status(500).json({ success: false, error: error.message || 'An unknown error occurred' });
     }
   } else {
-    // Handle any other HTTP method
     res.setHeader('Allow', ['POST']);
     res.status(405).end(`Method ${req.method} Not Allowed`);
   }

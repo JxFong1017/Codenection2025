@@ -28,9 +28,9 @@ import ContactHelp from "./ContactHelp";
 import { carData } from "../data/carData";
 import NextImage from "next/image";
 import GeranImageUpload from "./GeranImageUpload";
-import DecisionPopup from "./DecisionPopup";
+import DecisionPopup from "./DecisionPopup.jsx";
 
-export default function ManualQuoteSevenStep() {
+export default function ManualQuoteSevenStep({ autofillData }) {
   const { data: session } = useSession();
   const t = useT();
   const [step, setStep] = useState(1);
@@ -40,10 +40,11 @@ export default function ManualQuoteSevenStep() {
 
   const [showDecisionPopup, setShowDecisionPopup] = useState(true);
 
-  const handleDecision = (decision) => {
-    if (decision === 'manual') {
+  const handleDecision = (type) => {
+    if (type === "manual") {
+      setStep(1);
       setShowDecisionPopup(false);
-    } else if (decision === 'image') {
+    } else if (type === "geran") {
       setShowDecisionPopup(false);
       setShowGeranModal(true);
     }
@@ -85,6 +86,7 @@ export default function ManualQuoteSevenStep() {
   const [chatInput, setChatInput] = useState("");
   const [chatMessages, setChatMessages] = useState([]);
   const [isChatTyping, setIsChatTyping] = useState(false);
+  
 
   useEffect(() => {
     const latestBotMessage = chatMessages[chatMessages.length - 1];
@@ -109,7 +111,7 @@ export default function ManualQuoteSevenStep() {
         console.log("Bot replied with text, not form data.");
       }
     }
-  }, [chatMessages, setPlate, setBrand, setModel, setStep]);
+  }, [chatMessages, setPlate, setBrand, setModel, setStep, step]);
 
   const handleChatSubmit = async (e) => {
     e.preventDefault();
@@ -448,6 +450,7 @@ export default function ManualQuoteSevenStep() {
       });
     }
   }, [debouncedBrandSearch, allBrands, fuse]);
+  
 
   // This useEffect handles both IC and Passport validation
   useEffect(() => {
@@ -730,6 +733,45 @@ useEffect(() => {
     setPlate(formatted);
   };
 
+  const handleFormDataExtracted = (data) => {
+    // 1. Update the state for each field
+    if (data.plateNumber) setPlate(data.plateNumber);
+    if (data.makeAndModel) {
+      // Assuming makeAndModel is 'Make Model'
+      const [make, ...modelParts] = data.makeAndModel.split(" ");
+      setBrand(make);
+      setModel(modelParts.join(" "));
+    }
+    if (data.registrationDate) {
+      // Extract year from a DD-MM-YYYY or similar format
+      const year = data.registrationDate.substring(
+        data.registrationDate.length - 4
+      );
+      setYear(year);
+    }
+    setQuoteDraft({ ...quoteDraft, fromGeran: true, ...data });
+
+    // 2. Set the form step to 2
+    setStep(2);
+
+    // 3. Close the modal
+    setShowDecisionPopup(false); //
+  };
+
+  const [formInput, setFormInput] = useState({
+    plate: "",
+    brand: "",
+    model: "",
+    year: "",
+    nric: "",
+    passport: "",
+    postcode: "",
+    phone: "",
+    email: "",
+    ...quoteDraft,
+  });
+
+
   useEffect(() => {
     if (debouncedPlate) {
       const { isValid, error } = validatePlateNumber(debouncedPlate);
@@ -831,6 +873,22 @@ useEffect(() => {
     }
   }, [coverageType]);
 
+  useEffect(() => {
+    if (autofillData) {
+      setStep(2); // Automatically move to step 2
+      setQuoteDraft(prev => ({
+        ...prev,
+        plate: autofillData.plateNumber,
+        brand: autofillData.make,
+        model: autofillData.model,
+        year: autofillData.year,
+        fromGeran: true,
+      }));
+    }
+  }, [autofillData, setQuoteDraft]);
+
+  
+
   return (
     <>
       <Head>
@@ -873,7 +931,6 @@ useEffect(() => {
                     alt="Get Quotation"
                     width={20}
                     height={20}
-                    className="w-5 h-5"
                   />
                   <span>Get Quotation</span>
                 </a>
@@ -886,7 +943,6 @@ useEffect(() => {
                     alt="Notifications"
                     width={20}
                     height={20}
-                    className="w-5 h-5"
                   />
                   <span>Notifications</span>
                 </a>
@@ -941,7 +997,44 @@ useEffect(() => {
               className="w-120 h-auto ml-90 opacity-100 mt-120"
             />
           </div>
-  
+
+          {notification && (
+            <div className={`mb-6 rounded-lg p-4 ${notification.type === 'error' ? 'bg-red-50 border-red-200' : 'bg-green-50 border-green-200'} border`}>
+              <div className="flex">
+                <div className="flex-shrink-0">
+                  {/* Icon: Heroicon name: solid/x-circle for error, check-circle for success */}
+                  <svg className={`h-5 w-5 ${notification.type === 'error' ? 'text-red-400' : 'text-green-400'}`} xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
+                    {notification.type === 'error' ? (
+                      <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clipRule="evenodd" />
+                      ) : (
+                        <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
+                        )}
+                  </svg>
+                </div>
+                <div className="ml-3">
+                  <p className={`text-sm font-medium ${notification.type === 'error' ? 'text-red-800' : 'text-green-800'}`}>
+                  {notification.message}
+                  </p>
+                </div>
+                <div className="ml-auto pl-3">
+                  <div className="-mx-1.5 -my-1.5">
+                    <button
+                      type="button"
+                      onClick={() => setNotification(null)}
+                      className={`inline-flex rounded-md p-1.5 ${notification.type === 'error' ? 'bg-red-50 text-red-500 hover:bg-red-100' : 'bg-green-50 text-green-500 hover:bg-green-100'}`}
+                    >
+                    <span className="sr-only">Dismiss</span>
+                    {/* Heroicon name: solid/x */}
+                    <svg className="h-5 w-5" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
+                      <path fillRule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clipRule="evenodd" />
+                    </svg>
+                    </button>
+                  </div>
+                </div>
+              </div>
+            </div>
+            )}
+         
           <div className="relative z-10 bg-white rounded-2xl shadow border border-gray-200 p-8">
             {step === 1 && (
               <div className="text-center">
@@ -957,11 +1050,13 @@ useEffect(() => {
                     disabled={showPlateConfirm}
                   />
                 </div>
+
                 {plate.replace(/\s/g, "").length > 10 && (
                   <p className="mt-3 text-xs text-red-500">
                     {t("plate_max_length")}
                   </p>
                 )}
+
   
                 <div className="flex justify-between mt-8 max-w-md mx-auto">
                   <Link
@@ -985,43 +1080,6 @@ useEffect(() => {
                 </div>
               </div>
             )}
-            
-  {notification && (
-  <div className={`mb-6 rounded-lg p-4 ${notification.type === 'error' ? 'bg-red-50 border-red-200' : 'bg-green-50 border-green-200'} border`}>
-    <div className="flex">
-      <div className="flex-shrink-0">
-        {/* Icon: Heroicon name: solid/x-circle for error, check-circle for success */}
-        <svg className={`h-5 w-5 ${notification.type === 'error' ? 'text-red-400' : 'text-green-400'}`} xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
-          {notification.type === 'error' ? (
-            <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clipRule="evenodd" />
-          ) : (
-            <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
-          )}
-        </svg>
-      </div>
-      <div className="ml-3">
-        <p className={`text-sm font-medium ${notification.type === 'error' ? 'text-red-800' : 'text-green-800'}`}>
-          {notification.message}
-        </p>
-      </div>
-      <div className="ml-auto pl-3">
-        <div className="-mx-1.5 -my-1.5">
-          <button
-            type="button"
-            onClick={() => setNotification(null)}
-            className={`inline-flex rounded-md p-1.5 ${notification.type === 'error' ? 'bg-red-50 text-red-500 hover:bg-red-100' : 'bg-green-50 text-green-500 hover:bg-green-100'}`}
-          >
-            <span className="sr-only">Dismiss</span>
-            {/* Heroicon name: solid/x */}
-            <svg className="h-5 w-5" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
-              <path fillRule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clipRule="evenodd" />
-            </svg>
-          </button>
-        </div>
-      </div>
-    </div>
-  </div>
-)}
 
             {step === 1 && showPlateConfirm && (
               <div className="text-center p-6 bg-blue-50 rounded-lg shadow mt-6">
@@ -1055,19 +1113,7 @@ useEffect(() => {
                 </div>
   
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                  {/* Plate Number */}
-                  <div className="relative">
-                    <label className="block text-blue-900 font-semibold mb-2">
-                      {t("Car Plate Number:")}
-                    </label>
-                    <input
-                      type="text"
-                      value={plate}
-                      onChange={(e) => setPlate(e.target.value)}
-                      className="w-full px-4 py-3 bg-blue-50 rounded-lg text-blue-900 border border-blue-100 focus:ring-2 focus:ring-blue-400"
-                    />
-                  </div>
-  
+                 
                   {/* Car Brand */}
                   <div className="relative">
                     <label className="block text-blue-900 font-semibold mb-2">
@@ -1220,36 +1266,10 @@ useEffect(() => {
                     }`}
                   >
                     {t("next")}
-                  </button>
-                </div>
-  
-                {/* 📌 Geran Upload Modal */}
-                {showGeranModal && (
-                  <GeranImageUpload
-                    onClose={() => setShowGeranModal(false)}
-                    onExtract={(data) => {
-                      // Prefill data
-                      setPlate(data.plateNumber || "");
-                      setBrand(data.make || "");
-                      setBrandSearch(data.make || "");
-                      setModel(data.model || "");
-                      setModelSearch(data.model || "");
-                      setYear(data.year || "");
-  
-                      // Automatically skip step 1 confirmation if plate is valid
-                      if (data.plateNumber) {
-                        setShowPlateConfirm(false); // hide confirmation
-                        setStep(2); // go directly to step 2
-                      } else {
-                        setStep(1); // stay on step 1 if plate missing
-                      }
-  
-                      setShowGeranModal(false); // close modal
-                    }}
-                  />
-                )}
-              </div>
-            )}
+                   </button>
+                 </div>
+             </div>
+           )}
   
             {step === 3 && (
               <div>
@@ -1783,23 +1803,31 @@ useEffect(() => {
                 </div>
               </div>
             )}
-          </div>
+        </div>
         </main>
 
         <DecisionPopup
           isOpen={showDecisionPopup}
           onClose={() => setShowDecisionPopup(false)}
-          onDecision={handleDecision}
-          onUploadImage={() => setShowGeranModal(true)}
+          onDecision={(choice) => {
+            if (choice === "manual") {
+              setShowDecisionPopup(false);
+              // show manual form...
+            } else if (choice === "geran") {
+              setShowDecisionPopup(false);
+              setShowGeranModal(true); // 👈 open your modal here
+            }
+          }}
         />
 
-        {/* Geran Image Upload Modal */}
-        {showGeranModal && (
-          <GeranImageUpload
-          onClose={() => setShowGeranModal(false)}
-          onFormDataExtracted={handleGeranDataExtracted}
-          />
-        )}
+
+          {showGeranModal && (
+            <GeranImageUpload
+              onClose={() => setShowGeranModal(false)}
+              onFormDataExtracted={handleFormDataExtracted}
+            />
+          )}
+
   
         {/* Plate Validation Popup */}
         <PlateValidationPopup
@@ -1812,5 +1840,5 @@ useEffect(() => {
         />
       </div>
     </>
-  );
-}  
+  )
+  }

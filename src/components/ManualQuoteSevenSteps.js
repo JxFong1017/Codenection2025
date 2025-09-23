@@ -1,5 +1,6 @@
 "use client";
-
+import { getFirestore, collection, addDoc } from "firebase/firestore";
+import { useRouter } from "next/router";
 import { useEffect, useMemo, useState } from "react";
 import Head from "next/head";
 import Link from "next/link";
@@ -29,6 +30,7 @@ import { carData } from "../data/carData";
 import NextImage from "next/image";
 import GeranImageUpload from "./GeranImageUpload";
 import DecisionPopup from "./DecisionPopup.jsx";
+import { formatPlate } from "../utils/formatPlate";
 
 export default function ManualQuoteSevenStep({ autofillData }) {
   const { data: session } = useSession();
@@ -86,24 +88,23 @@ export default function ManualQuoteSevenStep({ autofillData }) {
   const [chatInput, setChatInput] = useState("");
   const [chatMessages, setChatMessages] = useState([]);
   const [isChatTyping, setIsChatTyping] = useState(false);
-  
 
   useEffect(() => {
     const latestBotMessage = chatMessages[chatMessages.length - 1];
-  
-    if (latestBotMessage && latestBotMessage.sender === 'bot') {
+
+    if (latestBotMessage && latestBotMessage.sender === "bot") {
       try {
         // Attempt to parse the bot's reply as JSON
         const data = JSON.parse(latestBotMessage.text);
-        if (data.action === 'fillForm') {
+        if (data.action === "fillForm") {
           // Update the form state with the extracted data
           if (data.plate) setPlate(data.plate);
           if (data.make) setBrand(data.make);
           if (data.model) setModel(data.model);
-  
+
           // Move to the next step if crucial data is filled
           if (data.plate && data.make && data.model && step < 2) {
-            setStep(2); 
+            setStep(2);
           }
         }
       } catch (e) {
@@ -116,25 +117,33 @@ export default function ManualQuoteSevenStep({ autofillData }) {
   const handleChatSubmit = async (e) => {
     e.preventDefault();
     if (!chatInput.trim()) return;
-  
+
     const userMessage = chatInput;
-    setChatMessages((prev) => [...prev, { text: userMessage, sender: 'user' }]);
+    setChatMessages((prev) => [...prev, { text: userMessage, sender: "user" }]);
     setChatInput("");
     setIsChatTyping(true);
-  
+
     try {
-      const response = await fetch('https://us-central1-codenection2025-19a07.cloudfunctions.net/chatAssistant', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ message: userMessage }),
-      });
+      const response = await fetch(
+        "https://us-central1-codenection2025-19a07.cloudfunctions.net/chatAssistant",
+        {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ message: userMessage }),
+        }
+      );
       const data = await response.json();
-  
-      setChatMessages((prev) => [...prev, { text: data.reply, sender: 'bot' }]);
-  
+
+      setChatMessages((prev) => [...prev, { text: data.reply, sender: "bot" }]);
     } catch (error) {
       console.error("Failed to fetch from chatbot API:", error);
-      setChatMessages((prev) => [...prev, { text: "Sorry, I'm having trouble connecting right now.", sender: 'bot' }]);
+      setChatMessages((prev) => [
+        ...prev,
+        {
+          text: "Sorry, I'm having trouble connecting right now.",
+          sender: "bot",
+        },
+      ]);
     } finally {
       setIsChatTyping(false);
     }
@@ -422,7 +431,9 @@ export default function ManualQuoteSevenStep({ autofillData }) {
     }
     const normalizedSearch = debouncedBrandSearch.toLowerCase();
     // 2. Check for an exact case-insensitive match (highest priority)
-    const exactMatch = allBrands.find(b => b.toLowerCase() === normalizedSearch);
+    const exactMatch = allBrands.find(
+      (b) => b.toLowerCase() === normalizedSearch
+    );
     if (exactMatch) {
       setBrand(exactMatch);
       setBrandSearch(exactMatch);
@@ -432,7 +443,7 @@ export default function ManualQuoteSevenStep({ autofillData }) {
     }
     // 3. Perform a fuzzy search for potential misspellings
     const fuzzyResults = fuse.search(normalizedSearch);
-    
+
     if (fuzzyResults.length === 1 && fuzzyResults[0].score < 0.3) {
       // If there is ONE and only ONE result, and its score is low enough
       // (indicating a very close fuzzy match), auto-correct and select it.
@@ -450,16 +461,15 @@ export default function ManualQuoteSevenStep({ autofillData }) {
       });
     }
   }, [debouncedBrandSearch, allBrands, fuse]);
-  
 
   // This useEffect handles both IC and Passport validation
   useEffect(() => {
-    if (documentType === 'ic') {
+    if (documentType === "ic") {
       const result = validateIC(debouncedIC);
       setIcValidation(result);
       // Reset passport validation when IC is active
       setPassportValidation({ isValid: null, error: null });
-    } else if (documentType === 'passport') {
+    } else if (documentType === "passport") {
       const result = validatePassport(debouncedPassport);
       setPassportValidation(result);
       // Reset IC validation when Passport is active
@@ -480,7 +490,7 @@ export default function ManualQuoteSevenStep({ autofillData }) {
     setPlateValidation({ isValid: result.isValid, error: result.error });
   }, [debouncedPlate]);
 
-// Check for existing policy when plate is valid (only for manual entry, not from Geran upload)
+  // Check for existing policy when plate is valid (only for manual entry, not from Geran upload)
   // Only show policy validation for specific plate "ABC 1234"
   useEffect(() => {
     if (plateValidation.isValid && debouncedPlate && !quoteDraft?.fromGeran) {
@@ -502,11 +512,13 @@ export default function ManualQuoteSevenStep({ autofillData }) {
       const models = getModelsForMake(brand);
       setAvailableModels(models);
       // Initialize the Fuse instance for the new set of models
-      setModelFuse(new Fuse(models, {
-        keys: [],
-        includeScore: true,
-        threshold: 0.3, // Adjust for fuzziness
-      }));
+      setModelFuse(
+        new Fuse(models, {
+          keys: [],
+          includeScore: true,
+          threshold: 0.3, // Adjust for fuzziness
+        })
+      );
     } else {
       setAvailableModels([]);
       setModelFuse(null); // Clear the Fuse instance if no brand is selected
@@ -520,8 +532,8 @@ export default function ManualQuoteSevenStep({ autofillData }) {
     if (!brandSearch) {
       return allBrands;
     }
-     return allBrands.filter((b) =>
-       b.toLowerCase().includes(brandSearch.toLowerCase())
+    return allBrands.filter((b) =>
+      b.toLowerCase().includes(brandSearch.toLowerCase())
     );
   }, [brandSearch, allBrands]);
 
@@ -535,15 +547,17 @@ export default function ManualQuoteSevenStep({ autofillData }) {
     );
   }, [modelSearch, availableModels]);
 
-// --- NEW EFFECT FOR MODEL AUTO-SELECTION with partial matching ---
-useEffect(() => {
-  if (!debouncedModelSearch || !modelFuse) {
+  // --- NEW EFFECT FOR MODEL AUTO-SELECTION with partial matching ---
+  useEffect(() => {
+    if (!debouncedModelSearch || !modelFuse) {
       setModelValidation({ isValid: null, error: null });
       return;
     }
     const normalizedSearch = debouncedModelSearch.toLowerCase();
     // 2. Check for an exact case-insensitive match (highest priority)
-    const exactMatch = availableModels.find(m => m.toLowerCase() === normalizedSearch);
+    const exactMatch = availableModels.find(
+      (m) => m.toLowerCase() === normalizedSearch
+    );
     if (exactMatch) {
       setModel(exactMatch);
       setModelSearch(exactMatch);
@@ -593,7 +607,27 @@ useEffect(() => {
       });
       return;
     }
-    
+    const selectedCar = carData.find(
+      (car) => car.make === brand && car.model === model
+    );
+
+    // Defensive check to ensure a valid car was found
+    if (!selectedCar) {
+      setNotification({
+        type: "error",
+        message: "Please select a valid car brand and model.",
+      });
+      return;
+    }
+    const { engineCapacity, marketValue } = selectedCar;
+
+    // Calculate the current market value
+    const carAge = new Date().getFullYear() - parseInt(year, 10);
+    const depreciationFactor = Math.max(0.3, Math.pow(0.9, carAge));
+    const currentMarketValue = parseFloat(
+      (marketValue * depreciationFactor).toFixed(2)
+    );
+
     const quotationData = {
       customer: {
         name,
@@ -606,6 +640,8 @@ useEffect(() => {
         model,
         year,
         ncd,
+        engineCapacity: engineCapacity,
+        marketValue: currentMarketValue,
       },
       coverage: {
         type: coverageType,
@@ -614,27 +650,54 @@ useEffect(() => {
       estimatedPremium: estimateRange,
       email: session.user.email,
     };
-  
+
     try {
       const response = await fetch("/api/generate-quote", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(quotationData),
       });
-  
+
       const result = await response.json();
-  
+
       if (response.ok && result.success) {
-        setNotification({ type: "success", message: "Quotation email sent successfully!" });
+        setNotification({
+          type: "success",
+          message: "Quotation email sent successfully!",
+        });
         goNext();
       } else {
-        setNotification({ type: "error", message: `Failed to generate quotation: ${result.error || "Unknown error"}` });
+        setNotification({
+          type: "error",
+          message: `Failed to generate quotation: ${
+            result.error || "Unknown error"
+          }`,
+        });
       }
     } catch (error) {
-      setNotification({ type: "error", message: `Something went wrong: ${error.message}` });
+      setNotification({
+        type: "error",
+        message: `Something went wrong: ${error.message}`,
+      });
     }
   };
 
+  const router = useRouter();
+  const handleDoneClick = async () => {
+    try {
+      const db = getFirestore();
+      const docRef = await addDoc(collection(db, "quotations"), {
+        ...quotationData,
+        userId: session?.user?.email, // Add user identifier
+        createdAt: new Date(), // Add a timestamp
+      });
+      console.log("Document written with ID: ", docRef.id);
+      router.push("/dashboard"); // Redirect to dashboard
+    } catch (e) {
+      console.error("Error adding document: ", e);
+    }
+  };
+  
   const steps = [
     { id: 1, title: t("steps_1") },
     { id: 2, title: t("steps_2") },
@@ -680,10 +743,14 @@ useEffect(() => {
 
   const canProceedFrom = (currentStep) => {
     if (currentStep === 1) {
+      // Add the regular expression check for valid characters.
+    const plateHasOnlyValidChars = /^[a-zA-Z0-9\s]*$/.test(plate);
+    const plateHasNoRestrictedChars = !/[iIoO]/.test(plate); // New condition
       return (
         plateValidation.isValid &&
         plate.trim() !== "" &&
-        plate.replace(/\s/g, "").length <= 10
+        plate.replace(/\s/g, "").length <= 10 &&
+        plateHasOnlyValidChars && plateHasNoRestrictedChars // Add new condition here
       );
     }
     if (currentStep === 2) {
@@ -701,9 +768,9 @@ useEffect(() => {
     }
     if (currentStep === 5) {
       const isDocumentValid =
-        documentType === "ic" ?
-        icValidation.isValid :
-        passportValidation.isValid;
+        documentType === "ic"
+          ? icValidation.isValid
+          : passportValidation.isValid;
       return (
         name.trim() !== "" &&
         isDocumentValid &&
@@ -721,41 +788,9 @@ useEffect(() => {
   };
 
   const handlePlateInput = (e) => {
-    const { value } = e.target;
-    // Convert to uppercase and remove extra whitespace
-    const clean = value.toUpperCase().replace(/\s+/g, "");
-  
-    // Format the plate number with a space between letters and numbers
-    const formatted = clean
-      .replace(/([A-Z]+)(\d+)/, "$1 $2")
-      .replace(/(\d+)([A-Z]+)/, "$1 $2");
-  
+    const formatted = formatPlate(e.target.value);
     setPlate(formatted);
-  };
-
-  const handleFormDataExtracted = (data) => {
-    // 1. Update the state for each field
-    if (data.plateNumber) setPlate(data.plateNumber);
-    if (data.makeAndModel) {
-      // Assuming makeAndModel is 'Make Model'
-      const [make, ...modelParts] = data.makeAndModel.split(" ");
-      setBrand(make);
-      setModel(modelParts.join(" "));
-    }
-    if (data.registrationDate) {
-      // Extract year from a DD-MM-YYYY or similar format
-      const year = data.registrationDate.substring(
-        data.registrationDate.length - 4
-      );
-      setYear(year);
-    }
-    setQuoteDraft({ ...quoteDraft, fromGeran: true, ...data });
-
-    // 2. Set the form step to 2
-    setStep(2);
-
-    // 3. Close the modal
-    setShowDecisionPopup(false); //
+    setQuoteDraft((prev) => ({ ...prev, plate: formatted }));
   };
 
   const [formInput, setFormInput] = useState({
@@ -771,20 +806,25 @@ useEffect(() => {
     ...quoteDraft,
   });
 
-
   useEffect(() => {
     if (debouncedPlate) {
       const { isValid, error } = validatePlateNumber(debouncedPlate);
       setPlateValidation({ isValid, error });
-  
+
       if (isValid) {
         const checkResult = checkExistingPolicy(debouncedPlate);
-  
-        if (checkResult && checkResult.exists) { // Change this line
+
+        if (checkResult && checkResult.exists) {
+          // Change this line
           setPlateValidationResult(getPolicyStatusMessage(checkResult));
           setShowPlateValidation(true);
         } else {
-          setQuoteDraft((prev) => ({ ...prev, plate: debouncedPlate }));
+          setQuoteDraft((prev) => {
+            if (!prev.fromGeran) {
+              return { ...prev, plate: debouncedPlate };
+            }
+            return prev;
+          });
         }
       }
     }
@@ -873,21 +913,42 @@ useEffect(() => {
     }
   }, [coverageType]);
 
-  useEffect(() => {
-    if (autofillData) {
-      setStep(2); // Automatically move to step 2
-      setQuoteDraft(prev => ({
-        ...prev,
-        plate: autofillData.plateNumber,
-        brand: autofillData.make,
-        model: autofillData.model,
-        year: autofillData.year,
-        fromGeran: true,
-      }));
-    }
-  }, [autofillData, setQuoteDraft]);
+// Step 1: Autofill plate + brand first
+useEffect(() => {
+  if (autofillData) {
+    const formattedPlate = formatPlate(autofillData.plateNumber);
 
-  
+    setQuoteDraft((prev) => ({
+      ...prev,
+      plate: formattedPlate || "",
+      brand: autofillData.make || "",
+      fromGeran: true,
+    }));
+
+    setPlate(formattedPlate || "");
+    setBrandSearch(autofillData.make || "");
+    setBrand(autofillData.make || "");
+
+    setStep(2);
+  }
+}, [autofillData]);
+
+// Step 2: Once brand is ready, then set model
+useEffect(() => {
+  if (brand && autofillData) {
+    setModelSearch(autofillData.model || "");
+    setModel(autofillData.model || "");
+  }
+}, [brand, autofillData]);
+
+// Step 3: Once model is ready, then set year
+useEffect(() => {
+  if (model && autofillData) {
+    setYear(autofillData.year || "");
+  }
+}, [model, autofillData]);
+
+
 
   return (
     <>
@@ -904,7 +965,7 @@ useEffect(() => {
             >
               CGS
             </Link>
-  
+
             {/* Navigation Links + Email pushed to the right */}
             <div className="flex items-center ml-auto space-x-6">
               {/* Navigation Links */}
@@ -947,14 +1008,14 @@ useEffect(() => {
                   <span>Notifications</span>
                 </a>
               </nav>
-  
+
               <div className="bg-black text-white px-4 py-2 rounded text-sm font-medium hover:bg-gray-800 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500">
                 {session?.user?.email || "USERNAME123@GMAIL.COM"}
               </div>
             </div>
           </div>
         </header>
-  
+
         <section className="relative bg-blue-50 py-16">
           {/* Step bubbles */}
           <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex justify-between items-center z-10">
@@ -978,7 +1039,7 @@ useEffect(() => {
             ))}
           </div>
         </section>
-  
+
         <main className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-10 ">
           {/* Background car images */}
           <div className="absolute inset-0 flex justify-center items-center pointer-events-none z-0">
@@ -986,7 +1047,7 @@ useEffect(() => {
               src="/images/car-picture-1.jpg"
               alt="Car Left"
               width={130}
-              height={80} 
+              height={80}
               className="w-130 h-auto mr-90 opacity-100 mt-120"
             />
             <NextImage
@@ -999,21 +1060,51 @@ useEffect(() => {
           </div>
 
           {notification && (
-            <div className={`mb-6 rounded-lg p-4 ${notification.type === 'error' ? 'bg-red-50 border-red-200' : 'bg-green-50 border-green-200'} border`}>
+            <div
+              className={`mb-6 rounded-lg p-4 ${
+                notification.type === "error"
+                  ? "bg-red-50 border-red-200"
+                  : "bg-green-50 border-green-200"
+              } border`}
+            >
               <div className="flex">
                 <div className="flex-shrink-0">
                   {/* Icon: Heroicon name: solid/x-circle for error, check-circle for success */}
-                  <svg className={`h-5 w-5 ${notification.type === 'error' ? 'text-red-400' : 'text-green-400'}`} xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
-                    {notification.type === 'error' ? (
-                      <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clipRule="evenodd" />
-                      ) : (
-                        <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
-                        )}
+                  <svg
+                    className={`h-5 w-5 ${
+                      notification.type === "error"
+                        ? "text-red-400"
+                        : "text-green-400"
+                    }`}
+                    xmlns="http://www.w3.org/2000/svg"
+                    viewBox="0 0 20 20"
+                    fill="currentColor"
+                    aria-hidden="true"
+                  >
+                    {notification.type === "error" ? (
+                      <path
+                        fillRule="evenodd"
+                        d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z"
+                        clipRule="evenodd"
+                      />
+                    ) : (
+                      <path
+                        fillRule="evenodd"
+                        d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z"
+                        clipRule="evenodd"
+                      />
+                    )}
                   </svg>
                 </div>
                 <div className="ml-3">
-                  <p className={`text-sm font-medium ${notification.type === 'error' ? 'text-red-800' : 'text-green-800'}`}>
-                  {notification.message}
+                  <p
+                    className={`text-sm font-medium ${
+                      notification.type === "error"
+                        ? "text-red-800"
+                        : "text-green-800"
+                    }`}
+                  >
+                    {notification.message}
                   </p>
                 </div>
                 <div className="ml-auto pl-3">
@@ -1021,20 +1112,34 @@ useEffect(() => {
                     <button
                       type="button"
                       onClick={() => setNotification(null)}
-                      className={`inline-flex rounded-md p-1.5 ${notification.type === 'error' ? 'bg-red-50 text-red-500 hover:bg-red-100' : 'bg-green-50 text-green-500 hover:bg-green-100'}`}
+                      className={`inline-flex rounded-md p-1.5 ${
+                        notification.type === "error"
+                          ? "bg-red-50 text-red-500 hover:bg-red-100"
+                          : "bg-green-50 text-green-500 hover:bg-green-100"
+                      }`}
                     >
-                    <span className="sr-only">Dismiss</span>
-                    {/* Heroicon name: solid/x */}
-                    <svg className="h-5 w-5" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
-                      <path fillRule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clipRule="evenodd" />
-                    </svg>
+                      <span className="sr-only">Dismiss</span>
+                      {/* Heroicon name: solid/x */}
+                      <svg
+                        className="h-5 w-5"
+                        xmlns="http://www.w3.org/2000/svg"
+                        viewBox="0 0 20 20"
+                        fill="currentColor"
+                        aria-hidden="true"
+                      >
+                        <path
+                          fillRule="evenodd"
+                          d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z"
+                          clipRule="evenodd"
+                        />
+                      </svg>
                     </button>
                   </div>
                 </div>
               </div>
             </div>
-            )}
-         
+          )}
+
           <div className="relative z-10 bg-white rounded-2xl shadow border border-gray-200 p-8">
             {step === 1 && (
               <div className="text-center">
@@ -1056,8 +1161,21 @@ useEffect(() => {
                     {t("plate_max_length")}
                   </p>
                 )}
+                
+                {/* New validation for symbols */}
+                {!/^[a-zA-Z0-9\s]*$/.test(plate) && plate.length > 0 && (
+                <p className="mt-3 text-xs text-red-500">
+                Please use only letters and numbers.
+                </p>
+                )}
 
-  
+                {/* New validation for 'I' and 'O' */}
+                {/^[a-zA-Z\s]*[iIoO][a-zA-Z0-9\s]*$/.test(plate) && (
+                <p className="mt-3 text-xs text-red-500">
+               Did you mean to use numbers '1' or '0'? Letters 'I' and 'O' are not allowed.
+               </p>
+                )}
+
                 <div className="flex justify-between mt-8 max-w-md mx-auto">
                   <Link
                     href="/dashboard"
@@ -1065,7 +1183,7 @@ useEffect(() => {
                   >
                     {t("back_to_home")}
                   </Link>
-  
+
                   <button
                     onClick={() => setShowPlateConfirm(true)}
                     disabled={!canProceedFrom(1)}
@@ -1109,11 +1227,10 @@ useEffect(() => {
             {step === 2 && (
               <div>
                 <div className="text-xl font-bold text-blue-900 mb-6">
-                  {t("Car Plate Number: ")} {plate || "—"}
+                  {t("Car Plate Number: ")} {quoteDraft.plate || "—"}
                 </div>
-  
+
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                 
                   {/* Car Brand */}
                   <div className="relative">
                     <label className="block text-blue-900 font-semibold mb-2">
@@ -1165,7 +1282,7 @@ useEffect(() => {
                       </ul>
                     )}
                   </div>
-  
+
                   {/* Car Model */}
                   <div className="relative">
                     <label className="block text-blue-900 font-semibold mb-2">
@@ -1176,9 +1293,13 @@ useEffect(() => {
                       value={modelSearch}
                       onChange={(e) => {
                         setModelSearch(e.target.value);
-                        setModel(""); // Clear selected model
+                        // only clear model if user manually types something different
+                        if (e.target.value !== model) {
+                          setModel("");
+                        }
                         setShowModelDropdown(true);
                       }}
+                      disabled={!brand}
                       onFocus={() => setShowModelDropdown(true)}
                       onBlur={() =>
                         setTimeout(() => setShowModelDropdown(false), 200)
@@ -1218,7 +1339,7 @@ useEffect(() => {
                       </ul>
                     )}
                   </div>
-  
+
                   {/* Manufactured Year */}
                   <div>
                     <label className="block text-blue-900 font-semibold mb-2">
@@ -1247,7 +1368,7 @@ useEffect(() => {
                     )}
                   </div>
                 </div>
-  
+
                 {/* Back / Next buttons */}
                 <div className="mt-8 flex justify-between">
                   <button
@@ -1266,11 +1387,11 @@ useEffect(() => {
                     }`}
                   >
                     {t("next")}
-                   </button>
-                 </div>
-             </div>
-           )}
-  
+                  </button>
+                </div>
+              </div>
+            )}
+
             {step === 3 && (
               <div>
                 <h2 className="text-xl font-bold text-blue-900 mb-6">
@@ -1298,7 +1419,8 @@ useEffect(() => {
                         Third-Party Only
                       </h3>
                       <p className="text-sm text-gray-600">
-                        Covers damages to other parties&apos; vehicles or property.
+                        Covers damages to other parties&apos; vehicles or
+                        property.
                       </p>
                       {/* Conditional message for Third-Party Only */}
                       {coverageType === "Third-Party Only" && (
@@ -1308,7 +1430,7 @@ useEffect(() => {
                       )}
                     </div>
                   </label>
-  
+
                   {/* Third-Party, Fire & Theft Option */}
                   <label
                     className={`flex items-center space-x-3 p-4 rounded-lg border border-blue-200 hover:bg-blue-50 cursor-pointer shadow-sm ${
@@ -1341,7 +1463,7 @@ useEffect(() => {
                       )}
                     </div>
                   </label>
-  
+
                   {/* Comprehensive Option */}
                   <label
                     className={`flex items-center space-x-3 p-4 rounded-lg border border-blue-200 hover:bg-blue-50 cursor-pointer shadow-sm ${
@@ -1369,7 +1491,7 @@ useEffect(() => {
                     </div>
                   </label>
                 </div>
-  
+
                 {/* Navigation Buttons */}
                 <div className="mt-8 flex justify-between">
                   <button
@@ -1399,7 +1521,7 @@ useEffect(() => {
                 </div>
               </div>
             )}
-  
+
             {step === 4 && (
               <div>
                 <h2 className="text-xl font-bold text-blue-900 mb-6">
@@ -1421,7 +1543,7 @@ useEffect(() => {
                     />
                     <span className="text-blue-900">None</span>
                   </label>
-  
+
                   {[
                     t("windscreen"),
                     t("named_driver"),
@@ -1473,7 +1595,7 @@ useEffect(() => {
                 </div>
               </div>
             )}
-  
+
             {step === 5 && (
               <div>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -1496,13 +1618,13 @@ useEffect(() => {
                       {t("manufactured_year")}{" "}
                       <span className="font-normal">{year || "—"}</span>
                     </div>
-  
+
                     {/* New: Display Coverage Type */}
                     <div className="text-blue-900 font-bold mb-2">
                       Type of Coverage:{" "}
                       <span className="font-normal">{coverageType || "—"}</span>
                     </div>
-  
+
                     {/* New: Display Additional Protection (conditionally) */}
                     {coverageType === "Comprehensive" && (
                       <div className="text-blue-900 font-bold mb-2">
@@ -1516,7 +1638,7 @@ useEffect(() => {
                       </div>
                     )}
                   </div>
-  
+
                   {/* Personal Info (editable) */}
                   <div className="space-y-4">
                     {/* NCD Section (Moved to be the first item in the personal info column) */}
@@ -1548,7 +1670,7 @@ useEffect(() => {
                         <option value={55}>55%</option>
                       </select>
                     </div>
-  
+
                     <div>
                       <label className="block text-blue-900 font-semibold mb-2">
                         {t("Full Name: ")}
@@ -1559,7 +1681,7 @@ useEffect(() => {
                         className="w-full px-4 py-3 bg-blue-50 rounded-lg text-blue-900 border border-blue-100 focus:ring-2 focus:ring-blue-400"
                       />
                     </div>
-  
+
                     <div className="md:col-span-2 flex items-center mb-4">
                       <span className="text-blue-900 font-semibold mr-4">
                         ID Type:
@@ -1593,7 +1715,7 @@ useEffect(() => {
                         <span className="ml-2 text-blue-900">Passport</span>
                       </label>
                     </div>
-  
+
                     {documentType === "ic" ? (
                       <div className="mb-4">
                         <label className="block text-blue-900 font-semibold mb-2">
@@ -1671,7 +1793,7 @@ useEffect(() => {
                     </div>
                   </div>
                 </div>
-  
+
                 <div className="mt-8 flex justify-between">
                   <button
                     onClick={goBack}
@@ -1692,7 +1814,7 @@ useEffect(() => {
                 </div>
               </div>
             )}
-  
+
             {step === 6 && (
               <div>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -1717,68 +1839,68 @@ useEffect(() => {
                     <div className="font-bold">
                       {t("ncd")} <span className="font-normal">{ncd}%</span>
                     </div>
-  
+
                     {/* New: Display Coverage Type */}
                     <div className="font-bold">
                       Type of Coverage:{" "}
                       <span className="font-normal">{coverageType || "—"}</span>
                     </div>
-  
-        {/* New: Display Additional Protection (conditionally) */}
-        {coverageType === "Comprehensive" && (
-          <div className="font-bold">
-            Additional Protection: {" "}
-            <span className="font-normal">
-              {Object.keys(protections).length > 0 && !protections.None
-                ? Object.keys(protections).join(", ")
-                : "None"}
-            </span>
-          </div>
-        )}
-      </div>
-      <div className="space-y-2 text-blue-900">
-        <div className="font-bold">
-          {t("name_as_ic_field")}{" "}
-          <span className="font-normal">{name}</span>
-        </div>
-        <div className="font-bold">
-          {t("ic")}{" "}
-          <span className="font-normal">
-            {documentType === "ic" ? ic : passport}
-          </span>
-        </div>
-        <div className="font-bold">
-          {t("postcode")}{" "}
-          <span className="font-normal">{postcode}</span>
-        </div>
-        <div className="font-bold">
-          {t("estimated_range")}{" "}
-          <span className="font-normal">
-            {/* The corrected display logic */}
-            {estimateRange.min === estimateRange.max 
-              ? `RM${estimateRange.min}` 
-              : `RM${estimateRange.min}-RM${estimateRange.max}`
-            }
-          </span>
-        </div>
-      </div>
-    </div>
-    <div className="mt-8 flex justify-between">
-      <button
-        onClick={goBack}
-        className="px-8 py-3 rounded-xl font-semibold border border-blue-200 text-blue-900 hover:bg-blue-50"
-      >
-        {t("back")}
-      </button>
-      <button
-         onClick={handleSubmit} /* Updated this line */
-        className="px-8 py-3 rounded-xl font-semibold text-white bg-blue-800 hover:bg-blue-900"
-      >
-        Submit
-      </button>
-    </div>
-  </div>
-  )}
+
+                    {/* New: Display Additional Protection (conditionally) */}
+                    {coverageType === "Comprehensive" && (
+                      <div className="font-bold">
+                        Additional Protection:{" "}
+                        <span className="font-normal">
+                          {Object.keys(protections).length > 0 &&
+                          !protections.None
+                            ? Object.keys(protections).join(", ")
+                            : "None"}
+                        </span>
+                      </div>
+                    )}
+                  </div>
+                  <div className="space-y-2 text-blue-900">
+                    <div className="font-bold">
+                      {t("name_as_ic_field")}{" "}
+                      <span className="font-normal">{name}</span>
+                    </div>
+                    <div className="font-bold">
+                      {t("ic")}{" "}
+                      <span className="font-normal">
+                        {documentType === "ic" ? ic : passport}
+                      </span>
+                    </div>
+                    <div className="font-bold">
+                      {t("postcode")}{" "}
+                      <span className="font-normal">{postcode}</span>
+                    </div>
+                    <div className="font-bold">
+                      {t("estimated_range")}{" "}
+                      <span className="font-normal">
+                        {/* The corrected display logic */}
+                        {estimateRange.min === estimateRange.max
+                          ? `RM${estimateRange.min}`
+                          : `RM${estimateRange.min}-RM${estimateRange.max}`}
+                      </span>
+                    </div>
+                  </div>
+                </div>
+                <div className="mt-8 flex justify-between">
+                  <button
+                    onClick={goBack}
+                    className="px-8 py-3 rounded-xl font-semibold border border-blue-200 text-blue-900 hover:bg-blue-50"
+                  >
+                    {t("back")}
+                  </button>
+                  <button
+                    onClick={handleSubmit} /* Updated this line */
+                    className="px-8 py-3 rounded-xl font-semibold text-white bg-blue-800 hover:bg-blue-900"
+                  >
+                    Submit
+                  </button>
+                </div>
+              </div>
+            )}
             {step === 7 && (
               <div className="text-center">
                 <h2 className="text-xl font-bold text-blue-900 mb-2">
@@ -1787,48 +1909,25 @@ useEffect(() => {
                 <div className="mt-4 text-3xl font-extrabold text-blue-800">
                   {session?.user?.email || "USERNAME123@GMAIL.COM"}
                 </div>
-  
+
                 {/* Contact Help with underlined links */}
                 <div className="mt-6 text-gray-700">
                   <ContactHelp />
                 </div>
-  
+
                 <div className="mt-8">
-                  <Link
-                    href="/dashboard"
+                  <button
+                  onClick={handleDoneClick}
                     className="inline-block px-10 py-3 rounded-xl font-semibold text-white bg-blue-800 hover:bg-blue-900"
                   >
                     {t("done")}
-                  </Link>
+                    </button>
                 </div>
               </div>
             )}
-        </div>
+          </div>
         </main>
 
-        <DecisionPopup
-          isOpen={showDecisionPopup}
-          onClose={() => setShowDecisionPopup(false)}
-          onDecision={(choice) => {
-            if (choice === "manual") {
-              setShowDecisionPopup(false);
-              // show manual form...
-            } else if (choice === "geran") {
-              setShowDecisionPopup(false);
-              setShowGeranModal(true); // 👈 open your modal here
-            }
-          }}
-        />
-
-
-          {showGeranModal && (
-            <GeranImageUpload
-              onClose={() => setShowGeranModal(false)}
-              onFormDataExtracted={handleFormDataExtracted}
-            />
-          )}
-
-  
         {/* Plate Validation Popup */}
         <PlateValidationPopup
           isOpen={showPlateValidation}
@@ -1840,5 +1939,5 @@ useEffect(() => {
         />
       </div>
     </>
-  )
-  }
+  );
+}

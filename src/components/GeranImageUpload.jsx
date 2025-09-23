@@ -1,6 +1,7 @@
 "use client";
-import { useState, useRef } from "react";
+import { useState, useRef, useEffect } from "react";
 import NextImage from "next/image";
+import { useRouter } from "next/router"; 
 
 // Mock dependencies to make the component standalone
 const MockModal = ({ message, onClose }) => {
@@ -10,6 +11,7 @@ const MockModal = ({ message, onClose }) => {
         <h3 className="text-lg font-bold mb-4">Notification</h3>
         <p className="mb-6">{message}</p>
         <button
+          type="button"
           onClick={onClose}
           className="px-6 py-2 bg-blue-600 text-white font-medium rounded-md hover:bg-blue-700"
         >
@@ -20,8 +22,6 @@ const MockModal = ({ message, onClose }) => {
   );
 };
 
-// GeranImageUpload component is now integrated directly into this file.
-// It will be rendered conditionally by the ManualQuotePage component.
 function GeranImageUpload({ onFormDataExtracted, onClose }) {
   const [isUploading, setIsUploading] = useState(false);
   const [imagePreview, setImagePreview] = useState(null);
@@ -35,26 +35,38 @@ function GeranImageUpload({ onFormDataExtracted, onClose }) {
     setModalMessage(message);
   };
 
-  const handleFileSelect = (event) => {
-    const file = event.target.files[0];
-    if (file) {
-      if (!file.type.startsWith("image/")) {
-        showAlert("Please select an image file (JPEG, PNG, etc.)");
-        return;
-      }
-      if (file.size > 10 * 1024 * 1024) {
-        showAlert("File size must be less than 10MB");
-        return;
-      }
+  const router = useRouter();
 
+  const handleFileSelect = (e) => {
+    const file = e.target.files[0];
+    if (file) {
       const reader = new FileReader();
-      reader.onload = (e) => {
-        setImagePreview(e.target.result);
-        setExtractionResult(null);
+      reader.onload = (ev) => {
+        setImagePreview(ev.target.result);
       };
       reader.readAsDataURL(file);
+    } else {
+      // If user cancels file picker, close modal
+      handleClose();
     }
   };
+
+  const handleClose = () => {
+    setImagePreview(null);
+    if (fileInputRef.current) {
+      fileInputRef.current.value = ""; // reset file input
+    }
+    onClose(); // tell parent to close modal
+  };
+
+  const handleReupload = () => {
+    setImagePreview(null);
+    if (fileInputRef.current) {
+      fileInputRef.current.value = "";
+      fileInputRef.current.click();
+    }
+  };
+
   const handleUpload = async () => {
     if (!imagePreview) return;
 
@@ -140,24 +152,56 @@ function GeranImageUpload({ onFormDataExtracted, onClose }) {
 
       const result = await response.json();
       const extractedData = JSON.parse(
-        result.candidates?.[0]?.content?.parts?.[0]?.text
+        result.candidates?.[0]?.content?.parts?.[0]?.text || "{}"
       );
+      console.log("Parsed extractedData:", extractedData);
 
-      // Map extracted data to form state keys
+      let make = "";
+      let model = "";
+      const makeAndModelString = extractedData.makeAndModel?.trim() || "";
+      
+      if (makeAndModelString.includes("/")) {
+          const parts = makeAndModelString.split("/");
+          make = parts[0] ? parts[0].trim() : "";
+          model = parts[1] ? parts[1].trim() : "";
+      } else {
+          const words = makeAndModelString.split(/\s+/);
+          make = words[0] || "";
+          model = words.slice(1).join(" ");
+      }
+
+      const plateNumber = extractedData.plateNumber ? extractedData.plateNumber.trim() : "";
+
+      let year = "";
+      if (extractedData.registrationDate) {
+        const dateStr = extractedData.registrationDate.replace(/\s/g, "").trim();
+      
+        // Try 4-digit year first
+        let match = dateStr.match(/\b(19|20)\d{2}\b/);
+        if (match) {
+          year = match[0];
+        } else {
+          // fallback for 2-digit year
+          match = dateStr.match(/\d{2}$/);
+          if (match) {
+            const val = parseInt(match[0], 10);
+            year = val > 50 ? `19${match[0]}` : `20${match[0]}`;
+          }
+        }
+      }
+
       const mappedData = {
-        plateNumber: extractedData.plateNumber,
-        make: extractedData.makeAndModel.split('/')[0].trim() || '',
-        model: extractedData.makeAndModel.split('/')[1].trim() || '',
-        year: extractedData.registrationDate.split('/')[2].trim() || '',
-        engineCC: extractedData.engineCC || '',
+        plateNumber,
+        make: make.trim(),
+        model: model.trim(),
+        year,
+        engineCC: extractedData.engineCC || "",
       };
+
       
       setExtractionResult(mappedData);
       setUploadProgress(100);
-
-      setTimeout(() => {
-        onFormDataExtracted(mappedData);
-      }, 500);
+   
     } catch (error) {
       console.error("Error processing image:", error);
       showAlert("Error processing image. Please try again.");
@@ -178,9 +222,19 @@ function GeranImageUpload({ onFormDataExtracted, onClose }) {
 
   const handleContinueToForm = () => {
     if (extractionResult) {
-      onFormDataExtracted(extractionResult); // use the correct prop
-    }
-    onClose();
+      const processedModel = extractionResult.model
+        ? extractionResult.model.replace(/\s*\(auto\)\s*/i, "").trim()
+        : "";
+
+        const processedData = {
+          ...extractionResult,
+          model: extractionResult.model.replace(/\s*\(auto\)\s*/i, "").trim(),
+          plateNumber: extractionResult.plateNumber || "",
+          year: extractionResult.year || "",
+        };
+      console.log("Sending to parent:", processedData);
+      onFormDataExtracted(processedData);
+      }
   };
   
 
@@ -194,7 +248,8 @@ function GeranImageUpload({ onFormDataExtracted, onClose }) {
                 Upload Geran Image
               </h2>
               <button
-                onClick={onClose}
+                type="button"
+                onClick={() => router.push("/dashboard")}
                 className="text-gray-400 hover:text-gray-600 transition-colors duration-200"
               >
                 <svg
@@ -248,6 +303,7 @@ function GeranImageUpload({ onFormDataExtracted, onClose }) {
                     className="hidden"
                   />
                   <button
+                    type="button"
                     onClick={() => fileInputRef.current.click()}
                     className="px-6 py-3 bg-blue-600 text-white font-medium rounded-lg hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition-colors duration-200"
                   >
@@ -272,8 +328,7 @@ function GeranImageUpload({ onFormDataExtracted, onClose }) {
               </div>
             ) : !extractionResult ? (
               <div className="text-center">
-                <div className="mx-auto flex items-center justify-center h-20 w-20 rounded--full bg-blue-100 mb-4 animate-pulse">
-                  <svg
+                <div className="mx-auto flex items-center justify-center h-20 w-20 rounded-full bg-blue-100 mb-4 animate-pulse">  <svg
                     className="h-10 w-10 text-blue-600"
                     fill="none"
                     stroke="currentColor"
@@ -289,13 +344,11 @@ function GeranImageUpload({ onFormDataExtracted, onClose }) {
                 </div>
 
                 <div className="mb-6">
-                  <NextImage
-                    src={imagePreview}
-                    alt="Geran Preview"
-                    width={500}
-                    height={300}
-                    className="w-full max-w-md mx-auto rounded-lg border border-gray-300"
-                  />
+                <img
+                  src={imagePreview}
+                  alt="Geran Preview"
+                  className="w-full max-w-md mx-auto rounded-lg border border-gray-300"
+                />
                 </div>
 
                 <div className="mb-6">
@@ -313,12 +366,14 @@ function GeranImageUpload({ onFormDataExtracted, onClose }) {
 
                 <div className="flex space-x-3 justify-center">
                   <button
+                    type="button"
                     onClick={handleRetry}
                     className="px-4 py-2 border border-gray-300 text-gray-700 rounded-md hover:bg-gray-50 transition-colors duration-200"
                   >
                     Choose Different Image
                   </button>
                   <button
+                    type="button"
                     onClick={handleUpload}
                     disabled={isUploading}
                     className="px-6 py-2 bg-blue-600 text-white font-medium rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition-colors duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
@@ -348,12 +403,6 @@ function GeranImageUpload({ onFormDataExtracted, onClose }) {
                 <h3 className="text-lg font-medium text-green-900 mb-2">
                   Successfully Extracted Vehicle Details!
                 </h3>
-                <p className="text-gray-600 mb-4">
-                  Confidence Score:{" "}
-                  {extractionResult.confidence
-                    ? (extractionResult.confidence * 100).toFixed(1) + "%"
-                    : "N/A"}
-                </p>
 
                 <div className="bg-gray-50 rounded-lg p-4 mb-6 text-left">
                   <h4 className="font-medium text-gray-900 mb-3">
@@ -399,13 +448,16 @@ function GeranImageUpload({ onFormDataExtracted, onClose }) {
 
                 <div className="flex space-x-3 justify-center">
                   <button
+                    type="button"
                     onClick={handleRetry}
                     className="px-4 py-2 border border-gray-300 text-gray-700 rounded-md hover:bg-gray-50 transition-colors duration-200"
                   >
                     Upload Different Image
                   </button>
                   <button
+                    type="button"
                     onClick={handleContinueToForm}
+                    disabled={!extractionResult} 
                     className="px-6 py-2 bg-blue-600 text-white font-medium rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition-colors duration-200"
                   >
                     Continue to Form
@@ -425,105 +477,5 @@ function GeranImageUpload({ onFormDataExtracted, onClose }) {
     </>
   );
 }
+export default GeranImageUpload;
 
-// Main component that uses the GeranImageUpload component
-export default function ManualQuotePage() {
-  const [isModalOpen, setIsModalOpen] = useState(false);
-  const [formData, setFormData] = useState({
-    plateNumber: "",
-    make: "",
-    model: "",
-    year: "",
-  });
-
-  const handleFormDataExtracted = (data) => {
-    console.log("Extracted Data:", data);
-
-    setFormData({
-      plateNumber: data.plateNumber,
-      make: data.make,
-      model: data.model,
-      year: data.year,
-    });
-
-    setIsModalOpen(false);
-  };
-
-  return (
-    <div className="flex flex-col items-center p-8 bg-gray-100 min-h-screen">
-      <div className="bg-white p-8 rounded-xl shadow-lg w-full max-w-lg">
-        <h1 className="text-3xl font-bold mb-6 text-center text-gray-900">
-          Manual Quote Form
-        </h1>
-        <button
-          onClick={() => setIsModalOpen(true)}
-          className="w-full px-6 py-3 mb-6 bg-blue-600 text-white font-medium rounded-lg hover:bg-blue-700"
-        >
-          Open Geran Upload
-        </button>
-
-        <div className="space-y-4">
-          <div>
-            <label className="block text-sm font-medium text-gray-700">
-              Plate Number
-            </label>
-            <input
-              type="text"
-              value={formData.plateNumber}
-              onChange={(e) =>
-                setFormData({ ...formData, plateNumber: e.target.value })
-              }
-              className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
-            />
-          </div>
-          <div>
-            <label className="block text-sm font-medium text-gray-700">
-              Make
-            </label>
-            <input
-              type="text"
-              value={formData.make}
-              onChange={(e) =>
-                setFormData({ ...formData, make: e.target.value })
-              }
-              className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
-            />
-          </div>
-          <div>
-            <label className="block text-sm font-medium text-gray-700">
-              Model
-            </label>
-            <input
-              type="text"
-              value={formData.model}
-              onChange={(e) =>
-                setFormData({ ...formData, model: e.target.value })
-              }
-              className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
-            />
-          </div>
-          <div>
-            <label className="block text-sm font-medium text-gray-700">
-              Year
-            </label>
-            <input
-              type="text"
-              value={formData.year}
-              onChange={(e) =>
-                setFormData({ ...formData, year: e.target.value })
-              }
-              className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
-            />
-          </div>
-        </div>
-      </div>
-
-      {isModalOpen && (
-        <GeranImageUpload
-          onFormDataExtracted={handleFormDataExtracted}
-          onClose={() => setIsModalOpen(false)}
-        />
-      )}
-    </div>
-  );
-}

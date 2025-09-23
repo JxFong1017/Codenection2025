@@ -2,7 +2,7 @@
 import NextAuth from "next-auth";
 import CredentialsProvider from "next-auth/providers/credentials";
 import { signInWithEmailAndPassword } from "firebase/auth";
-import { auth } from "../../../firebaseauth"; // Correctly import the initialized auth instance
+import { auth } from "../../../lib/firebase"; // Correctly import the initialized auth instance
 
 const providers = [
   CredentialsProvider({

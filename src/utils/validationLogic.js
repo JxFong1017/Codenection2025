@@ -173,23 +173,35 @@ export function validateIC(ic) {
   // Remove spaces and hyphens
   const cleanedIC = ic.replace(/[\s-]/g, '');
 
-  // Regex to check for correct Malaysian IC format
-  const icRegex = /^(?:\d{6})(?:\d{2})(?:\d{4})$/;
+  // Regex to check for correct Malaysian IC format (12 digits)
+  const icRegex = /^\d{12}$/;
 
   if (!icRegex.test(cleanedIC)) {
     return { isValid: false, error: 'Invalid IC format. Should be YYMMDD-XX-XXXX.' };
   }
 
-  // Basic check for valid date of birth (e.g., year is not in the future)
+  // Robust date validation
   const year = parseInt(cleanedIC.substring(0, 2), 10);
   const month = parseInt(cleanedIC.substring(2, 4), 10);
   const day = parseInt(cleanedIC.substring(4, 6), 10);
-  
-  const currentYear = new Date().getFullYear();
-  const fullYear = year + (year < (currentYear % 100) ? 2000 : 1900);
+  const fullYear = year + (year < 90 ? 2000 : 1900); // More accurate century check
 
-  if (fullYear > currentYear || month < 1 || month > 12 || day < 1 || day > 31) {
-      return { isValid: false, error: 'Invalid date of birth in IC.' };
+  const date = new Date(fullYear, month - 1, day);
+
+  // Check if the date object matches the input values
+  const isValidDate = (
+    date.getFullYear() === fullYear &&
+    date.getMonth() === month - 1 &&
+    date.getDate() === day
+  );
+
+  if (!isValidDate) {
+    return { isValid: false, error: 'Invalid date of birth in IC.' };
+  }
+
+  // Check if the year is in the future
+  if (fullYear > new Date().getFullYear()) {
+    return { isValid: false, error: 'Birth year cannot be in the future.' };
   }
 
   return { isValid: true, error: null };

@@ -1,0 +1,138 @@
+[debug] [2025-09-22T17:50:02.921Z] ----------------------------------------------------------------------
+[debug] [2025-09-22T17:50:02.925Z] Command:       /nix/store/ixbb20farqh1f4fqbmsn6b1ixn8mc8ij-nodejs-20.18.1/bin/node /home/user/.global_modules/bin/firebase emulators:start
+[debug] [2025-09-22T17:50:02.926Z] CLI Version:   14.16.0
+[debug] [2025-09-22T17:50:02.926Z] Platform:      linux
+[debug] [2025-09-22T17:50:02.926Z] Node Version:  v20.18.1
+[debug] [2025-09-22T17:50:02.926Z] Time:          Mon Sep 22 2025 17:50:02 GMT+0000 (Coordinated Universal Time)
+[debug] [2025-09-22T17:50:02.927Z] ----------------------------------------------------------------------
+[debug] 
+[debug] [2025-09-22T17:50:03.606Z] Checked if tokens are valid: true, expires at: 1758566633782
+[debug] [2025-09-22T17:50:03.607Z] Checked if tokens are valid: true, expires at: 1758566633782
+[debug] [2025-09-22T17:50:03.613Z] >>> [apiv2][query] GET https://monospace-pa.googleapis.com/v1/workspaces/codenection2025git-88637526 [none]
+[debug] [2025-09-22T17:50:04.561Z] <<< [apiv2][status] GET https://monospace-pa.googleapis.com/v1/workspaces/codenection2025git-88637526 200
+[debug] [2025-09-22T17:50:04.562Z] <<< [apiv2][body] GET https://monospace-pa.googleapis.com/v1/workspaces/codenection2025git-88637526 {"workspaceId":"codenection2025git-88637526","name":"Codenection2025","workspaceRedirectUrl":"firebase-codenection2025git-1758078224819.cluster-ancjwrkgr5dvux4qug5rbzyc2y.cloudworkstations.dev","status":"WORKSPACE_STATUS_RUNNING","lastAccessDatetime":"2025-09-22T15:43:38.049166Z","workspaceTemplate":"WORKSPACE_TEMPLATE_BLANK_WEB","owner":"SELF","serviceAccountEmail":"msp-1682198564480004405@monospace-per-ws-sa-10.iam.gserviceaccount.com","gitRepoUrl":"https://github.com/JxFong1017/Codenection2025.git","enableNix":true,"ownerEmail":"jxfong357@gmail.com","workstationAccessToken":"eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJodHRwczovL2Nsb3VkLmdvb2dsZS5jb20vd29ya3N0YXRpb25zIiwiYXVkIjoiZmlyZWJhc2UtY29kZW5lY3Rpb24yMDI1Z2l0LTE3NTgwNzgyMjQ4MTkuY2x1c3Rlci1hbmNqd3JrZ3I1ZHZ1eDRxdWc1cmJ6eWMyeS5jbG91ZHdvcmtzdGF0aW9ucy5kZXYiLCJpYXQiOjE3NTg1NjM0MDQsImV4cCI6MTc1ODY0OTgwNH0.TmZIg4Ii0sc61J6sJt5HbsiFpnlnLvdl2R5HJR45l9Y4sJLJsEHPNp99pBGuPqxDhWxKetPmS02JTh0_gFxtTUDKs3ruhLWjswWsUkBIorofBV4QxzrgCblO0LRtrA9I5S3m_j8tDR6tD-yV6IrjuAnKS5ChC9J1ESj4YpaWhkXYhzLqyprpvUjV-WqpnrX9qeXA-369qcYmzoL0blnEMsezxFMryZu---EBFirZESIF-4mvTnNrLEZjwqb4-Xia6nZowTsL0p2HbOlspnQezlu71wJ8Ipwq8NOCl0LSb-NqcA7O2TbfOaTnnivppwk9i-_i2ar03BWdYChtdy2oPA","firebaseProjectId":"codenection2025-19a07"}
+[debug] [2025-09-22T17:50:04.564Z] > command requires scopes: ["email","openid","https://www.googleapis.com/auth/cloudplatformprojects.readonly","https://www.googleapis.com/auth/firebase","https://www.googleapis.com/auth/cloud-platform","https://www.googleapis.com/auth/userinfo.email"]
+[debug] [2025-09-22T17:50:04.565Z] > authorizing via signed-in user (jxfong357@gmail.com)
+[info] i  emulators: Starting emulators: functions, hosting, extensions {"metadata":{"emulator":{"name":"hub"},"message":"Starting emulators: functions, hosting, extensions"}}
+[debug] [2025-09-22T17:50:04.575Z] Checked if tokens are valid: true, expires at: 1758566633782
+[debug] [2025-09-22T17:50:04.575Z] Checked if tokens are valid: true, expires at: 1758566633782
+[debug] [2025-09-22T17:50:04.575Z] >>> [apiv2][query] GET https://cloudresourcemanager.googleapis.com/v1/projects/codenection2025-19a07 [none]
+[debug] [2025-09-22T17:50:05.411Z] <<< [apiv2][status] GET https://cloudresourcemanager.googleapis.com/v1/projects/codenection2025-19a07 200
+[debug] [2025-09-22T17:50:05.412Z] <<< [apiv2][body] GET https://cloudresourcemanager.googleapis.com/v1/projects/codenection2025-19a07 {"projectNumber":"177603922659","projectId":"codenection2025-19a07","lifecycleState":"ACTIVE","name":"Codenection2025","labels":{"firebase":"enabled","firebase-core":"disabled","generative-language":"enabled"},"createTime":"2025-09-17T05:24:27.145377Z"}
+[warn] ⚠  hub: Error when trying to check port 4400 on ::1: Error: listen EADDRNOTAVAIL: address not available ::1:4400 {"metadata":{"emulator":{"name":"hub"},"message":"Error when trying to check port 4400 on ::1: Error: listen EADDRNOTAVAIL: address not available ::1:4400"}}
+[warn] ⚠  hub: Port 4400 is available on 127.0.0.1 but not ::1. This may cause issues with some clients. {"metadata":{"emulator":{"name":"hub"},"message":"Port 4400 is available on 127.0.0.1 but not ::1. This may cause issues with some clients."}}
+[warn] ⚠  hub: If you encounter connectivity issues, consider switching to a different port or explicitly specifying "host": "<ip address>" instead of hostname in firebase.json {"metadata":{"emulator":{"name":"hub"},"message":"If you encounter connectivity issues, consider switching to a different port or explicitly specifying \u001b[33m\"host\": \"<ip address>\"\u001b[39m instead of hostname in firebase.json"}}
+[warn] ⚠  ui: Error when trying to check port 4000 on ::1: Error: listen EADDRNOTAVAIL: address not available ::1:4000 {"metadata":{"emulator":{"name":"ui"},"message":"Error when trying to check port 4000 on ::1: Error: listen EADDRNOTAVAIL: address not available ::1:4000"}}
+[warn] ⚠  ui: Port 4000 is available on 127.0.0.1 but not ::1. This may cause issues with some clients. {"metadata":{"emulator":{"name":"ui"},"message":"Port 4000 is available on 127.0.0.1 but not ::1. This may cause issues with some clients."}}
+[warn] ⚠  ui: If you encounter connectivity issues, consider switching to a different port or explicitly specifying "host": "<ip address>" instead of hostname in firebase.json {"metadata":{"emulator":{"name":"ui"},"message":"If you encounter connectivity issues, consider switching to a different port or explicitly specifying \u001b[33m\"host\": \"<ip address>\"\u001b[39m instead of hostname in firebase.json"}}
+[warn] ⚠  logging: Error when trying to check port 4500 on ::1: Error: listen EADDRNOTAVAIL: address not available ::1:4500 {"metadata":{"emulator":{"name":"logging"},"message":"Error when trying to check port 4500 on ::1: Error: listen EADDRNOTAVAIL: address not available ::1:4500"}}
+[warn] ⚠  logging: Port 4500 is available on 127.0.0.1 but not ::1. This may cause issues with some clients. {"metadata":{"emulator":{"name":"logging"},"message":"Port 4500 is available on 127.0.0.1 but not ::1. This may cause issues with some clients."}}
+[warn] ⚠  logging: If you encounter connectivity issues, consider switching to a different port or explicitly specifying "host": "<ip address>" instead of hostname in firebase.json {"metadata":{"emulator":{"name":"logging"},"message":"If you encounter connectivity issues, consider switching to a different port or explicitly specifying \u001b[33m\"host\": \"<ip address>\"\u001b[39m instead of hostname in firebase.json"}}
+[warn] ⚠  hosting: Error when trying to check port 5000 on ::1: Error: listen EADDRNOTAVAIL: address not available ::1:5000 {"metadata":{"emulator":{"name":"hosting"},"message":"Error when trying to check port 5000 on ::1: Error: listen EADDRNOTAVAIL: address not available ::1:5000"}}
+[warn] ⚠  hosting: Port 5000 is available on 127.0.0.1 but not ::1. This may cause issues with some clients. {"metadata":{"emulator":{"name":"hosting"},"message":"Port 5000 is available on 127.0.0.1 but not ::1. This may cause issues with some clients."}}
+[warn] ⚠  hosting: If you encounter connectivity issues, consider switching to a different port or explicitly specifying "host": "<ip address>" instead of hostname in firebase.json {"metadata":{"emulator":{"name":"hosting"},"message":"If you encounter connectivity issues, consider switching to a different port or explicitly specifying \u001b[33m\"host\": \"<ip address>\"\u001b[39m instead of hostname in firebase.json"}}
+[debug] [2025-09-22T17:50:05.435Z] assigned listening specs for emulators {"user":{"hub":[{"address":"127.0.0.1","family":"IPv4","port":4400}],"ui":[{"address":"127.0.0.1","family":"IPv4","port":4000}],"logging":[{"address":"127.0.0.1","family":"IPv4","port":4500}],"hosting":[{"address":"127.0.0.1","family":"IPv4","port":5000}]},"metadata":{"message":"assigned listening specs for emulators"}}
+[debug] [2025-09-22T17:50:05.446Z] Emulator locator file path: /tmp/hub-codenection2025-19a07.json
+[debug] [2025-09-22T17:50:05.446Z] [hub] writing locator at /tmp/hub-codenection2025-19a07.json
+[debug] [2025-09-22T17:50:05.475Z] [Extensions] Started Extensions emulator, this is a noop.
+[warn] ⚠  functions: Error when trying to check port 5001 on ::1: Error: listen EADDRNOTAVAIL: address not available ::1:5001 {"metadata":{"emulator":{"name":"functions"},"message":"Error when trying to check port 5001 on ::1: Error: listen EADDRNOTAVAIL: address not available ::1:5001"}}
+[warn] ⚠  functions: Port 5001 is available on 127.0.0.1 but not ::1. This may cause issues with some clients. {"metadata":{"emulator":{"name":"functions"},"message":"Port 5001 is available on 127.0.0.1 but not ::1. This may cause issues with some clients."}}
+[warn] ⚠  functions: If you encounter connectivity issues, consider switching to a different port or explicitly specifying "host": "<ip address>" instead of hostname in firebase.json {"metadata":{"emulator":{"name":"functions"},"message":"If you encounter connectivity issues, consider switching to a different port or explicitly specifying \u001b[33m\"host\": \"<ip address>\"\u001b[39m instead of hostname in firebase.json"}}
+[warn] ⚠  eventarc: Error when trying to check port 9299 on ::1: Error: listen EADDRNOTAVAIL: address not available ::1:9299 {"metadata":{"emulator":{"name":"eventarc"},"message":"Error when trying to check port 9299 on ::1: Error: listen EADDRNOTAVAIL: address not available ::1:9299"}}
+[warn] ⚠  eventarc: Port 9299 is available on 127.0.0.1 but not ::1. This may cause issues with some clients. {"metadata":{"emulator":{"name":"eventarc"},"message":"Port 9299 is available on 127.0.0.1 but not ::1. This may cause issues with some clients."}}
+[warn] ⚠  eventarc: If you encounter connectivity issues, consider switching to a different port or explicitly specifying "host": "<ip address>" instead of hostname in firebase.json {"metadata":{"emulator":{"name":"eventarc"},"message":"If you encounter connectivity issues, consider switching to a different port or explicitly specifying \u001b[33m\"host\": \"<ip address>\"\u001b[39m instead of hostname in firebase.json"}}
+[warn] ⚠  tasks: Error when trying to check port 9499 on ::1: Error: listen EADDRNOTAVAIL: address not available ::1:9499 {"metadata":{"emulator":{"name":"tasks"},"message":"Error when trying to check port 9499 on ::1: Error: listen EADDRNOTAVAIL: address not available ::1:9499"}}
+[warn] ⚠  tasks: Port 9499 is available on 127.0.0.1 but not ::1. This may cause issues with some clients. {"metadata":{"emulator":{"name":"tasks"},"message":"Port 9499 is available on 127.0.0.1 but not ::1. This may cause issues with some clients."}}
+[warn] ⚠  tasks: If you encounter connectivity issues, consider switching to a different port or explicitly specifying "host": "<ip address>" instead of hostname in firebase.json {"metadata":{"emulator":{"name":"tasks"},"message":"If you encounter connectivity issues, consider switching to a different port or explicitly specifying \u001b[33m\"host\": \"<ip address>\"\u001b[39m instead of hostname in firebase.json"}}
+[debug] [2025-09-22T17:50:05.486Z] late-assigned ports for functions and eventarc emulators {"user":{"hub":[{"address":"127.0.0.1","family":"IPv4","port":4400}],"ui":[{"address":"127.0.0.1","family":"IPv4","port":4000}],"logging":[{"address":"127.0.0.1","family":"IPv4","port":4500}],"hosting":[{"address":"127.0.0.1","family":"IPv4","port":5000}],"functions":[{"address":"127.0.0.1","family":"IPv4","port":5001}],"eventarc":[{"address":"127.0.0.1","family":"IPv4","port":9299}],"tasks":[{"address":"127.0.0.1","family":"IPv4","port":9499}]},"metadata":{"message":"late-assigned ports for functions and eventarc emulators"}}
+[warn] ⚠  functions: The following emulators are not running, calls to these services from the Functions emulator will affect production: apphosting, auth, firestore, database, pubsub, storage, dataconnect {"metadata":{"emulator":{"name":"functions"},"message":"The following emulators are not running, calls to these services from the Functions emulator will affect production: \u001b[1mapphosting, auth, firestore, database, pubsub, storage, dataconnect\u001b[22m"}}
+[warn] ⚠  functions: Application Default Credentials detected. Non-emulated services will access production using these credentials. Be careful! {"metadata":{"emulator":{"name":"functions"},"message":"Application Default Credentials detected. Non-emulated services will access production using these credentials. Be careful!"}}
+[debug] [2025-09-22T17:50:08.484Z] Checked if tokens are valid: true, expires at: 1758566633782
+[debug] [2025-09-22T17:50:08.484Z] Checked if tokens are valid: true, expires at: 1758566633782
+[debug] [2025-09-22T17:50:08.484Z] >>> [apiv2][query] GET https://firebase.googleapis.com/v1beta1/projects/codenection2025-19a07/adminSdkConfig [none]
+[debug] [2025-09-22T17:50:08.747Z] <<< [apiv2][status] GET https://firebase.googleapis.com/v1beta1/projects/codenection2025-19a07/adminSdkConfig 200
+[debug] [2025-09-22T17:50:08.748Z] <<< [apiv2][body] GET https://firebase.googleapis.com/v1beta1/projects/codenection2025-19a07/adminSdkConfig {"projectId":"codenection2025-19a07","storageBucket":"codenection2025-19a07.firebasestorage.app"}
+[debug] [2025-09-22T17:50:08.813Z] Checked if tokens are valid: true, expires at: 1758566633782
+[debug] [2025-09-22T17:50:08.819Z] Checked if tokens are valid: true, expires at: 1758566633782
+[debug] [2025-09-22T17:50:08.820Z] >>> [apiv2][query] GET https://firebasehosting.googleapis.com/v1beta1/projects/codenection2025-19a07/sites 
+[debug] [2025-09-22T17:50:09.247Z] <<< [apiv2][status] GET https://firebasehosting.googleapis.com/v1beta1/projects/codenection2025-19a07/sites 200
+[debug] [2025-09-22T17:50:09.253Z] <<< [apiv2][body] GET https://firebasehosting.googleapis.com/v1beta1/projects/codenection2025-19a07/sites {"sites":[{"name":"projects/codenection2025-19a07/sites/codenection2025-19a07","defaultUrl":"https://codenection2025-19a07.web.app","appId":"1:177603922659:web:8c40613dfd94f7a112d3d6","type":"DEFAULT_SITE"}]}
+[debug] [2025-09-22T17:50:09.253Z] Checked if tokens are valid: true, expires at: 1758566633782
+[debug] [2025-09-22T17:50:09.257Z] Checked if tokens are valid: true, expires at: 1758566633782
+[debug] [2025-09-22T17:50:09.257Z] >>> [apiv2][query] GET https://firebase.googleapis.com/v1beta1/projects/codenection2025-19a07/webApps/1:177603922659:web:8c40613dfd94f7a112d3d6/config [none]
+[debug] [2025-09-22T17:50:10.056Z] <<< [apiv2][status] GET https://firebase.googleapis.com/v1beta1/projects/codenection2025-19a07/webApps/1:177603922659:web:8c40613dfd94f7a112d3d6/config 200
+[debug] [2025-09-22T17:50:10.059Z] <<< [apiv2][body] GET https://firebase.googleapis.com/v1beta1/projects/codenection2025-19a07/webApps/1:177603922659:web:8c40613dfd94f7a112d3d6/config {"projectId":"codenection2025-19a07","appId":"1:177603922659:web:8c40613dfd94f7a112d3d6","storageBucket":"codenection2025-19a07.firebasestorage.app","apiKey":"AIzaSyDwueiKSRfcCwXLC_HxH-WrOoP3N-Wb0N0","authDomain":"codenection2025-19a07.firebaseapp.com","messagingSenderId":"177603922659","measurementId":"G-CL9FMHWK6D"}
+[debug] [2025-09-22T17:50:10.080Z] Checked if tokens are valid: true, expires at: 1758566633782
+[debug] [2025-09-22T17:50:10.082Z] Checked if tokens are valid: true, expires at: 1758566633782
+[debug] [2025-09-22T17:50:10.083Z] >>> [apiv2][query] GET https://firebase.googleapis.com/v1beta1/projects/codenection2025-19a07 [none]
+[debug] [2025-09-22T17:50:10.309Z] <<< [apiv2][status] GET https://firebase.googleapis.com/v1beta1/projects/codenection2025-19a07 200
+[debug] [2025-09-22T17:50:10.318Z] <<< [apiv2][body] GET https://firebase.googleapis.com/v1beta1/projects/codenection2025-19a07 {"projectId":"codenection2025-19a07","projectNumber":"177603922659","displayName":"Codenection2025","name":"projects/codenection2025-19a07","resources":{"hostingSite":"codenection2025-19a07"},"state":"ACTIVE","etag":"1_0de0031f-5d85-4cf7-b73e-24670ecec687"}
+[info] i  hosting[codenection2025-19a07]: Serving hosting files from: public {"metadata":{"emulator":{"name":"hosting"},"message":"Serving hosting files from: \u001b[1mpublic\u001b[22m"}}
+[info] ✔  hosting[codenection2025-19a07]: Local server: http://127.0.0.1:5000 {"metadata":{"emulator":{"name":"hosting"},"message":"Local server: \u001b[4m\u001b[1mhttp://127.0.0.1:5000\u001b[22m\u001b[24m"}}
+[debug] [2025-09-22T17:50:10.396Z] [Extensions] Connecting Extensions emulator, this is a noop.
+[info] i  functions: Watching "/home/user/Codenection2025/functions" for Cloud Functions... {"metadata":{"emulator":{"name":"functions"},"message":"Watching \"/home/user/Codenection2025/functions\" for Cloud Functions..."}}
+[debug] [2025-09-22T17:50:10.442Z] Validating nodejs source
+[debug] [2025-09-22T17:50:11.673Z] > [functions] package.json contents: {
+  "name": "functions",
+  "description": "Cloud Functions for Firebase",
+  "scripts": {
+    "lint": "eslint .",
+    "serve": "firebase emulators:start --only functions",
+    "shell": "firebase functions:shell",
+    "start": "npm run shell",
+    "deploy": "firebase deploy --only functions",
+    "logs": "firebase functions:log"
+  },
+  "engines": {
+    "node": "20"
+  },
+  "main": "index.js",
+  "dependencies": {
+    "@google/generative-ai": "^0.24.1",
+    "firebase-admin": "^13.5.0",
+    "firebase-functions": "^6.4.0",
+    "nodemailer": "^6.9.14",
+    "puppeteer": "^22.12.1"
+  },
+  "devDependencies": {
+    "eslint": "^8.15.0",
+    "eslint-config-google": "^0.14.0",
+    "firebase-functions-test": "^3.1.0"
+  },
+  "private": true
+}
+[debug] [2025-09-22T17:50:11.673Z] Building nodejs source
+[debug] [2025-09-22T17:50:11.674Z] Failed to find version of module node: reached end of search path /home/user/Codenection2025/functions/node_modules
+[info] ✔  functions: Using node@20 from host. 
+[info] i  functions: Loaded environment variables from .env. 
+[debug] [2025-09-22T17:50:11.681Z] Could not find functions.yaml. Must use http discovery
+[debug] [2025-09-22T17:50:11.692Z] Found firebase-functions binary at '/home/user/Codenection2025/functions/node_modules/.bin/firebase-functions'
+[info] Serving at port 8559
+
+[debug] [2025-09-22T17:50:12.483Z] Got response from /__/functions.yaml {"endpoints":{"chatAssistant":{"availableMemoryMb":null,"timeoutSeconds":null,"minInstances":null,"maxInstances":null,"ingressSettings":null,"concurrency":null,"serviceAccountEmail":null,"vpc":null,"platform":"gcfv2","labels":{},"httpsTrigger":{},"entryPoint":"chatAssistant"}},"specVersion":"v1alpha1","requiredAPIs":[],"extensions":{}}
+[warn] ⚠  functions: Application Default Credentials detected. Non-emulated services will access production using these credentials. Be careful! {"metadata":{"emulator":{"name":"functions"},"message":"Application Default Credentials detected. Non-emulated services will access production using these credentials. Be careful!"}}
+[info] ✔  functions: Loaded functions definitions from source: chatAssistant. {"metadata":{"emulator":{"name":"functions"},"message":"Loaded functions definitions from source: chatAssistant."}}
+[info] ✔  functions[us-central1-chatAssistant]: http function initialized (http://127.0.0.1:5001/codenection2025-19a07/us-central1/chatAssistant). {"metadata":{"emulator":{"name":"functions"},"message":"\u001b[1mhttp\u001b[22m function initialized (http://127.0.0.1:5001/codenection2025-19a07/us-central1/chatAssistant)."}}
+[debug] [2025-09-22T17:50:16.592Z] Could not find VSCode notification endpoint: FetchError: request to http://localhost:40001/vscode/notify failed, reason: connect ECONNREFUSED 127.0.0.1:40001. If you are not running the Firebase Data Connect VSCode extension, this is expected and not an issue.
+[info] 
+┌─────────────────────────────────────────────────────────────┐
+│ ✔  All emulators ready! It is now safe to connect your app. │
+│ i  View Emulator UI at http://127.0.0.1:4000/               │
+└─────────────────────────────────────────────────────────────┘
+
+┌────────────┬────────────────┬──────────────────────────────────┐
+│ Emulator   │ Host:Port      │ View in Emulator UI              │
+├────────────┼────────────────┼──────────────────────────────────┤
+│ Functions  │ 127.0.0.1:5001 │ http://127.0.0.1:4000/functions  │
+├────────────┼────────────────┼──────────────────────────────────┤
+│ Hosting    │ 127.0.0.1:5000 │ n/a                              │
+├────────────┼────────────────┼──────────────────────────────────┤
+│ Extensions │ 127.0.0.1:5001 │ http://127.0.0.1:4000/extensions │
+└────────────┴────────────────┴──────────────────────────────────┘
+  Emulator Hub host: 127.0.0.1 port: 4400
+  Other reserved ports: 4500
+┌─────────────────────────┬───────────────┬─────────────────────┐
+│ Extension Instance Name │ Extension Ref │ View in Emulator UI │
+└─────────────────────────┴───────────────┴─────────────────────┘
+Issues? Report them at https://github.com/firebase/firebase-tools/issues and attach the *-debug.log files.
+ 

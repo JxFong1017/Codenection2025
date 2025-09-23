@@ -5,6 +5,7 @@ import Head from 'next/head';
 import Link from 'next/link';
 import GeranImageUpload from '../src/components/GeranImageUpload';
 import DecisionPopup from '../src/components/DecisionPopup';
+import Image from 'next/image';
 
 export default function VehicleValidationForm() {
   const { data: session, status } = useSession();
@@ -251,19 +252,6 @@ export default function VehicleValidationForm() {
         <meta name="description" content="Comprehensive vehicle validation with AI-powered features" />
       </Head>
 
-      {/* Decision Popup */}
-      <DecisionPopup
-        isOpen={showDecisionPopup}
-        onClose={handleCloseDecisionPopup}
-        onDecision={handleDecision}
-      />
-
-      {/* Geran Image Upload Modal */}
-      <GeranImageUpload
-        isOpen={showGeranUpload}
-        onClose={() => setShowGeranUpload(false)}
-        onFormDataExtracted={handleGeranFormDataExtracted}
-      />
 
       <div className="min-h-screen bg-gray-50">
         {/* Navigation Header */}
@@ -616,11 +604,16 @@ export default function VehicleValidationForm() {
                         {imagePreview && (
                           <div>
                             <label className="block text-sm font-medium text-gray-700 mb-2">Image Preview</label>
-                            <img
-                              src={imagePreview}
-                              alt="Vehicle"
-                              className="w-full h-48 object-cover rounded-lg border border-gray-300"
-                            />
+                            <div className="w-full h-48 relative rounded-lg border border-gray-300">
+                              <Image
+                                src={imagePreview}
+                                alt="Vehicle"
+                                fill={true}
+                                style={{
+                                  objectFit: "cover",
+                                }}
+                              />
+                            </div>
                             {isProcessingImage && (
                               <div className="mt-2 text-center">
                                 <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-blue-600 mx-auto"></div>

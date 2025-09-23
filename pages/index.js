@@ -4,7 +4,7 @@ import Link from "next/link";
 import Image from "next/image";
 import { signIn } from "next-auth/react";
 import { useT } from "../src/utils/i18n";
-import { signUpWithEmailAndPassword, showMessage } from "../firebaseauth";
+import { signUpWithEmailAndPassword, showMessage } from "../lib/firebase";
 
 export default function Home() {
   const [isLoginMode, setIsLoginMode] = useState(true);

@@ -4,12 +4,13 @@
   "private": true,
   "scripts": {
     "dev": "next dev --turbopack",
-    "build": "next build --turbopack",
+    "build": "next build",
     "start": "next start",
     "lint": "eslint"
   },
   "dependencies": {
     "@dataconnect/generated": "file:src/dataconnect-generated",
+    "@google-cloud/vertexai": "^1.10.0",
     "@google-cloud/vision": "^5.3.3",
     "dotenv": "^17.2.2",
     "firebase": "^10.12.3",

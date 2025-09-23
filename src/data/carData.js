@@ -117,6 +117,49 @@ export const carData = [
   { make: "Honda", model: "Odyssey 2.4", years: Array.from({ length: 2020 - 2000 + 1 }, (_, i) => 2000 + i), marketValue: 160000, engineCapacity: 2400 },
   { make: "Honda", model: "Odyssey 3.5V6", years: Array.from({ length: 2014 - 2005 + 1 }, (_, i) => 2005 + i), marketValue: 180000, engineCapacity: 3500 },
 
+  //PROTON
+  { make: "Proton", model: "Persona 1.6 Standard", years: Array.from({ length: 2025 - 2007 + 1 }, (_, i) => 2007 + i), marketValue: 45000, engineCapacity: 1600 },
+  { make: "Proton", model: "Persona 1.6 Executive", years: Array.from({ length: 2025 - 2007 + 1 }, (_, i) => 2007 + i), marketValue: 47000, engineCapacity: 1600 },
+
+  { make: "Proton", model: "Saga 1.3 Standard", years: Array.from({ length: 2025 - 2008 + 1 }, (_, i) => 2008 + i), marketValue: 35000, engineCapacity: 1300 },
+  { make: "Proton", model: "Saga 1.3 Premium", years: Array.from({ length: 2025 - 2008 + 1 }, (_, i) => 2008 + i), marketValue: 37000, engineCapacity: 1300 },
+
+  { make: "Proton", model: "X70 1.8 Standard", years: Array.from({ length: 2025 - 2019 + 1 }, (_, i) => 2019 + i), marketValue: 90000, engineCapacity: 1800 },
+  { make: "Proton", model: "X70 1.8 Premium", years: Array.from({ length: 2025 - 2019 + 1 }, (_, i) => 2019 + i), marketValue: 95000, engineCapacity: 1800 },
+
+  { make: "Proton", model: "X50 1.5 Standard", years: Array.from({ length: 2025 - 2020 + 1 }, (_, i) => 2020 + i), marketValue: 80000, engineCapacity: 1500 },
+  { make: "Proton", model: "X50 1.5 Flagship", years: Array.from({ length: 2025 - 2020 + 1 }, (_, i) => 2020 + i), marketValue: 88000, engineCapacity: 1500 },
+
+  { make: "Proton", model: "X90 1.5 Standard", years: Array.from({ length: 2025 - 2023 + 1 }, (_, i) => 2023 + i), marketValue: 100000, engineCapacity: 1500 },
+  { make: "Proton", model: "X90 1.5 Flagship", years: Array.from({ length: 2025 - 2023 + 1 }, (_, i) => 2023 + i), marketValue: 108000, engineCapacity: 1500 },
+
+  { make: "Proton", model: "Iriz 1.3 Standard", years: Array.from({ length: 2025 - 2014 + 1 }, (_, i) => 2014 + i), marketValue: 42000, engineCapacity: 1300 },
+  { make: "Proton", model: "Iriz 1.6 Premium", years: Array.from({ length: 2025 - 2014 + 1 }, (_, i) => 2014 + i), marketValue: 46000, engineCapacity: 1600 },
+
+  { make: "Proton", model: "Exora 1.6 Standard", years: Array.from({ length: 2025 - 2009 + 1 }, (_, i) => 2009 + i), marketValue: 48000, engineCapacity: 1600 },
+  { make: "Proton", model: "Exora 1.6 Bold", years: Array.from({ length: 2025 - 2009 + 1 }, (_, i) => 2009 + i), marketValue: 50000, engineCapacity: 1600 },
+
+  { make: "Proton", model: "Waja 1.6 Standard", years: Array.from({ length: 2011 - 2000 + 1 }, (_, i) => 2000 + i), marketValue: 25000, engineCapacity: 1600 },
+  { make: "Proton", model: "Waja 1.8", years: Array.from({ length: 2011 - 2000 + 1 }, (_, i) => 2000 + i), marketValue: 27000, engineCapacity: 1800 },
+
+  { make: "Proton", model: "Preve 1.6 Standard", years: Array.from({ length: 2018 - 2012 + 1 }, (_, i) => 2012 + i), marketValue: 35000, engineCapacity: 1600 },
+  { make: "Proton", model: "Preve 1.6 Turbo", years: Array.from({ length: 2018 - 2012 + 1 }, (_, i) => 2012 + i), marketValue: 38000, engineCapacity: 1600 },
+
+  { make: "Proton", model: "Suprima S 1.6 Standard", years: Array.from({ length: 2018 - 2013 + 1 }, (_, i) => 2013 + i), marketValue: 38000, engineCapacity: 1600 },
+  { make: "Proton", model: "Suprima S 1.6 Turbo", years: Array.from({ length: 2018 - 2013 + 1 }, (_, i) => 2013 + i), marketValue: 41000, engineCapacity: 1600 },
+
+  { make: "Proton", model: "Satria Neo 1.6 Standard", years: Array.from({ length: 2015 - 2006 + 1 }, (_, i) => 2006 + i), marketValue: 30000, engineCapacity: 1600 },
+  { make: "Proton", model: "Satria Neo 1.6 CPS", years: Array.from({ length: 2015 - 2006 + 1 }, (_, i) => 2006 + i), marketValue: 33000, engineCapacity: 1600 },
+
+  { make: "Proton", model: "Wira 1.3 GL", years: Array.from({ length: 2009 - 2000 + 1 }, (_, i) => 2000 + i), marketValue: 15000, engineCapacity: 1300 },
+  { make: "Proton", model: "Wira 1.5 GL", years: Array.from({ length: 2009 - 2000 + 1 }, (_, i) => 2000 + i), marketValue: 18000, engineCapacity: 1500 },
+  { make: "Proton", model: "Wira 1.6 XLi", years: Array.from({ length: 2009 - 2000 + 1 }, (_, i) => 2000 + i), marketValue: 20000, engineCapacity: 1600 },
+  { make: "Proton", model: "Wira 1.8 EXi", years: Array.from({ length: 2009 - 2000 + 1 }, (_, i) => 2000 + i), marketValue: 22000, engineCapacity: 1800 },
+  { make: "Proton", model: "Wira 1.8 DOHC", years: Array.from({ length: 2009 - 2000 + 1 }, (_, i) => 2000 + i), marketValue: 24000, engineCapacity: 1800 },  
+
+  { make: "Proton", model: "Iswara 1.3", years: Array.from({ length: 2008 - 2000 + 1 }, (_, i) => 2000 + i), marketValue: 12000, engineCapacity: 1298 },
+  { make: "Proton", model: "Iswara 1.5", years: Array.from({ length: 2008 - 2000 + 1 }, (_, i) => 2000 + i), marketValue: 14000, engineCapacity: 1500 },
+
   //PERODUA
   // Perodua Myvi
   { make: "Perodua", model: "Myvi 1.3G", years: Array.from({length: 2025 - 2005 + 1}, (_, i) => 2005 + i), marketValue: 50000, engineCapacity: 1300 },
@@ -143,9 +186,9 @@ export const carData = [
   { make: "Perodua", model: "Viva 1.0E", years: Array.from({ length: 2014 - 2007 + 1 }, (_, i) => 2007 + i), marketValue: 22000, engineCapacity: 1000 },
 
   // Perodua Kenari
-  { make: "Perodua", model: "Kenari 1.0 EX", years: Array.from({ length: 2009 - 2000 + 1 }, (_, i) => 2000 + i), marketValue: 23000, engineCapacity: 1000 },
-  { make: "Perodua", model: "Kenari 1.0 EZ", years: Array.from({ length: 2009 - 2000 + 1 }, (_, i) => 2000 + i), marketValue: 25000, engineCapacity: 1000 },
-
+  { make: "Perodua", model: "Kenari EX", years: Array.from({ length: 2009 - 2000 + 1 }, (_, i) => 2000 + i), marketValue: 23000, engineCapacity: 1000 },
+  { make: "Perodua", model: "Kenari EZ", years: Array.from({ length: 2009 - 2000 + 1 }, (_, i) => 2000 + i), marketValue: 25000, engineCapacity: 989 },
+  
   //NISSAN
   // Nissan Almera
   { make: "Nissan", model: "Almera 1.5E", years: Array.from({ length: 2025 - 2012 + 1 }, (_, i) => 2012 + i), marketValue: 82000, engineCapacity: 1500 },

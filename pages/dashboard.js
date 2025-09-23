@@ -1,3 +1,5 @@
+import { collection, query, where, getDocs } from "firebase/firestore";
+import { db } from "../lib/firebase";
 import { useSession, signOut } from "next-auth/react";
 import { useRouter } from "next/router";
 import { useEffect, useState } from "react";
@@ -6,6 +8,7 @@ import DecisionPopup from "../src/components/DecisionPopup";
 import { useT } from "../src/utils/i18n";
 import Image from "next/image";
 import Link from "next/link";
+import QuotationDetail from "../src/components/QuotationDetail"; // Import the new component
 
 export default function Dashboard() {
   const t = useT();
@@ -13,6 +16,32 @@ export default function Dashboard() {
   const router = useRouter();
   const [showDecisionPopup, setShowDecisionPopup] = useState(false);
   const [showLogoutPopup, setShowLogoutPopup] = useState(false);
+  const [quotations, setQuotations] = useState([]);
+  const [selectedQuote, setSelectedQuote] = useState(null);
+
+  useEffect(() => {
+    const fetchQuotations = async () => {
+      // Ensure the session is loaded and the user email is available
+      if (status === "authenticated" && session?.user?.email) {
+        
+        // Create a query to filter quotations by the logged-in user's email
+        const q = query(collection(db, "quotations"), where("userId", "==", session.user.email));
+
+        try {
+          const querySnapshot = await getDocs(q);
+          const userQuotations = [];
+          querySnapshot.forEach((doc) => {
+            userQuotations.push({ id: doc.id, ...doc.data() });
+          });
+          setQuotations(userQuotations);
+        } catch (error) {
+          console.error("Error fetching user quotations: ", error);
+        }
+      }
+    };
+
+    fetchQuotations();
+  }, [session, status]); // Dependency array includes session and status to re-run on auth state change
 
   const handleLogout = () => {
     signOut({ callbackUrl: "/" });
@@ -251,60 +280,52 @@ export default function Dashboard() {
               {t("recent_quotes")}
             </h3>
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-              {/* Left Quote Card */}
-              <div className="bg-[#BFE4ED] rounded-lg p-6 h-72">
-                <div className="flex justify-between items-start mb-4">
-                  <div>
-                    <div className="font-bold text-lg">#12346</div>
+              {quotations.length > 0 ? (
+                quotations.map((quote) => (
+                  <div key={quote.id} className="bg-[#BFE4ED] rounded-lg p-6 h-72 flex flex-col justify-between">
+                    <div>
+                      <div className="flex justify-between items-start mb-4">
+                        <div className="font-bold text-lg">#{quote.id}</div>
+                        <span className={`px-3 py-1 rounded-full text-sm font-medium ${
+                          quote.status === "pending" ? "bg-[#F9F871] text-black" : "bg-[#00C898] text-white"
+                        }`}>
+                          {t(quote.status)}
+                        </span>
+                      </div>
+                      <div className="flex flex-col space-y-1">
+                        <span className="font-bold text-3xl text-[#162679]">
+                          {quote.plateNumber}
+                        </span>
+                        <span className="self-end font-semibold text-2xl text-[#162679]">
+                          RM{quote.price}
+                        </span>
+                        <span className="font-semibold text-2xl text-[#162679]">
+                          {quote.vehicleModel}
+                        </span>
+                      </div>
+                    </div>
+                    <button
+                      onClick={() => setSelectedQuote(quote)}
+                      className="w-full mt-4 bg-white text-blue-900 border border-blue-200 py-2 rounded-lg font-medium hover:bg-blue-50"
+                    >
+                      {t("view")}
+                    </button>
                   </div>
-                  <span className="bg-[#F9F871] text-black px-3 py-1 rounded-full text-sm font-medium">
-                    {t("pending")}
-                  </span>
-                </div>
-                <div className="flex flex-col space-y-1">
-                  <span className="font-bold text-3xl text-[#162679]">
-                    PJH 9196
-                  </span>
-                  <span className="self-end font-semibold text-2xl text-[#162679]">
-                    RM980
-                  </span>
-                  <span className="font-semibold text-2xl text-[#162679]">
-                    Toyota Vios 2020
-                  </span>
-                </div>
-                <button className="w-full mt-4 bg-white text-blue-900 border border-blue-200 py-2 rounded-lg font-medium hover:bg-blue-50">
-                  {t("view")}
-                </button>
-              </div>
-
-              {/* Right Quote Card */}
-              <div className="bg-[#BFE4ED] rounded-lg p-6 h-72">
-                <div className="flex justify-between items-start mb-4">
-                  <div>
-                    <div className="text-sm text-gray-600"></div>
-                    <div className="font-bold text-lg">#12345</div>
-                  </div>
-                  <span className="bg-[#00C898] text-white px-3 py-1 rounded-full text-sm font-medium">
-                    {t("confirmed")}
-                  </span>
-                </div>
-                <div className="flex flex-col space-y-1">
-                  <span className="font-bold text-3xl text-[#162679]">
-                    ABC 1234
-                  </span>
-                  <span className="self-end font-semibold text-2xl text-[#162679]">
-                    RM1200
-                  </span>
-                  <span className="font-semibold text-2xl text-[#162679]">
-                    Perodua Myvi 2025
-                  </span>
-                </div>
-                <button className="w-full mt-4 bg-white text-blue-900 border border-blue-200 py-2 rounded-lg font-medium hover:bg-blue-50">
-                  {t("view")}
-                </button>
-              </div>
+                ))
+              ) : (
+                <p className="col-span-3 text-center text-gray-500">
+                  No recent quotations found.
+                </p>
+              )}
+            
             </div>
-          </div>
+
+            {selectedQuote && (
+            <QuotationDetail quote={selectedQuote} onClose={() => setSelectedQuote(null)} />
+          )}
+      </div>
+
+
 
           {/* My Car Records Section */}
           <div className="mb-8">

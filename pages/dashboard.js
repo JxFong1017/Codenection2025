@@ -1,4 +1,4 @@
-import { collection, query, where, getDocs } from "firebase/firestore";
+import { collection, query, where, getDocs, orderBy } from "firebase/firestore";
 import { db } from "../lib/firebase";
 import { useSession, signOut } from "next-auth/react";
 import { useRouter } from "next/router";
@@ -30,7 +30,8 @@ export default function Dashboard() {
       if (status === "authenticated" && session?.user?.email) {
         
         // Create a query to filter quotations by the logged-in user's email
-        const q = query(collection(db, "quotations"), where("userId", "==", session.user.email));
+        const q = query(collection(db, "quotations"), where("userId", "==", session.user.email), orderBy("quotation_no", "desc"));
+
 
         try {
           const querySnapshot = await getDocs(q);

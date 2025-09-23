@@ -10,10 +10,12 @@
   },
   "dependencies": {
     "@dataconnect/generated": "file:src/dataconnect-generated",
+    "@firebase/ai": "^2.3.0",
     "@google-cloud/vertexai": "^1.10.0",
     "@google-cloud/vision": "^5.3.3",
+    "@google/generative-ai": "^0.24.1",
     "dotenv": "^17.2.2",
-    "firebase": "^10.12.3",
+    "firebase": "^10.14.1",
     "formidable": "^3.5.4",
     "fuse.js": "^7.1.0",
     "lucide-react": "^0.544.0",

@@ -599,7 +599,10 @@ export default function ManualQuoteSevenStep({ autofillData }) {
     setYear("");
   }, [brand, model]);
 
+  const [isSubmitting, setIsSubmitting] = useState(false);
   const handleSubmit = async () => {
+    if (isSubmitting) return; // Prevent multiple submissions
+    setIsSubmitting(true);
     if (!session?.user?.email) {
       setNotification({
         type: "error",
@@ -617,6 +620,7 @@ export default function ManualQuoteSevenStep({ autofillData }) {
         type: "error",
         message: "Please select a valid car brand and model.",
       });
+      setIsSubmitting(false);
       return;
     }
     const { engineCapacity, marketValue } = selectedCar;
@@ -680,6 +684,8 @@ export default function ManualQuoteSevenStep({ autofillData }) {
         type: "error",
         message: `Something went wrong: ${error.message}`,
       });
+    } finally {
+      setIsSubmitting(false);
     }
   };
 
@@ -1889,9 +1895,14 @@ useEffect(() => {
                   </button>
                   <button
                     onClick={handleSubmit} /* Updated this line */
-                    className="px-8 py-3 rounded-xl font-semibold text-white bg-blue-800 hover:bg-blue-900"
+                    disabled={isSubmitting}
+                    className={`px-8 py-3 rounded-xl font-semibold text-white ${
+                      isSubmitting
+                        ? "bg-gray-400 cursor-not-allowed"
+                        : "bg-blue-800 hover:bg-blue-900"
+                    }`}
                   >
-                    Submit
+                    {isSubmitting ? "Submitting..." : "Submit"}
                   </button>
                 </div>
               </div>

@@ -1,5 +1,5 @@
 "use client";
-import { getFirestore, collection, addDoc } from "firebase/firestore";
+
 import { useRouter } from "next/router";
 import { useEffect, useMemo, useState } from "react";
 import Head from "next/head";
@@ -649,6 +649,7 @@ export default function ManualQuoteSevenStep({ autofillData }) {
       },
       estimatedPremium: estimateRange,
       email: session.user.email,
+      timezoneOffset: new Date().getTimezoneOffset(),
     };
 
     try {
@@ -685,13 +686,7 @@ export default function ManualQuoteSevenStep({ autofillData }) {
   const router = useRouter();
   const handleDoneClick = async () => {
     try {
-      const db = getFirestore();
-      const docRef = await addDoc(collection(db, "quotations"), {
-        ...quotationData,
-        userId: session?.user?.email, // Add user identifier
-        createdAt: new Date(), // Add a timestamp
-      });
-      console.log("Document written with ID: ", docRef.id);
+      
       router.push("/dashboard"); // Redirect to dashboard
     } catch (e) {
       console.error("Error adding document: ", e);

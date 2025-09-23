@@ -89,7 +89,7 @@ const DICTS = {
     postcode: "Postcode:",
     ncd: "NCD:",
     check_ncd: "Check NCD",
-    estimated_range: "Estimated Car Insurance Range:",
+    estimated_range: "Estimated Premium Range:",
     your_quotation_sent: "Your insurance quotation has been sent to",
     contact_us_help:
       "If you have any questions, please do not hesitate to {contact_us}.",
@@ -106,6 +106,7 @@ const DICTS = {
     get_quote: "Get Quote",
     reminder: "Reminder",
     recent_quotes: "Recent Quotes",
+    view_all: "View All", // <-- Add this line
     my_car_records: "My Car Records",
     pending: "Pending",
     confirmed: "Confirmed",

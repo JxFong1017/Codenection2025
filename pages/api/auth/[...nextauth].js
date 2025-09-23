@@ -51,7 +51,13 @@ export default NextAuth({
       return token;
     },
     async redirect({ url, baseUrl }) {
-      // Always redirect to dashboard after successful authentication
+      // url is the intended redirect URL, baseUrl is the app's base URL.
+      // After a logout, the callbackUrl is passed as url.
+      // In dashboard.js, signOut is called with callbackUrl: "/"
+      if (url === "/") {
+        return "/"; // Redirect to the homepage on logout
+      }
+      // For all other cases (like post-login), redirect to the dashboard.
       return `${baseUrl}/dashboard`;
     },
   },

@@ -19,6 +19,11 @@ export default function Dashboard() {
   const [quotations, setQuotations] = useState([]);
   const [selectedQuote, setSelectedQuote] = useState(null);
 
+  const handleLogout = () => {
+    setShowLogoutPopup(false);
+    signOut({ callbackUrl: "/" });
+  };
+  
   useEffect(() => {
     const fetchQuotations = async () => {
       // Ensure the session is loaded and the user email is available
@@ -43,9 +48,6 @@ export default function Dashboard() {
     fetchQuotations();
   }, [session, status]); // Dependency array includes session and status to re-run on auth state change
 
-  const handleLogout = () => {
-    signOut({ callbackUrl: "/" });
-  };
 
   useEffect(() => {
     if (status === "unauthenticated") {
@@ -107,7 +109,7 @@ export default function Dashboard() {
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <div className="flex justify-between items-center h-16">
               <div className="flex items-center">
-                <h1 className="text-2xl font-bold text-blue-900">CGS</h1>
+              <h1 className="text-2xl font-extrabold text-blue-900">CGS</h1>
               </div>
 
               <div className="flex items-center space-x-6">
@@ -178,14 +180,12 @@ export default function Dashboard() {
                           {t("cancel", "Cancel")}
                         </button>
                         <button
-                          onClick={() => {
-                            setShowLogoutPopup(false);
-                            signOut({ callbackUrl: "/" });
-                          }}
-                          className="flex-1 px-4 py-2 text-sm text-red-500 hover:bg-red-50 rounded-br-lg"
-                        >
-                          {t("log_out", "Log out")}
-                        </button>
+                        onClick={handleLogout}
+                         className="flex-1 px-4 py-2 text-sm text-red-500 hover:bg-red-50 rounded-br-lg"
+                                  >
+                              {t("log_out", "Log out")}
+                          </button>
+
                       </div>
                     </div>
                   )}
@@ -215,17 +215,18 @@ export default function Dashboard() {
             </div>
 
             {/* Right Side (Car Image) */}
-            <div className="flex justify-center md:justify-end relative">
-              <Image
-                src="/images/car-picture-3.png"
-                alt="Car Hero"
-                width={400}
-                height={200}
-                style={{ width: "auto", height: "auto" }}
-                className="object-contain -mt-8 md:-mt-12"
-                priority
-              />
-            </div>
+<div className="flex justify-center md:justify-end relative">
+  <Image
+    src="/images/car-picture-3.png"
+    alt="Car Hero"
+    width={500}
+    height={250}
+    style={{ width: "auto", height: "auto" }}
+    className="object-contain -mt-10 md:-mt-16"
+    priority
+  />
+</div>
+
           </div>
           <div className="absolute bottom-0 right-0 w-1/2 h-1/2 bg-yellow-100 rounded-full opacity-20 -z-10"></div>
         </section>
@@ -276,16 +277,24 @@ export default function Dashboard() {
 
           {/* Recent Quotes Section */}
           <div className="mb-8">
-            <h3 className="text-xl font-bold text-black mb-4">
-              {t("recent_quotes")}
-            </h3>
+          <div className="flex justify-between items-center mb-4">
+  <h3 className="text-xl font-bold text-black">
+    {t("recent_quotes")}
+  </h3>
+  {quotations.length > 3 && (
+    <Link href="/all-quotes" className="text-blue-600 hover:underline">
+    {t("view_all")}
+  </Link>  
+  )}
+</div>
+
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
               {quotations.length > 0 ? (
-                quotations.map((quote) => (
-                  <div key={quote.id} className="bg-[#BFE4ED] rounded-lg p-6 h-72 flex flex-col justify-between">
+                quotations.slice(0, 3).map((quote) => (
+                  <div key={quote.quotation_no} className="bg-[#BFE4ED] rounded-lg p-6 h-72 flex flex-col justify-between">
                     <div>
                       <div className="flex justify-between items-start mb-4">
-                        <div className="font-bold text-lg">#{quote.id}</div>
+                        <div className="font-bold text-lg">#{quote.quotation_no}</div>
                         <span className={`px-3 py-1 rounded-full text-sm font-medium ${
                           quote.status === "pending" ? "bg-[#F9F871] text-black" : "bg-[#00C898] text-white"
                         }`}>
@@ -299,9 +308,17 @@ export default function Dashboard() {
                         <span className="self-end font-semibold text-2xl text-[#162679]">
                           RM{quote.price}
                         </span>
+                        <div className="flex space-x-2">
+                        <span className="font-semibold text-2xl text-[#162679]">
+                          {quote.car_brand}
+                        </span>
                         <span className="font-semibold text-2xl text-[#162679]">
                           {quote.vehicleModel}
                         </span>
+                        <span className="font-semibold text-2xl text-[#162679]">
+                          {quote.manufactured_year}
+                        </span>
+                        </div>
                       </div>
                     </div>
                     <button
@@ -314,7 +331,7 @@ export default function Dashboard() {
                 ))
               ) : (
                 <p className="col-span-3 text-center text-gray-500">
-                  No recent quotations found.
+                  No recent quotations found. Your quotation history will appear here. Get a quote now!
                 </p>
               )}
             

@@ -1,4 +1,4 @@
-import { collection, query, where, getDocs } from "firebase/firestore";
+import { collection, query, where, getDocs, orderBy } from "firebase/firestore";
 import { db } from "../lib/firebase";
 import { useSession } from "next-auth/react";
 import { useRouter } from "next/router";
@@ -19,7 +19,15 @@ export default function AllQuotes() {
   useEffect(() => {
     const fetchQuotations = async () => {
       if (status === "authenticated" && session?.user?.email) {
-        const q = query(collection(db, "quotations"), where("userId", "==", session.user.email));
+        // pages/all-quotes.js
+
+const q = query(
+  collection(db, "quotations"),
+  where("userId", "==", session.user.email),
+  where("status", "not-in", ["deleted"]), // Filters out documents where status is 'deleted'
+  orderBy("quotation_no", "desc")
+);
+
         try {
           const querySnapshot = await getDocs(q);
           const userQuotations = [];

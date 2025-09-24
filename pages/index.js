@@ -20,13 +20,6 @@ export default function Home() {
 
   const t = useT();
 
-  // FIX: Define the toolbar function here
-  const toolbar = (key) => {
-    // This is a simple placeholder. You would implement the
-    // actual translation/logic for this key here.
-    return t(key);
-  };
-
   const handleInputChange = (field, value) => {
     setFormData((prev) => ({ ...prev, [field]: value }));
   };
@@ -182,7 +175,7 @@ export default function Home() {
                               handleInputChange("name", e.target.value)
                             }
                             className="w-full px-4 py-2 bg-white rounded text-gray-900 placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-300"
-                            placeholder="Enter your full name"
+                            placeholder={t("placeholder_name")}
                             required={!isLoginMode}
                           />
                         </div>
@@ -223,7 +216,7 @@ export default function Home() {
                               handleInputChange("phone", e.target.value)
                             }
                             className="flex-1 px-4 py-2 bg-white rounded-r text-gray-900 placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-300"
-                            placeholder="Enter phone number"
+                            placeholder={t("placeholder_phone")}
                             required={!isLoginMode}
                           />
                         </div>
@@ -241,7 +234,7 @@ export default function Home() {
                           handleInputChange("password", e.target.value)
                         }
                         className="w-full px-4 py-2 bg-white rounded text-gray-900 placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-300"
-                        placeholder="Enter your password"
+                        placeholder={t("placeholder_password")}
                         required
                         autoComplete={isLoginMode ? "current-password" : "new-password"}
                       />
@@ -259,7 +252,7 @@ export default function Home() {
                             handleInputChange("confirmPassword", e.target.value)
                           }
                           className="w-full px-4 py-2 bg-white rounded text-gray-900 placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-300"
-                          placeholder="Confirm your password"
+                          placeholder={t("confirm_password")}
                           required={!isLoginMode}
                           autoComplete="new-password"
                         />
@@ -293,12 +286,12 @@ export default function Home() {
                         disabled={isLoading}
                         className="w-36 bg-black text-white py-2 rounded font-bold hover:bg-blue-800 transition-colors disabled:bg-gray-500"
                       >
-                        {isLoading ? (isLoginMode ? 'Logging in...' : 'Signing up...') : (isLoginMode ? t("login") : t("signup"))}
+                        {isLoading ? (isLoginMode ? t('Loggingin') : t('Signingup')) : (isLoginMode ? t("login") : t("signup"))}
                       </button>
 
                       {isLoginMode && (
                         <>
-                          <span className="text-white font-bold">OR</span>
+                          <span className="text-white font-bold">{t("or")}</span>
                           <button
                             type="button"
                             onClick={() => {
@@ -315,7 +308,7 @@ export default function Home() {
 
                       {!isLoginMode && (
                         <p className="text-white text-center text-sm">
-                          Already have an account?{" "}
+                          {t("have_account")}{" "}
                           <span
                             onClick={() => {
                               setIsLoginMode(true);
@@ -324,7 +317,7 @@ export default function Home() {
                             }}
                             className="underline cursor-pointer font-bold text-[#67DABB]"
                           >
-                            Login here
+                            {t("login_here")}
                           </span>
                         </p>
                       )}
@@ -565,7 +558,7 @@ export default function Home() {
               </div>
               <div>
                 <h4 className="text-lg font-semibold mb-4">
-                  {toolbar("useful_links")}
+                  {t("useful_links")}
                 </h4>
                 <ul className="space-y-2">
                   <li>

@@ -1,11 +1,16 @@
-
 import { quotationTemplate } from '../../lib/quotationTemplate';
+import { useState } from 'react';
+import { useRouter } from 'next/router';
+import { doc, updateDoc } from 'firebase/firestore';
+import { db } from '../../lib/firebase';
 
 export default function QuotationDetail({ quote, onClose }) {
+  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
+  const router = useRouter();
+
   const createQuotationHtml = () => {
     let html = quotationTemplate;
 
-    // The 'quote' object now comes directly from Firestore with all the saved details
     const data = {
       quotation_no: quote.quotation_no || quote.id,
       date: quote.date || new Date().toLocaleDateString(),
@@ -43,15 +48,42 @@ export default function QuotationDetail({ quote, onClose }) {
       third_party_only_metroprotect: quote.third_party_only_metroprotect || 'N/A',
     };
 
-    // Replace all placeholders with the data from the quote object
     for (const key in data) {
       html = html.replace(new RegExp('{{' + key + '}}', 'g'), data[key]);
     }
     
-    // Clean up any remaining placeholders that might not have had data
     html = html.replace(/{{\w+}}/g, 'N/A');
 
     return html;
+  };
+
+  const handleRenew = () => {
+    router.push(`/confirm?quoteId=${quote.id}`);
+  };
+
+  const handleDelete = () => {
+    setShowDeleteConfirm(true);
+  };
+
+  const confirmDelete = async () => {
+    if (!quote || !quote.id) {
+        console.error("No quote or quote ID found, cannot delete.");
+        return;
+    }
+    try {
+      const quoteRef = doc(db, 'quotations', quote.id);
+      await updateDoc(quoteRef, {
+        status: 'deleted'
+      });
+      setShowDeleteConfirm(false);
+      onClose();
+    } catch (error) {
+      console.error("Error updating document: ", error);
+    }
+  };
+
+  const cancelDelete = () => {
+    setShowDeleteConfirm(false);
   };
 
   return (
@@ -71,6 +103,31 @@ export default function QuotationDetail({ quote, onClose }) {
           style={{ width: '100%', height: '70vh', border: 'none' }}
           title="Quotation Detail"
         />
+        <div className="flex justify-end mt-4 space-x-4">
+            <button
+                onClick={handleRenew}
+                className="bg-blue-500 text-white py-2 px-4 rounded-lg hover:bg-blue-600"
+            >
+                Renew Now
+            </button>
+            <button
+                onClick={handleDelete}
+                className="bg-gray-500 text-white py-2 px-4 rounded-lg hover:bg-gray-600"
+            >
+                Delete quotation
+            </button>
+        </div>
+        {showDeleteConfirm && (
+            <div className="fixed inset-0 bg-gray-600 bg-opacity-75 flex items-center justify-center z-60">
+                <div className="bg-white p-6 rounded-lg shadow-lg text-center">
+                    <h3 className="text-lg font-bold mb-4">Are you sure you want to delete this quotation?</h3>
+                    <div className="flex justify-center space-x-4">
+                        <button onClick={cancelDelete} className="bg-gray-300 text-black py-2 px-4 rounded-lg hover:bg-gray-400">Cancel</button>
+                        <button onClick={confirmDelete} className="bg-red-500 text-white py-2 px-4 rounded-lg hover:bg-red-600">Confirm</button>
+                    </div>
+                </div>
+            </div>
+        )}
       </div>
     </div>
   );

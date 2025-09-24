@@ -42,6 +42,8 @@ export default function ChatAssistant() {
         body: JSON.stringify({ message: trimmed }),
       });
 
+      console.log(response)
+
       if (!response.ok) {
         throw new Error("Something went wrong");
       }

@@ -30,7 +30,15 @@ export default function Dashboard() {
       if (status === "authenticated" && session?.user?.email) {
         
         // Create a query to filter quotations by the logged-in user's email
-        const q = query(collection(db, "quotations"), where("userId", "==", session.user.email), orderBy("quotation_no", "desc"));
+       // pages/dashboard.js
+
+const q = query(
+  collection(db, "quotations"),
+  where("userId", "==", session.user.email),
+  where("status", "not-in", ["deleted"]), // Filters out documents where status is 'deleted'
+  orderBy("quotation_no", "desc")
+);
+
 
 
         try {
@@ -80,7 +88,7 @@ export default function Dashboard() {
       <div className="min-h-screen bg-gray-50 flex items-center justify-center">
         <div className="text-center">
           <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-blue-600 mx-auto"></div>
-          <p className="mt-4 text-gray-600">Loading...</p>
+          <p className="mt-4 text-gray-600">{t("loading")}</p>
         </div>
       </div>
     );
@@ -107,10 +115,10 @@ export default function Dashboard() {
       <div className="min-h-screen bg-gray-50">
         {/* Header */}
         <header className="bg-white shadow-sm">
-          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <div className="flex justify-between items-center h-16">
               <div className="flex items-center">
-              <h1 className="text-2xl font-extrabold text-blue-900">CGS</h1>
+                <h1 className="text-4xl font-extrabold text-[#004F9E] ml-1">CGS</h1>
               </div>
 
               <div className="flex items-center space-x-6">
@@ -127,7 +135,7 @@ export default function Dashboard() {
                       height={20}
                       className="w-5 h-5"
                     />
-                    <span>Profile</span>
+                    <span>{t("profile")}</span>
                   </a>
                   <a
                     href="#"
@@ -140,7 +148,7 @@ export default function Dashboard() {
                       height={20}
                       className="w-5 h-5"
                     />
-                    <span>Get Quotation</span>
+                    <span>{t("get_quotation")}</span>
                   </a>
                   <a
                     href="#"
@@ -153,7 +161,7 @@ export default function Dashboard() {
                       height={20}
                       className="w-5 h-5"
                     />
-                    <span>Notifications</span>
+                    <span>{t("notifications")}</span>
                   </a>
                 </nav>
 
@@ -216,17 +224,16 @@ export default function Dashboard() {
             </div>
 
             {/* Right Side (Car Image) */}
-<div className="flex justify-center md:justify-end relative">
-  <Image
-    src="/images/car-picture-3.png"
-    alt="Car Hero"
-    width={500}
-    height={250}
-    style={{ width: "auto", height: "auto" }}
-    className="object-contain -mt-10 md:-mt-16"
-    priority
-  />
-</div>
+            <div className="flex justify-center md:justify-end relative">
+              <Image
+                src="/images/car-picture-3.png"
+                alt="Car Hero"
+                width={350}
+                height={200}
+                className="object-contain mt-10 md:mt-10"
+                priority
+              />
+            </div>
 
           </div>
           <div className="absolute bottom-0 right-0 w-1/2 h-1/2 bg-yellow-100 rounded-full opacity-20 -z-10"></div>
@@ -332,7 +339,7 @@ export default function Dashboard() {
                 ))
               ) : (
                 <p className="col-span-3 text-center text-gray-500">
-                  No recent quotations found. Your quotation history will appear here. Get a quote now!
+                  {t("No recent quotations found. Your quotation history will appear here. Get a quote now!")}
                 </p>
               )}
             
@@ -341,9 +348,7 @@ export default function Dashboard() {
             {selectedQuote && (
             <QuotationDetail quote={selectedQuote} onClose={() => setSelectedQuote(null)} />
           )}
-      </div>
-
-
+        </div>
 
           {/* My Car Records Section */}
           <div className="mb-8">

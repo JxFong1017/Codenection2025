@@ -457,7 +457,7 @@ export default function ManualQuoteSevenStep({ autofillData }) {
       setBrand(""); // Clear the brand state to prevent invalid submissions
       setBrandValidation({
         isValid: false,
-        error: "Invalid brand. Please choose from the dropdown list.",
+        error: t("invalid_brand")
       });
     }
   }, [debouncedBrandSearch, allBrands, fuse]);
@@ -580,7 +580,7 @@ export default function ManualQuoteSevenStep({ autofillData }) {
       if (debouncedModelSearch.length > 0) {
         setModelValidation({
           isValid: false,
-          error: "Invalid model. Please choose from the dropdown list.",
+          error: t("invalid_model")
         });
       } else {
         setModelValidation({ isValid: null, error: null });
@@ -702,11 +702,11 @@ export default function ManualQuoteSevenStep({ autofillData }) {
   const steps = [
     { id: 1, title: t("steps_1") },
     { id: 2, title: t("steps_2") },
-    { id: 3, title: "Choose Coverage" },
-    { id: 4, title: t("steps_3") },
-    { id: 5, title: t("steps_4") },
-    { id: 6, title: t("steps_5") },
-    { id: 7, title: t("steps_6") },
+    { id: 3, title: t("steps_3") },
+    { id: 4, title: t("steps_4") },
+    { id: 5, title: t("steps_5") },
+    { id: 6, title: t("steps_6") },
+    { id: 7, title: t("steps_7") },
   ];
 
   const goNext = () => setStep((s) => Math.min(7, s + 1));
@@ -982,7 +982,7 @@ useEffect(() => {
                     height={20}
                     className="w-5 h-5"
                   />
-                  <span>Profile</span>
+                  <span>{t("profile")}</span>
                 </a>
                 <a
                   href="#"
@@ -994,7 +994,7 @@ useEffect(() => {
                     width={20}
                     height={20}
                   />
-                  <span>Get Quotation</span>
+                  <span>{t("get_quotation")}</span>
                 </a>
                 <a
                   href="#"
@@ -1006,7 +1006,7 @@ useEffect(() => {
                     width={20}
                     height={20}
                   />
-                  <span>Notifications</span>
+                  <span>{t("notifications")}</span>
                 </a>
               </nav>
 
@@ -1152,7 +1152,7 @@ useEffect(() => {
                     value={plate}
                     onChange={handlePlateInput}
                     className="w-full max-w-md px-6 py-4 bg-blue-50 rounded-xl text-blue-900 text-xl text-center outline-none border border-blue-100 focus:ring-2 focus:ring-blue-400"
-                    placeholder="e.g. PKD 8381"
+                    placeholder={t("example_plate")}
                     disabled={showPlateConfirm}
                   />
                 </div>
@@ -1203,7 +1203,7 @@ useEffect(() => {
             {step === 1 && showPlateConfirm && (
               <div className="text-center p-6 bg-blue-50 rounded-lg shadow mt-6">
                 <p className="text-blue-700 text-lg font-semibold">
-                  Are you sure your car plate number is{" "}
+                  {t("confirmation_plate")}{" "}
                   <span className="font-bold">{plate}</span>?
                 </p>
                 <div className="mt-6 flex justify-center gap-4">
@@ -1211,7 +1211,7 @@ useEffect(() => {
                     onClick={() => setShowPlateConfirm(false)} // back to edit
                     className="px-6 py-2 border border-blue-200 rounded-lg text-blue-900 font-semibold hover:bg-blue-50"
                   >
-                    {t("back")} to Edit
+                    {t("back_edit")}
                   </button>
                   <button
                     onClick={() => {
@@ -1228,14 +1228,14 @@ useEffect(() => {
             {step === 2 && (
               <div>
                 <div className="text-xl font-bold text-blue-900 mb-6">
-                  {t("Car Plate Number: ")} {quoteDraft.plate || "—"}
+                  {t("car_plate_number")} {quoteDraft.plate || "—"}
                 </div>
 
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                   {/* Car Brand */}
                   <div className="relative">
                     <label className="block text-blue-900 font-semibold mb-2">
-                      {t("Car Brand:")}
+                      {t("car_brand")}
                     </label>
                     <input
                       type="text"
@@ -1256,7 +1256,7 @@ useEffect(() => {
                           ? "border-red-500"
                           : "border-blue-100"
                       } focus:ring-2 focus:ring-blue-400`}
-                      placeholder="Type to search..."
+                      placeholder={t("search")}
                       autoComplete="off"
                     />
                     {brandValidation.error && (
@@ -1287,7 +1287,7 @@ useEffect(() => {
                   {/* Car Model */}
                   <div className="relative">
                     <label className="block text-blue-900 font-semibold mb-2">
-                      {t("Car Model:")}
+                      {t("car_model")}
                     </label>
                     <input
                       type="text"
@@ -1312,7 +1312,7 @@ useEffect(() => {
                           ? "border-red-500"
                           : "border-blue-100"
                       } focus:ring-2 focus:ring-blue-400`}
-                      placeholder="Type to search..."
+                      placeholder={t("search")}
                       disabled={!brand}
                       autoComplete="off"
                     />
@@ -1352,7 +1352,7 @@ useEffect(() => {
                       className="w-full px-4 py-3 bg-blue-50 rounded-lg text-blue-900 border border-blue-100 focus:ring-2 focus:ring-blue-400"
                       disabled={!model}
                     >
-                      <option value="">Select year</option>
+                      <option value="">{t("select")}</option>
                       {availableYears
                         .sort((a, b) => b - a)
                         .map((y) => (
@@ -1396,7 +1396,7 @@ useEffect(() => {
             {step === 3 && (
               <div>
                 <h2 className="text-xl font-bold text-blue-900 mb-6">
-                  Choose Your Coverage Type
+                  {t("choose_coverage")}
                 </h2>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                   {/* Third-Party Only Option */}
@@ -1420,13 +1420,12 @@ useEffect(() => {
                         Third-Party Only
                       </h3>
                       <p className="text-sm text-gray-600">
-                        Covers damages to other parties&apos; vehicles or
-                        property.
+                        {t("third_party_description")}
                       </p>
                       {/* Conditional message for Third-Party Only */}
                       {coverageType === "Third-Party Only" && (
                         <p className="text-sm text-red-500 mt-1">
-                          No additional protection available.
+                          {t("no_protection")}
                         </p>
                       )}
                     </div>
@@ -1453,13 +1452,12 @@ useEffect(() => {
                         Third-Party, Fire & Theft
                       </h3>
                       <p className="text-sm text-gray-600">
-                        Includes Third-Party coverage plus protection against
-                        fire and theft.
+                        {t("third_party_fire_party_description")}
                       </p>
                       {/* Conditional message for Third-Party, Fire & Theft */}
                       {coverageType === "Third-Party, Fire & Theft" && (
                         <p className="text-sm text-red-500 mt-1">
-                          No additional protection available.
+                          {t("no_protection")}
                         </p>
                       )}
                     </div>
@@ -1486,8 +1484,7 @@ useEffect(() => {
                         Comprehensive
                       </h3>
                       <p className="text-sm text-gray-600">
-                        The highest level of protection, covering damage to your
-                        vehicle, third parties, fire, and theft.
+                        {t("comprehensive_description")}
                       </p>
                     </div>
                   </label>
@@ -1542,7 +1539,7 @@ useEffect(() => {
                       checked={!!protections.None}
                       onChange={() => toggleProtection("None")}
                     />
-                    <span className="text-blue-900">None</span>
+                    <span className="text-blue-900">{t("none")}</span>
                   </label>
 
                   {[
@@ -1603,7 +1600,7 @@ useEffect(() => {
                   {/* Vehicle Info (read-only) */}
                   <div>
                     <div className="text-blue-900 font-bold mb-2">
-                      {t("Car Plate Number:")}{" "}
+                      {t("car_plate_number")}{" "}
                       <span className="font-normal">{plate || "—"}</span>
                     </div>
                     <div className="text-blue-900 font-bold mb-2">
@@ -1611,8 +1608,7 @@ useEffect(() => {
                       <span className="font-normal">{brand || "—"}</span>
                     </div>
                     <div className="text-blue-900 font-bold mb-2">
-                      {t("car_model")}
-                      {": "}
+                      {t("car_model")}{" "}
                       <span className="font-normal">{model || "—"}</span>
                     </div>
                     <div className="text-blue-900 font-bold mb-2">
@@ -1622,7 +1618,7 @@ useEffect(() => {
 
                     {/* New: Display Coverage Type */}
                     <div className="text-blue-900 font-bold mb-2">
-                      Type of Coverage:{" "}
+                      {t("coverage")}{" "}
                       <span className="font-normal">{coverageType || "—"}</span>
                     </div>
 
@@ -1645,15 +1641,15 @@ useEffect(() => {
                     {/* NCD Section (Moved to be the first item in the personal info column) */}
                     <div>
                       <label className="block text-blue-900 font-semibold mb-2">
-                        {t("Select Your Next NCD:")}
+                        {t("ncd")}
                         <span className="font-normal ml-2">
-                          (Unsure?{" "}
+                          ( {t("Unsure")}{" "}
                           <button
                             className="underline"
                             type="button"
                             onClick={handleCheckNcd}
                           >
-                            Click here to check your NCD
+                            {t("check_ncd")}
                           </button>
                           )
                         </span>
@@ -1674,7 +1670,7 @@ useEffect(() => {
 
                     <div>
                       <label className="block text-blue-900 font-semibold mb-2">
-                        {t("Full Name: ")}
+                        {t("name")}
                       </label>
                       <input
                         value={name}
@@ -1685,7 +1681,7 @@ useEffect(() => {
 
                     <div className="md:col-span-2 flex items-center mb-4">
                       <span className="text-blue-900 font-semibold mr-4">
-                        ID Type:
+                        {t("id_type")}
                       </span>
                       <label className="inline-flex items-center">
                         <input
@@ -1699,7 +1695,7 @@ useEffect(() => {
                             setPassport("");
                           }}
                         />
-                        <span className="ml-2 text-blue-900">NRIC (IC)</span>
+                        <span className="ml-2 text-blue-900">{t("ic")}</span>
                       </label>
                       <label className="inline-flex items-center ml-6">
                         <input
@@ -1713,14 +1709,14 @@ useEffect(() => {
                             setIc("");
                           }}
                         />
-                        <span className="ml-2 text-blue-900">Passport</span>
+                        <span className="ml-2 text-blue-900">{t("Passport")}</span>
                       </label>
                     </div>
 
                     {documentType === "ic" ? (
                       <div className="mb-4">
                         <label className="block text-blue-900 font-semibold mb-2">
-                          NRIC (IC):
+                          {t("number_ic")}
                         </label>
                         <input
                           type="text"
@@ -1747,7 +1743,7 @@ useEffect(() => {
                     ) : (
                       <div className="mb-4">
                         <label className="block text-blue-900 font-semibold mb-2">
-                          Passport Number:
+                        {t("number_passport")}
                         </label>
                         <input
                           type="text"
@@ -1760,7 +1756,7 @@ useEffect(() => {
                               ? "border-red-500"
                               : "border-blue-100"
                           }`}
-                          placeholder="e.g. 123456789"
+                          placeholder={t("eg") + " 123456789"}
                         />
                         {passportValidation.error && (
                           <p className="mt-2 text-sm text-red-600">
@@ -1838,12 +1834,12 @@ useEffect(() => {
                       <span className="font-normal">{year}</span>
                     </div>
                     <div className="font-bold">
-                      {t("ncd")} <span className="font-normal">{ncd}%</span>
+                      {t("ncd_preview")} <span className="font-normal">{ncd}%</span>
                     </div>
 
                     {/* New: Display Coverage Type */}
                     <div className="font-bold">
-                      Type of Coverage:{" "}
+                      {t("coverage")}{" "}
                       <span className="font-normal">{coverageType || "—"}</span>
                     </div>
 

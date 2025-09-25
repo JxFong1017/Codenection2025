@@ -16,6 +16,7 @@ export default function QuotationDetail({ quote, onClose }) {
       date: quote.date || new Date().toLocaleDateString(),
       customer_name: quote.customer_name || 'N/A',
       ic: quote.ic || 'N/A',
+      coverage: quote.coverage || 'N/A',
       postcode: quote.postcode || 'N/A',
       car_plate_number: quote.plateNumber || 'N/A',
       car_brand: quote.car_brand || 'N/A',

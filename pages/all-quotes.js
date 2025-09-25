@@ -19,14 +19,12 @@ export default function AllQuotes() {
   useEffect(() => {
     const fetchQuotations = async () => {
       if (status === "authenticated" && session?.user?.email) {
-        // pages/all-quotes.js
-
-const q = query(
-  collection(db, "quotations"),
-  where("userId", "==", session.user.email),
-  where("status", "not-in", ["deleted"]), // Filters out documents where status is 'deleted'
-  orderBy("quotation_no", "desc")
-);
+        const q = query(
+          collection(db, "quotations"),
+          where("userId", "==", session.user.email), // Use user.email as requested
+          where("status", "not-in", ["deleted"]),
+          orderBy("quotation_no", "desc")
+        );
 
         try {
           const querySnapshot = await getDocs(q);
@@ -55,7 +53,8 @@ const q = query(
     );
   }
 
-  if (!session) {
+  if (status === "unauthenticated") {
+    router.push("/");
     return null;
   }
 
@@ -71,15 +70,15 @@ const q = query(
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <div className="flex justify-between items-center h-16">
               <div className="flex items-center">
-              <Link href="/dashboard">
-              <h1 className="text-2xl font-extrabold text-blue-900">CGS</h1>
+                <Link href="/dashboard">
+                  <h1 className="text-2xl font-extrabold text-blue-900">CGS</h1>
                 </Link>
               </div>
               <div className="flex items-center">
-              <Link href="/dashboard" className="text-gray-600 hover:text-blue-900">
-              {t("Back to Home Page")}
-                  </Link>
-                </div>
+                <Link href="/dashboard" className="text-gray-600 hover:text-blue-900">
+                  {t("Back to Home Page")}
+                </Link>
+              </div>
             </div>
           </div>
         </header>
@@ -110,15 +109,15 @@ const q = query(
                           RM{quote.price}
                         </span>
                         <div className="flex space-x-2">
-                        <span className="font-semibold text-2xl text-[#162679]">
-                          {quote.car_brand}
-                        </span>
-                        <span className="font-semibold text-2xl text-[#162679]">
-                          {quote.vehicleModel}
-                        </span>
-                        <span className="font-semibold text-2xl text-[#162679]">
-                          {quote.manufactured_year}
-                        </span>
+                          <span className="font-semibold text-2xl text-[#162679]">
+                            {quote.car_brand}
+                          </span>
+                          <span className="font-semibold text-2xl text-[#162679]">
+                            {quote.vehicleModel}
+                          </span>
+                          <span className="font-semibold text-2xl text-[#162679]">
+                            {quote.manufactured_year}
+                          </span>
                         </div>
                       </div>
                     </div>

@@ -8,7 +8,7 @@ import DecisionPopup from "../src/components/DecisionPopup";
 import { useT } from "../src/utils/i18n";
 import Image from "next/image";
 import Link from "next/link";
-import QuotationDetail from "../src/components/QuotationDetail"; // Import the new component
+import QuotationDetail from "../src/components/QuotationDetail";
 
 export default function Dashboard() {
   const t = useT();
@@ -26,20 +26,13 @@ export default function Dashboard() {
   
   useEffect(() => {
     const fetchQuotations = async () => {
-      // Ensure the session is loaded and the user email is available
       if (status === "authenticated" && session?.user?.email) {
-        
-        // Create a query to filter quotations by the logged-in user's email
-       // pages/dashboard.js
-
-const q = query(
-  collection(db, "quotations"),
-  where("userId", "==", session.user.email),
-  where("status", "not-in", ["deleted"]), // Filters out documents where status is 'deleted'
-  orderBy("quotation_no", "desc")
-);
-
-
+        const q = query(
+          collection(db, "quotations"),
+          where("userId", "==", session.user.email),
+          where("status", "not-in", ["deleted"]),
+          orderBy("quotation_no", "desc")
+        );
 
         try {
           const querySnapshot = await getDocs(q);
@@ -55,8 +48,7 @@ const q = query(
     };
 
     fetchQuotations();
-  }, [session, status]); // Dependency array includes session and status to re-run on auth state change
-
+  }, [session, status]);
 
   useEffect(() => {
     if (status === "unauthenticated") {
@@ -105,7 +97,6 @@ const q = query(
         <meta name="description" content="Your car insurance dashboard" />
       </Head>
 
-      {/* Decision Popup */}
       <DecisionPopup
         isOpen={showDecisionPopup}
         onClose={handleClosePopup}
@@ -113,21 +104,16 @@ const q = query(
       />
 
       <div className="min-h-screen bg-gray-50">
-        {/* Header */}
         <header className="bg-white shadow-sm">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <div className="flex justify-between items-center h-16">
               <div className="flex items-center">
                 <h1 className="text-4xl font-extrabold text-[#004F9E] ml-1">CGS</h1>
               </div>
 
               <div className="flex items-center space-x-6">
-                {/* Navigation Links */}
                 <nav className="hidden md:flex space-x-6">
-                  <a
-                    href="#"
-                    className="flex items-center space-x-2 text-gray-600 hover:text-blue-900"
-                  >
+                  <Link href="/profile" className="flex items-center space-x-2 text-gray-600 hover:text-blue-900">
                     <Image
                       src="/images/profile.png"
                       alt="Profile"
@@ -136,7 +122,7 @@ const q = query(
                       className="w-5 h-5"
                     />
                     <span>{t("profile")}</span>
-                  </a>
+                  </Link>
                   <a
                     href="#"
                     className="flex items-center space-x-2 text-gray-600 hover:text-blue-900"
@@ -165,7 +151,6 @@ const q = query(
                   </a>
                 </nav>
 
-                {/* User Info as Logout Button */}
                 <div className="relative">
                   <button
                     onClick={() => setShowLogoutPopup(!showLogoutPopup)}
@@ -174,12 +159,10 @@ const q = query(
                     {session.user.email || "user@gmail.com"}
                   </button>
 
-                  {/* Small Popup */}
                   {showLogoutPopup && (
                     <div className="absolute right-0 translate-x-1 mt-2 w-48 bg-white rounded-lg shadow-lg border border-gray-200 z-50">
                       <p className="px-4 py-3 text-gray-700 text-sm text-left">
                         {t("logout_confirmation")}
-                        {/* Alternatively, you can add this key to your DICTS like: logout_confirmation */}
                       </p>
                       <div className="flex border-t border-gray-200">
                         <button
@@ -189,12 +172,11 @@ const q = query(
                           {t("cancel", "Cancel")}
                         </button>
                         <button
-                        onClick={handleLogout}
-                         className="flex-1 px-4 py-2 text-sm text-red-500 hover:bg-red-50 rounded-br-lg"
-                                  >
-                              {t("log_out", "Log out")}
-                          </button>
-
+                          onClick={handleLogout}
+                          className="flex-1 px-4 py-2 text-sm text-red-500 hover:bg-red-50 rounded-br-lg"
+                        >
+                          {t("log_out", "Log out")}
+                        </button>
                       </div>
                     </div>
                   )}
@@ -204,10 +186,8 @@ const q = query(
           </div>
         </header>
 
-        {/* Hero Section */}
         <section className="bg-[#162679] pt-12 pb-8 relative overflow-hidden">
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 grid grid-cols-1 md:grid-cols-2 items-center gap-8">
-            {/* Left Side (Text) */}
             <div className="text-left">
               <h2 className="text-4xl font-bold text-[#F9F871] mb-4">
                 {t("get_quote_instantly")}
@@ -223,7 +203,6 @@ const q = query(
               </button>
             </div>
 
-            {/* Right Side (Car Image) */}
             <div className="flex justify-center md:justify-end relative">
               <Image
                 src="/images/car-picture-3.png"
@@ -234,14 +213,11 @@ const q = query(
                 priority
               />
             </div>
-
           </div>
           <div className="absolute bottom-0 right-0 w-1/2 h-1/2 bg-yellow-100 rounded-full opacity-20 -z-10"></div>
         </section>
 
-        {/* Main Content */}
         <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-          {/* Reminder Section */}
           <div className="bg-white rounded-lg border-2 border-black p-6 mb-8">
             <div className="flex items-center space-x-4 mb-4">
               <div className="w-12 h-12 flex items-center justify-center">
@@ -254,7 +230,6 @@ const q = query(
                   className="object-contain"
                 />
               </div>
-
               <h3 className="text-xl font-bold text-black">
                 {t("reminder")}
               </h3>
@@ -283,19 +258,17 @@ const q = query(
             </div>
           </div>
 
-          {/* Recent Quotes Section */}
           <div className="mb-8">
-          <div className="flex justify-between items-center mb-4">
-  <h3 className="text-xl font-bold text-black">
-    {t("recent_quotes")}
-  </h3>
-  {quotations.length > 3 && (
-    <Link href="/all-quotes" className="text-blue-600 hover:underline">
-    {t("view_all")}
-  </Link>  
-  )}
-</div>
-
+            <div className="flex justify-between items-center mb-4">
+              <h3 className="text-xl font-bold text-black">
+                {t("recent_quotes")}
+              </h3>
+              {quotations.length > 3 && (
+                <Link href="/all-quotes" className="text-blue-600 hover:underline">
+                  {t("view_all")}
+                </Link> 
+              )}
+            </div>
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
               {quotations.length > 0 ? (
                 quotations.slice(0, 3).map((quote) => (
@@ -317,15 +290,15 @@ const q = query(
                           RM{quote.price}
                         </span>
                         <div className="flex space-x-2">
-                        <span className="font-semibold text-2xl text-[#162679]">
-                          {quote.car_brand}
-                        </span>
-                        <span className="font-semibold text-2xl text-[#162679]">
-                          {quote.vehicleModel}
-                        </span>
-                        <span className="font-semibold text-2xl text-[#162679]">
-                          {quote.manufactured_year}
-                        </span>
+                          <span className="font-semibold text-2xl text-[#162679]">
+                            {quote.car_brand}
+                          </span>
+                          <span className="font-semibold text-2xl text-[#162679]">
+                            {quote.vehicleModel}
+                          </span>
+                          <span className="font-semibold text-2xl text-[#162679]">
+                            {quote.manufactured_year}
+                          </span>
                         </div>
                       </div>
                     </div>
@@ -342,21 +315,17 @@ const q = query(
                   {t("No recent quotations found. Your quotation history will appear here. Get a quote now!")}
                 </p>
               )}
-            
             </div>
-
             {selectedQuote && (
-            <QuotationDetail quote={selectedQuote} onClose={() => setSelectedQuote(null)} />
-          )}
-        </div>
+              <QuotationDetail quote={selectedQuote} onClose={() => setSelectedQuote(null)} />
+            )}
+          </div>
 
-          {/* My Car Records Section */}
           <div className="mb-8">
             <h3 className="text-xl font-bold text-black mb-4">
               {t("my_car_records")}
             </h3>
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-              {/* Left Car Record */}
               <div className="bg-[#BFE4ED] rounded-lg p-6 h-72">
                 <div className="space-y-3">
                   <div className="flex justify-between items-start">
@@ -390,8 +359,6 @@ const q = query(
                   </button>
                 </div>
               </div>
-
-              {/* Middle Car Record */}
               <div className="bg-[#BFE4ED] rounded-lg p-6 h-72">
                 <div className="space-y-3">
                   <div className="flex justify-between items-start">
@@ -425,8 +392,6 @@ const q = query(
                   </button>
                 </div>
               </div>
-
-              {/* Right Car Record */}
               <div className="bg-[#BFE4ED] rounded-lg p-6 h-72">
                 <div className="space-y-3">
                   <div className="flex justify-between items-start">
@@ -464,11 +429,9 @@ const q = query(
           </div>
         </main>
 
-        {/* Footer */}
         <footer className="bg-blue-900 text-white py-12">
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-              {/* Left Column - About Us */}
               <div>
                 <h4 className="text-lg font-semibold mb-4">
                   {t("about_us")}
@@ -482,7 +445,6 @@ const q = query(
                 </ul>
               </div>
 
-              {/* Center Column - Useful Links */}
               <div>
                 <h4 className="text-lg font-semibold mb-4">
                   {t("useful_links")}
@@ -501,13 +463,11 @@ const q = query(
                 </ul>
               </div>
 
-              {/* Right Column - Social Media */}
               <div>
                 <h4 className="text-lg font-semibold mb-4">
                   {t("follow_us")}
                 </h4>
                 <div className="flex space-x-4">
-                  {/* Facebook */}
                   <a href="#" className="text-blue-200 hover:text-white">
                     <svg
                       className="w-6 h-6"
@@ -517,7 +477,6 @@ const q = query(
                       <path d="M22 12c0-5.522-4.477-10-10-10S2 6.478 2 12c0 5 3.657 9.128 8.438 9.878v-6.988h-2.54v-2.89h2.54V9.845c0-2.507 1.492-3.89 3.777-3.89 1.094 0 2.238.195 2.238.195v2.46h-1.26c-1.243 0-1.63.771-1.63 1.562v1.875h2.773l-.443 2.89h-2.33v6.988C18.343 21.128 22 17 22 12z" />
                     </svg>
                   </a>
-                  {/* LinkedIn */}
                   <a href="#" className="text-blue-200 hover:text-white">
                     <svg
                       className="w-6 h-6"
@@ -527,44 +486,13 @@ const q = query(
                       <path d="M4.98 3.5C4.98 4.88 3.88 6 2.5 6S0 4.88 0 3.5 1.12 1 2.5 1s2.48 1.12 2.48 2.5zM0 8h5v16H0V8zm7.5 0h4.78v2.23h.07c.67-1.27 2.31-2.61 4.76-2.61 5.09 0 6.03 3.34 6.03 7.69V24h-5V15.45c0-2.05-.04-4.69-2.86-4.69-2.86 0-3.3 2.24-3.3 4.55V24h-5V8z" />
                     </svg>
                   </a>
-                  {/* Instagram */}
                   <a href="#" className="text-blue-200 hover:text-white">
                     <svg
                       className="w-6 h-6"
                       fill="currentColor"
                       viewBox="0 0 24 24"
                     >
-                      <path d="M12 2.163c3.204 0 3.584.012 4.85.07 1.366.062 2.633.34 3.608 1.315.975.975 1.253 2.242 1.315 3.608.058 1.266.07 1.645.07 4.85s-.012 3.584-.07 4.85c-.062 1.366-.34 2.633-1.315 3.608-.975.975-2.242 1.253-3.608 1.315-1.266.058-1.645.07-4.85.07s-3.584-.012-4.85-.07c-1.366-.062-2.633-.34-3.608-1.315-.975-.975-1.253-2.242-1.315-3.608C2.175 15.584 2.163 15.204 2.163 12s.012-3.584.07-4.85c.062-1.366.34-2.633 1.315-3.608C4.523 2.503 5.79 2.225 7.156 2.163 8.422 2.105 8.802 2.163 12 2.163zm0 1.838c-3.176 0-3.552.012-4.805.069-1.07.049-1.65.227-2.037.38-.512.2-.877.438-1.265.825-.388.388-.625.754-.825 1.265-.153.387-.331.967-.38 2.037-.057 1.253-.069 1.629-.069 4.805s.012 3.552.069 4.805c.049 1.07.227 1.65.38 2.037.2.512.438.877.825 1.265.388.388.754.625 1.265.825.387.153.967.331 2.037.38 1.253.057 1.629.069 4.805.069s3.552-.012 4.805-.069c1.07-.049 1.65-.227 2.037-.38.512-.2.877-.438 1.265-.825.388-.388.625-.754.825-1.265.153-.387.331-.967.38-2.037.057-1.253.069-1.629.069-4.805s-.012-3.552-.069-4.805c-.049-1.07-.227-1.65-.38-2.037-.2-.512-.438-.877-.825-1.265-.388-.388-.754-.625-1.265-.825-.387-.153-.967-.331-2.037-.38-1.253-.057-1.629-.069-4.805-.069zm0 4.838a5 5 0 1 1 0 10 5 5 0 0 1 0-10zm0 1.838a3.162 3.162 0 1 0 0 6.324 3.162 3.162 0 0 0 0-6.324zm6.406-3.845a1.17 1.17 0 1 1-2.34 0 1.17 1.17 0 0 1 2.34 0z" />
-                    </svg>
-                  </a>
-                  {/* TikTok */}
-                  <a href="#" className="text-blue-200 hover:text-white">
-                    <svg
-                      className="w-6 h-6"
-                      fill="currentColor"
-                      viewBox="0 0 24 24"
-                    >
-                      <path d="M12 0C5.373 0 0 5.373 0 12c0 6.625 5.373 12 12 12 6.627 0 12-5.375 12-12 0-6.627-5.373-12-12-12zm2.95 17.567c-.958.455-2.047.721-3.214.721-3.222 0-5.828-2.606-5.828-5.828 0-3.222 2.606-5.828 5.828-5.828 1.006 0 1.956.293 2.758.796V5.457h2.5v6.153c-.432-.11-.879-.166-1.338-.166-.963 0-1.887.273-2.66.744v1.38c.777.206 1.49.589 2.095 1.092v2.107z" />
-                    </svg>
-                  </a>
-                  {/* X (Twitter) */}
-                  <a href="#" className="text-blue-200 hover:text-white">
-                    <svg
-                      className="w-6 h-6"
-                      fill="currentColor"
-                      viewBox="0 0 24 24"
-                    >
-                      <path d="M23 3a10.9 10.9 0 0 1-3.14 1.53A4.48 4.48 0 0 0 22.4 1.64a9.05 9.05 0 0 1-2.88 1.1A4.52 4.52 0 0 0 16.5 0c-2.5 0-4.5 2-4.5 4.5 0 .35.04.7.11 1.03A12.94 12.94 0 0 1 1.64.9a4.51 4.51 0 0 0-.61 2.27c0 1.57.8 2.96 2 3.77A4.47 4.47 0 0 1 .96 6.4v.06c0 2.19 1.56 4.03 3.63 4.44a4.53 4.53 0 0 1-2.03.08 4.52 4.52 0 0 0 4.21 3.13A9.06 9.06 0 0 1 0 19.54 12.76 12.76 0 0 0 6.92 21c8.3 0 12.85-6.88 12.85-12.85 0-.2 0-.39-.01-.58A9.22 9.22 0 0 0 23 3z" />
-                    </svg>
-                  </a>
-                  {/* YouTube */}
-                  <a href="#" className="text-blue-200 hover:text-white">
-                    <svg
-                      className="w-6 h-6"
-                      fill="currentColor"
-                      viewBox="0 0 24 24"
-                    >
-                      <path d="M23.498 6.186a2.994 2.994 0 0 0-2.122-2.136C19.505 3.545 12 3.545 12 3.545s-7.505 0-9.377.505A2.994 2.994 0 0 0 .502 6.186C0 8.07 0 12 0 12s0 3.93.502 5.814a2.994 2.994 0 0 0 2.122 2.136c1.872.505 9.377.505 9.377.505s7.505 0 9.377-.505a2.995 2.995 0 0 0 2.122-2.136C24 15.93 24 12 24 12s0-3.93-.502-5.814zM9.545 15.568V8.432L15.818 12l-6.273 3.568z" />
+                      <path d="M12 2.163c3.204 0 3.584.012 4.85.07 1.366.062 2.633.34 3.608 1.315.975.975 1.253 2.242 1.315 3.608.058 1.266.07 1.645.07 4.85s-.012 3.584-.07 4.85c-.062 1.366-.34 2.633-1.315 3.608-.975.975-2.242 1.253-3.608 1.315-1.266.058-1.645.07-4.85.07s-3.584-.012-4.85-.07c-1.366-.062-2.633-.34-3.608-1.315-.975-.975-1.253-2.242-1.315-3.608C2.175 15.584 2.163 15.204 2.163 12s.012-3.584.07-4.85c.062-1.366.34-2.633 1.315-3.608.975-.975 2.242-1.253 3.608-1.315C8.416 2.175 8.796 2.163 12 2.163zm1.407 1.488c-3.193 0-3.593.01-4.81.065-1.173.055-1.805.28-2.264.739-.46.46-.684 1.092-.739 2.264-.055 1.217-.065 1.617-.065 4.81s.01 3.593.065 4.81c.055 1.173.28 1.805.739 2.264.46.46 1.092.684 2.264.739 1.217.055 1.617.065 4.81.065s3.593-.01 4.81-.065c1.173-.055 1.805-.28 2.264-.739.46-.46.684-1.092.739-2.264.055-1.217.065-1.617.065-4.81s-.01-3.593-.065-4.81c-.055-1.173-.28-1.805-.739-2.264-.46-.46-1.092-.684-2.264-.739-1.217-.055-1.617-.065-4.81-.065zm-.214 2.238c3.193 0 3.593.01 4.81.065 1.173.055 1.805.28 2.264.739.46.46.684 1.092.739 2.264.055 1.217.065 1.617.065 4.81s-.01 3.593-.065 4.81c-.055 1.173-.28 1.805-.739 2.264-.46.46-1.092.684-2.264.739-1.217.055-1.617.065-4.81.065s-3.593-.01-4.81-.065c-1.173-.055-1.805-.28-2.264-.739-.46-.46-.684-1.092-.739-2.264-.055-1.217-.065-1.617-.065-4.81s.01-3.593.065-4.81c.055-1.173.28-1.805.739-2.264.46-.46 1.092-.684 2.264-.739 1.217-.055 1.617-.065 4.81-.065zM12 7c-2.761 0-5 2.239-5 5s2.239 5 5 5 5-2.239 5-5-2.239-5-5-5zm0 8c-1.657 0-3-1.343-3-3s1.343-3 3-3 3 1.343 3 3-1.343 3-3 3z"/>
                     </svg>
                   </a>
                 </div>
@@ -576,3 +504,4 @@ const q = query(
     </>
   );
 }
+

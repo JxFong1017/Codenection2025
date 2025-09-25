@@ -1,21 +1,27 @@
-import { createContext, useContext, useMemo, useState } from "react";
+import { createContext, useContext, useMemo, useState, useCallback } from "react";
 
 const QuoteContext = createContext(null);
 
-export function QuoteProvider({ children }) {
-  const [quoteDraft, setQuoteDraft] = useState({
-    plate: "",
-    brand: "",
-    model: "",
-    year: "",
-    step: 1,
-    fromGeran: false,
-  });
+const initialState = {
+  plate: "",
+  brand: "",
+  model: "",
+  year: "",
+  step: 1,
+  fromGeran: false,
+};
 
-  const value = useMemo(() => ({ quoteDraft, setQuoteDraft }), [quoteDraft]);
-  return (
-    <QuoteContext.Provider value={value}>{children}</QuoteContext.Provider>
+export function QuoteProvider({ children }) {
+  const [quoteDraft, setQuoteDraft] = useState(initialState);
+
+  const resetQuote = useCallback(() => {
+    setQuoteDraft(initialState);
+  }, []);
+  const value = useMemo(
+    () => ({ quoteDraft, setQuoteDraft, resetQuote }),
+    [quoteDraft, resetQuote]
   );
+  return <QuoteContext.Provider value={value}>{children}</QuoteContext.Provider>;
 }
 
 export function useQuote() {

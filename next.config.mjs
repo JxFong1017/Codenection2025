@@ -14,6 +14,10 @@ const nextConfig = {
   async rewrites() {
     return [
       {
+        source: '/auth/signin',
+        destination: '/',
+      },
+      {
         source: '/api/generate-quote',
         destination: 'http://localhost:3000/generate-quote', // Proxy to Express backend
       },

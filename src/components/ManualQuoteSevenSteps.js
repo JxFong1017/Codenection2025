@@ -85,70 +85,6 @@ export default function ManualQuoteSevenStep({ autofillData }) {
   const [availableModels, setAvailableModels] = useState([]);
   const [availableYears, setAvailableYears] = useState([]);
 
-  const [chatInput, setChatInput] = useState("");
-  const [chatMessages, setChatMessages] = useState([]);
-  const [isChatTyping, setIsChatTyping] = useState(false);
-
-  useEffect(() => {
-    const latestBotMessage = chatMessages[chatMessages.length - 1];
-
-    if (latestBotMessage && latestBotMessage.sender === "bot") {
-      try {
-        // Attempt to parse the bot's reply as JSON
-        const data = JSON.parse(latestBotMessage.text);
-        if (data.action === "fillForm") {
-          // Update the form state with the extracted data
-          if (data.plate) setPlate(data.plate);
-          if (data.make) setBrand(data.make);
-          if (data.model) setModel(data.model);
-
-          // Move to the next step if crucial data is filled
-          if (data.plate && data.make && data.model && step < 2) {
-            setStep(2);
-          }
-        }
-      } catch (e) {
-        // If the reply is not JSON, it's a conversational answer. Do nothing to the form.
-        console.log("Bot replied with text, not form data.");
-      }
-    }
-  }, [chatMessages, setPlate, setBrand, setModel, setStep, step]);
-
-  const handleChatSubmit = async (e) => {
-    e.preventDefault();
-    if (!chatInput.trim()) return;
-
-    const userMessage = chatInput;
-    setChatMessages((prev) => [...prev, { text: userMessage, sender: "user" }]);
-    setChatInput("");
-    setIsChatTyping(true);
-
-    try {
-      const response = await fetch(
-        "https://us-central1-codenection2025-19a07.cloudfunctions.net/chatAssistant",
-        {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ message: userMessage }),
-        }
-      );
-      const data = await response.json();
-
-      setChatMessages((prev) => [...prev, { text: data.reply, sender: "bot" }]);
-    } catch (error) {
-      console.error("Failed to fetch from chatbot API:", error);
-      setChatMessages((prev) => [
-        ...prev,
-        {
-          text: "Sorry, I'm having trouble connecting right now.",
-          sender: "bot",
-        },
-      ]);
-    } finally {
-      setIsChatTyping(false);
-    }
-  };
-
   // Step 3
   const [coverageType, setCoverageType] = useState("");
 
@@ -457,10 +393,10 @@ export default function ManualQuoteSevenStep({ autofillData }) {
       setBrand(""); // Clear the brand state to prevent invalid submissions
       setBrandValidation({
         isValid: false,
-        error: t("invalid_brand")
+        error: t("invalid_brand"),
       });
     }
-  }, [debouncedBrandSearch, allBrands, fuse]);
+  }, [debouncedBrandSearch, allBrands, fuse, t]);
 
   // This useEffect handles both IC and Passport validation
   useEffect(() => {
@@ -580,13 +516,13 @@ export default function ManualQuoteSevenStep({ autofillData }) {
       if (debouncedModelSearch.length > 0) {
         setModelValidation({
           isValid: false,
-          error: t("invalid_model")
+          error: t("invalid_model"),
         });
       } else {
         setModelValidation({ isValid: null, error: null });
       }
     }
-  }, [debouncedModelSearch, availableModels, modelFuse]);
+  }, [debouncedModelSearch, availableModels, modelFuse, t]);
 
   // Effect to update available years when model changes
   useEffect(() => {
@@ -692,13 +628,12 @@ export default function ManualQuoteSevenStep({ autofillData }) {
   const router = useRouter();
   const handleDoneClick = async () => {
     try {
-      
       router.push("/dashboard"); // Redirect to dashboard
     } catch (e) {
       console.error("Error adding document: ", e);
     }
   };
-  
+
   const steps = [
     { id: 1, title: t("steps_1") },
     { id: 2, title: t("steps_2") },
@@ -745,13 +680,14 @@ export default function ManualQuoteSevenStep({ autofillData }) {
   const canProceedFrom = (currentStep) => {
     if (currentStep === 1) {
       // Add the regular expression check for valid characters.
-    const plateHasOnlyValidChars = /^[a-zA-Z0-9\s]*$/.test(plate);
-    const plateHasNoRestrictedChars = !/[iIoO]/.test(plate); // New condition
+      const plateHasOnlyValidChars = /^[a-zA-Z0-9\s]*$/.test(plate);
+      const plateHasNoRestrictedChars = !/[iIoO]/.test(plate); // New condition
       return (
         plateValidation.isValid &&
         plate.trim() !== "" &&
         plate.replace(/\s/g, "").length <= 10 &&
-        plateHasOnlyValidChars && plateHasNoRestrictedChars // Add new condition here
+        plateHasOnlyValidChars &&
+        plateHasNoRestrictedChars // Add new condition here
       );
     }
     if (currentStep === 2) {
@@ -914,40 +850,41 @@ export default function ManualQuoteSevenStep({ autofillData }) {
     }
   }, [coverageType]);
 
-// Step 1: Autofill plate + brand first
-useEffect(() => {
-  if (autofillData) {
-    const formattedPlate = formatPlate(autofillData.plateNumber);
+    // Step 1: Autofill plate + brand first
+    useEffect(() => {
+      if (autofillData) {
+        const formattedPlate = formatPlate(autofillData.plate || autofillData.plateNumber);
 
-    setQuoteDraft((prev) => ({
-      ...prev,
-      plate: formattedPlate || "",
-      brand: autofillData.make || "",
-      fromGeran: true,
-    }));
+        setQuoteDraft((prev) => ({
+          ...prev,
+          plate: formattedPlate || "",
+          brand: autofillData.brand || autofillData.make || "",
+          fromGeran: true,
+        }));
 
-    setPlate(formattedPlate || "");
-    setBrandSearch(autofillData.make || "");
-    setBrand(autofillData.make || "");
+        setPlate(formattedPlate || "");
+        setBrandSearch(autofillData.brand || autofillData.make || "");
+        setBrand(autofillData.brand || autofillData.make || ""); 
 
-    setStep(2);
-  }
-}, [autofillData]);
+        setStep(2);
+      }
+    }, [autofillData, setQuoteDraft]);
 
-// Step 2: Once brand is ready, then set model
-useEffect(() => {
-  if (brand && autofillData) {
-    setModelSearch(autofillData.model || "");
-    setModel(autofillData.model || "");
-  }
-}, [brand, autofillData]);
 
-// Step 3: Once model is ready, then set year
-useEffect(() => {
-  if (model && autofillData) {
-    setYear(autofillData.year || "");
-  }
-}, [model, autofillData]);
+    // Step 2: Once brand is ready, then set model
+    useEffect(() => {
+      if (brand && autofillData) {
+        setModelSearch(autofillData.model || "");
+        setModel(autofillData.model || "");
+      }
+    }, [brand, autofillData]);
+
+    // Step 3: Once model is ready, then set year
+    useEffect(() => {
+      if (model && autofillData) {
+        setYear(autofillData.year || "");
+      }
+    }, [model, autofillData]);
 
 
 
@@ -971,11 +908,11 @@ useEffect(() => {
             <div className="flex items-center ml-auto space-x-6">
               {/* Navigation Links */}
               <nav className="hidden md:flex space-x-6">
-                <a
-                  href="#"
-                  className="flex items-center space-x-2 text-gray-600 hover:text-blue-900"
-                >
-                  <NextImage
+              <Link
+                href="/profile"
+                className="flex items-center space-x-2 text-gray-600 hover:text-blue-900"
+              >
+                        <NextImage
                     src="/images/profile.png"
                     alt="Profile"
                     width={20}
@@ -983,7 +920,7 @@ useEffect(() => {
                     className="w-5 h-5"
                   />
                   <span>{t("profile")}</span>
-                </a>
+                </Link>
                 <a
                   href="#"
                   className="flex items-center space-x-2 text-gray-600 hover:text-blue-900"
@@ -1162,19 +1099,20 @@ useEffect(() => {
                     {t("plate_max_length")}
                   </p>
                 )}
-                
+
                 {/* New validation for symbols */}
                 {!/^[a-zA-Z0-9\s]*$/.test(plate) && plate.length > 0 && (
-                <p className="mt-3 text-xs text-red-500">
-                Please use only letters and numbers.
-                </p>
+                  <p className="mt-3 text-xs text-red-500">
+                    Please use only letters and numbers.
+                  </p>
                 )}
 
                 {/* New validation for 'I' and 'O' */}
                 {/^[a-zA-Z\s]*[iIoO][a-zA-Z0-9\s]*$/.test(plate) && (
-                <p className="mt-3 text-xs text-red-500">
-               Did you mean to use numbers '1' or '0'? Letters 'I' and 'O' are not allowed.
-               </p>
+                  <p className="mt-3 text-xs text-red-500">
+                    Did you mean to use numbers &apos;1&apos; or &apos;0&apos;?
+                    Letters &apos;I&apos; and &apos;O&apos; are not allowed.
+                  </p>
                 )}
 
                 <div className="flex justify-between mt-8 max-w-md mx-auto">
@@ -1313,7 +1251,6 @@ useEffect(() => {
                           : "border-blue-100"
                       } focus:ring-2 focus:ring-blue-400`}
                       placeholder={t("search")}
-                      disabled={!brand}
                       autoComplete="off"
                     />
                     {modelValidation.error && (
@@ -1709,7 +1646,9 @@ useEffect(() => {
                             setIc("");
                           }}
                         />
-                        <span className="ml-2 text-blue-900">{t("Passport")}</span>
+                        <span className="ml-2 text-blue-900">
+                          {t("Passport")}
+                        </span>
                       </label>
                     </div>
 
@@ -1743,7 +1682,7 @@ useEffect(() => {
                     ) : (
                       <div className="mb-4">
                         <label className="block text-blue-900 font-semibold mb-2">
-                        {t("number_passport")}
+                          {t("number_passport")}
                         </label>
                         <input
                           type="text"
@@ -1834,7 +1773,8 @@ useEffect(() => {
                       <span className="font-normal">{year}</span>
                     </div>
                     <div className="font-bold">
-                      {t("ncd_preview")} <span className="font-normal">{ncd}%</span>
+                      {t("ncd_preview")}{" "}
+                      <span className="font-normal">{ncd}%</span>
                     </div>
 
                     {/* New: Display Coverage Type */}
@@ -1919,11 +1859,11 @@ useEffect(() => {
 
                 <div className="mt-8">
                   <button
-                  onClick={handleDoneClick}
+                    onClick={handleDoneClick}
                     className="inline-block px-10 py-3 rounded-xl font-semibold text-white bg-blue-800 hover:bg-blue-900"
                   >
                     {t("done")}
-                    </button>
+                  </button>
                 </div>
               </div>
             )}

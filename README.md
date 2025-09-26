@@ -54,6 +54,13 @@ This causes:
 - **Blockchain Integration**: Secure and immutable insurance record management
 - **Voice Input Support**: Voice-activated form filling for accessibility
 - **Integration with Government Databases**: Real-time vehicle registration verification
+
+## User guide
+### Policy Workflow: Quote, Management, and Renewal
+1.  **Get a Quote:** After generating a quote, we **email** the details to you. The quote is automatically saved in your **Recent Quotes** section.
+2.  **Activate/Renew:** To proceed, click **"Renew Now"** from your Recent Quotes, the vehicle details and personal information is auto-filled from the quotation you have made but it is editable. Upon making a successful payment, the policy becomes active, and a confirmation including payment details is sent to your **Gmail** and stored in your **My Car Records**.
+3.  **Renewal Reminder:** The system monitors your policy expiry. When your policy is **expiring soon**, a reminder is sent, and a prompt will appear in **My Car Records** asking you to **"Renew Now."**
+4.  **Final Renewal:** You can click the **"Renew Now"** button directly in My Car Records which has stored all your car details to quickly make the payment and complete the renewal process.
   
 ## 🛠️ Technology Stack
 - **Frontend**: React 19 with Next.js 15
@@ -66,13 +73,6 @@ This causes:
 - **Backend**: Firestore, Google Cloud Service
 - **Sending email**: Brevo
 - **AI chatbox**: Gemini
-
-### User guide
-## Policy Workflow: Quote, Management, and Renewal
-1.  **Get a Quote:** After generating a quote, we **email** the details to you. The quote is automatically saved in your **Recent Quotes** section.
-2.  **Activate/Renew:** To proceed, click **"Renew Now"** from your Recent Quotes, the vehicle details and personal information is auto-filled from the quotation you have made but it is editable. Upon making a successful payment, the policy becomes active, and a confirmation including payment details is sent to your **Gmail** and stored in your **My Car Records**.
-3.  **Renewal Reminder:** The system monitors your policy expiry. When your policy is **expiring soon**, a reminder is sent, and a prompt will appear in **My Car Records** asking you to **"Renew Now."**
-4.  **Final Renewal:** You can click the **"Renew Now"** button directly in My Car Records which has stored all your car details to quickly make the payment and complete the renewal process.
 
 ### Malaysian Market Specific
 - **State-based Plate Validation**: Supports all 16 Malaysian states with correct regex patterns

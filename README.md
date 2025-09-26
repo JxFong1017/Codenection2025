@@ -36,7 +36,7 @@ This causes:
 ## 🚀 Extra Features
 - **Gmail Account Data Protection**: Secure handling of user email data
 - **Multilingual Support**: Multi-language interface for diverse users
-- **Auto Fill by Uploading Geran**: Automatic form population from vehicle registration documents
+- **Auto Fill by Uploading Geran**: Extracts and fills vehicle details from your registration document
 - **Duplicate Insurance Check**: Prevents duplicate insurance applications
 - **AI Chatbot**: Intelligent assistant for user queries and support
 - **Insurance Estimation Preview**: Real-time premium calculation preview

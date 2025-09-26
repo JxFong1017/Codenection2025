@@ -73,11 +73,20 @@ This causes:
 - **Backend**: Firestore, Google Cloud Service
 - **Sending email**: Brevo
 - **AI chatbox**: Gemini
+- **OCR**: Google Cloud Vision API (geran extraction)
 
 ### Malaysian Market Specific
 - **State-based Plate Validation**: Supports all 16 Malaysian states with correct regex patterns
 - **Local Vehicle Database**: Comprehensive database of Malaysian vehicles (Proton, Perodua, Honda, Toyota, etc.)
 - **Common Typo Detection**: Handles Malaysian-specific character substitution patterns
+
+## 💥 Project Impact
+The **Smart Vehicle Data Validation & Error Detection System** will fundamentally transform the online car insurance process in Malaysia by:
+* **Eliminating Errors:** Dramatically reducing incorrect vehicle data input (plate, model, year) at the source.
+* **Accelerating Approvals:** Ensuring immediate submission of accurate data, leading to **faster policy issuance** and approvals.
+* **Guaranteeing Accuracy:** Preventing wrongful premium calculations and the risk of users holding **invalid insurance coverage**.
+* **Enhancing User Experience:** Providing a **seamless, intelligent, and trustworthy** platform that significantly reduces user frustration and form abandonment.
+* **Boosting Efficiency:** Minimizing manual review time and resources for insurance providers by submitting **validated, high-integrity data** every time.
   
 ## 📁 Project Structure
 

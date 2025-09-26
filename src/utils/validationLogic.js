@@ -228,8 +228,8 @@ export function validatePostcode(postcode) {
 }
 
 /**
- * Validates a Malaysian phone number.
- * @param {string} phone The phone number input.
+ * Validates a Malaysian phone number, assuming the country code (+60) is handled separately.
+ * @param {string} phone The phone number input (only the digits after the country code).
  * @returns {Object} An object with isValid (boolean) and an error message (string).
  */
 export function validatePhone(phone) {
@@ -237,14 +237,16 @@ export function validatePhone(phone) {
     return { isValid: null, error: null };
   }
 
-  // Remove spaces, hyphens, and leading +6
-  const cleanedPhone = phone.replace(/[\s-]/g, '').replace(/^\+?6?/, '');
+  // 1. Clean the input to remove any accidental spaces/hyphens
+  const cleanedPhone = phone.replace(/[\s-]/g, '');
 
-  // Regex to check for a 9-10 digit Malaysian phone number
-  const phoneRegex = /^(?:1[0-9]{8,9})$/;
+  // 2. Regex to check for a 9-10 digit phone number starting with '1' (Malaysian mobile)
+  // We assume the input is only the local number part (e.g., 123456789)
+  // The minimum is 9 digits (01x-xxxxxxx) and maximum is 10 digits (01x-xxxxxxxx)
+  const phoneRegex = /^1\d{8,9}$/;
 
   if (!phoneRegex.test(cleanedPhone)) {
-    return { isValid: false, error: 'Invalid phone number format. Must start with 1 and be 9-10 digits long.' };
+    return { isValid: false, error: 'Phone number must be 9 or 10 digits long (e.g., 123456789) and start with 1.' };
   }
 
   return { isValid: true, error: null };

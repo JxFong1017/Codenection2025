@@ -103,7 +103,7 @@ const DICTS = {
     estimated_range: "Estimated Premium Range:",
     your_quotation_sent: "Your insurance quotation has been sent to",
     contact_us_help:
-      "If you have any questions, please do not hesitate to {contact_us}.",
+      "Please check your inbox. Check your spam if it is not found.",
     back_edit: "Back to Edit",
     back: "Back",
     next: "Next",

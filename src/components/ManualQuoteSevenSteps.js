@@ -1,6 +1,6 @@
 "use client";
 
-import { useRouter } from "next/router";
+import { useRouter } from 'next/navigation';
 import { useEffect, useMemo, useState } from "react";
 import Head from "next/head";
 import Link from "next/link";
@@ -24,7 +24,7 @@ import {
   getPolicyStatusMessage,
 } from "../data/insuranceDatabase";
 import PlateValidationPopup from "./PlateValidationPopup";
-import { useSession } from "next-auth/react";
+import { useSession, signOut } from "next-auth/react";
 import ContactHelp from "./ContactHelp";
 import { carData } from "../data/carData";
 import NextImage from "next/image";
@@ -41,6 +41,11 @@ export default function ManualQuoteSevenStep({ autofillData }) {
   const [notification, setNotification] = useState(null);
 
   const [showDecisionPopup, setShowDecisionPopup] = useState(true);
+
+  const handleLogout = () => {
+      setShowLogoutPopup(false);
+      signOut({ callbackUrl: "/" });
+    };
 
   const handleDecision = (type) => {
     if (type === "manual") {
@@ -84,6 +89,7 @@ export default function ManualQuoteSevenStep({ autofillData }) {
   const [availableBrands, setAvailableBrands] = useState([]);
   const [availableModels, setAvailableModels] = useState([]);
   const [availableYears, setAvailableYears] = useState([]);
+  const [showLogoutPopup, setShowLogoutPopup] = useState(false);
 
   // Step 3
   const [coverageType, setCoverageType] = useState("");
@@ -626,13 +632,18 @@ export default function ManualQuoteSevenStep({ autofillData }) {
   };
 
   const router = useRouter();
-  const handleDoneClick = async () => {
-    try {
-      router.push("/dashboard"); // Redirect to dashboard
-    } catch (e) {
-      console.error("Error adding document: ", e);
+  const handleDoneClick = () => {
+    window.location.href = '/dashboard';
+  };
+
+  const handleGoToDashboard = (e) => {
+    e.preventDefault();
+    if (confirm("Are you sure you want to return to the dashboard? Your edited data will not be saved.")) {
+      window.location.href = '/dashboard';
     }
   };
+
+
 
   const steps = [
     { id: 1, title: t("steps_1") },
@@ -850,43 +861,40 @@ export default function ManualQuoteSevenStep({ autofillData }) {
     }
   }, [coverageType]);
 
-    // Step 1: Autofill plate + brand first
-    useEffect(() => {
-      if (autofillData) {
-        const formattedPlate = formatPlate(autofillData.plate || autofillData.plateNumber);
+  // Step 1: Autofill plate + brand first
+  useEffect(() => {
+    if (autofillData) {
+      const formattedPlate = formatPlate(autofillData.plateNumber);
 
-        setQuoteDraft((prev) => ({
-          ...prev,
-          plate: formattedPlate || "",
-          brand: autofillData.brand || autofillData.make || "",
-          fromGeran: true,
-        }));
+      setQuoteDraft((prev) => ({
+        ...prev,
+        plate: formattedPlate || "",
+        brand: autofillData.make || "",
+        fromGeran: true,
+      }));
 
-        setPlate(formattedPlate || "");
-        setBrandSearch(autofillData.brand || autofillData.make || "");
-        setBrand(autofillData.brand || autofillData.make || ""); 
+      setPlate(formattedPlate || "");
+      setBrandSearch(autofillData.make || "");
+      setBrand(autofillData.make || "");
 
-        setStep(2);
-      }
-    }, [autofillData, setQuoteDraft]);
+      setStep(2);
+    }
+  }, [autofillData, setQuoteDraft]);
 
+  // Step 2: Once brand is ready, then set model
+  useEffect(() => {
+    if (brand && autofillData) {
+      setModelSearch(autofillData.model || "");
+      setModel(autofillData.model || "");
+    }
+  }, [brand, autofillData]);
 
-    // Step 2: Once brand is ready, then set model
-    useEffect(() => {
-      if (brand && autofillData) {
-        setModelSearch(autofillData.model || "");
-        setModel(autofillData.model || "");
-      }
-    }, [brand, autofillData]);
-
-    // Step 3: Once model is ready, then set year
-    useEffect(() => {
-      if (model && autofillData) {
-        setYear(autofillData.year || "");
-      }
-    }, [model, autofillData]);
-
-
+  // Step 3: Once model is ready, then set year
+  useEffect(() => {
+    if (model && autofillData) {
+      setYear(autofillData.year || "");
+    }
+  }, [model, autofillData]);
 
   return (
     <>
@@ -897,59 +905,47 @@ export default function ManualQuoteSevenStep({ autofillData }) {
         <header className="bg-white shadow-sm">
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center">
             {/* Logo on the left */}
-            <Link
-              href="/dashboard"
-              className="text-2xl font-bold text-blue-900"
-            >
-              CGS
-            </Link>
+                <a
+                  href="/dashboard"
+                  onClick={handleGoToDashboard}
+                  className="text-4xl font-extrabold text-[#004F9E] ml-1 cursor-pointer"
+                >
+                  CGS
+                </a>
+
 
             {/* Navigation Links + Email pushed to the right */}
             <div className="flex items-center ml-auto space-x-6">
-              {/* Navigation Links */}
-              <nav className="hidden md:flex space-x-6">
-              <Link
-                href="/profile"
-                className="flex items-center space-x-2 text-gray-600 hover:text-blue-900"
-              >
-                        <NextImage
-                    src="/images/profile.png"
-                    alt="Profile"
-                    width={20}
-                    height={20}
-                    className="w-5 h-5"
-                  />
-                  <span>{t("profile")}</span>
-                </Link>
-                <a
-                  href="#"
-                  className="flex items-center space-x-2 text-gray-600 hover:text-blue-900"
-                >
-                  <NextImage
-                    src="/images/get-quotation.png"
-                    alt="Get Quotation"
-                    width={20}
-                    height={20}
-                  />
-                  <span>{t("get_quotation")}</span>
-                </a>
-                <a
-                  href="#"
-                  className="flex items-center space-x-2 text-gray-600 hover:text-blue-900"
-                >
-                  <NextImage
-                    src="/images/notification.png"
-                    alt="Notifications"
-                    width={20}
-                    height={20}
-                  />
-                  <span>{t("notifications")}</span>
-                </a>
-              </nav>
+            <div className="relative">
+              <button
+                    onClick={() => setShowLogoutPopup(!showLogoutPopup)}
+                    className="bg-black text-white px-4 py-2 rounded text-sm font-medium hover:bg-gray-800 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
+                  >
+                    {session.user.email || "user@gmail.com"}
+                  </button>
 
-              <div className="bg-black text-white px-4 py-2 rounded text-sm font-medium hover:bg-gray-800 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500">
-                {session?.user?.email || "USERNAME123@GMAIL.COM"}
-              </div>
+                  {showLogoutPopup && (
+                    <div className="absolute right-0 translate-x-1 mt-2 w-48 bg-white rounded-lg shadow-lg border border-gray-200 z-50">
+                      <p className="px-4 py-3 text-gray-700 text-sm text-left">
+                        {t("logout_confirmation")}
+                      </p>
+                      <div className="flex border-t border-gray-200">
+                        <button
+                          onClick={() => setShowLogoutPopup(false)}
+                          className="flex-1 px-4 py-2 text-sm text-gray-600 hover:bg-gray-100 rounded-bl-lg"
+                        >
+                          {t("cancel", "Cancel")}
+                        </button>
+                        <button
+                          onClick={handleLogout}
+                          className="flex-1 px-4 py-2 text-sm text-red-500 hover:bg-red-50 rounded-br-lg"
+                        >
+                          {t("log_out", "Log out")}
+                        </button>
+                      </div>
+                    </div>
+                  )}
+                  </div>
             </div>
           </div>
         </header>
@@ -1852,10 +1848,7 @@ export default function ManualQuoteSevenStep({ autofillData }) {
                   {session?.user?.email || "USERNAME123@GMAIL.COM"}
                 </div>
 
-                {/* Contact Help with underlined links */}
-                <div className="mt-6 text-gray-700">
-                  <ContactHelp />
-                </div>
+                <p className="mt-4 text-gray-600">{t("contact_us_help")}</p>
 
                 <div className="mt-8">
                   <button

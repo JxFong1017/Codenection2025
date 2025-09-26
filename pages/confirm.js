@@ -1,6 +1,6 @@
 import { useRouter } from 'next/router';
 import { useEffect, useState, useMemo } from 'react';
-import { doc, getDoc, updateDoc } from 'firebase/firestore';
+import { doc, getDoc, collection, addDoc, serverTimestamp } from 'firebase/firestore';
 import { db } from '../lib/firebase';
 import { useSession } from 'next-auth/react';
 import Head from 'next/head';
@@ -77,7 +77,16 @@ export default function ConfirmPage() {
   const allBrands = useMemo(() => getUniqueMakes(), []);
   const fuse = useMemo(() => new Fuse(allBrands, { keys: [], includeScore: true, threshold: 0.3 }), [allBrands]);
   const [modelFuse, setModelFuse] = useState(null);
-
+  const protectionOptions = [
+    { id: 'windscreen', label: t('windscreen', 'Windscreen Protection') },
+    { id: 'named_driver', label: t('named_driver', 'Additional Named Driver') },
+    { id: 'all_driver', label: t('all_driver', 'All Drivers Coverage') },
+    { id: 'natural_disaster', label: t('natural_disaster', 'Flood, Landslide & Special Perils') },
+    { id: 'strike_riot', label: t('strike_riot', 'Strike, Riot, and Civil Commotion (SRCC)') },
+    { id: 'personal_accident', label: t('personal_accident', 'Personal Accident (PA) Coverage') },
+    { id: 'towing', label: t('towing', 'Unlimited Towing Service') },
+    { id: 'passengers_coverage', label: t('passengers_coverage', 'Legal Liability to Passengers') },
+  ];
   // --- DATA FETCHING ---
   useEffect(() => {
     if (status === 'unauthenticated') {
@@ -110,6 +119,23 @@ export default function ConfirmPage() {
             setIc(quoteData.ic || '');
             setPassport(quoteData.passport || '');
             setPostcode(quoteData.postcode || '');
+            // Add this code to set the pre-selected protections
+            const protectionsHTML = quoteData.additional_protections_list;
+            const initiallySelected = [];
+            
+            if (protectionsHTML) {
+              // This logic checks if the name of a protection appears in the HTML string.
+              if (protectionsHTML.includes('Windscreen')) { initiallySelected.push('windscreen'); }
+              if (protectionsHTML.includes('Named Driver')) { initiallySelected.push('named_driver'); }
+              if (protectionsHTML.includes('All Driver')) { initiallySelected.push('all_driver'); }
+              if (protectionsHTML.includes('Flood') || protectionsHTML.includes('Natural Disaster')) { initiallySelected.push('natural_disaster'); }
+              if (protectionsHTML.includes('Strike Riot')) { initiallySelected.push('strike_riot'); }
+              if (protectionsHTML.includes('Personal Accident')) { initiallySelected.push('personal_accident'); }
+              if (protectionsHTML.includes('Towing')) { initiallySelected.push('towing'); }
+              if (protectionsHTML.includes('Liability to Passengers')) { initiallySelected.push('passengers_coverage'); }
+            }
+            
+            setSelectedProtections(initiallySelected);
             
             // Infer coverage type from DB data
             if (quoteData.third_party_only_abc && quoteData.third_party_only_abc !== 'N/A') {
@@ -295,38 +321,156 @@ export default function ConfirmPage() {
         return isVehicleValid && isPersonalInfoValid;
     };
 
-    // ** NEW ** Handler to save data and navigate
     const handleProceed = async () => {
-        if (!isPageValid()) {
-            alert('Please fill in all required fields correctly before proceeding.');
-            return;
-        }
+      if (!isPageValid()) {
+          alert('Please fill in all required fields correctly before proceeding.');
+          return;
+      }
 
-        setLoading(true);
-        try {
-            const quoteRef = doc(db, 'quotations', quoteId);
-            const updatedData = {
-                plateNumber: plate,
-                car_brand: brand,
-                vehicleModel: model,
-                manufactured_year: year,
-                customer_name: name,
-                ncd,
-                documentType,
-                ic,
-                passport,
-                postcode,
-                // You may need to add updated coverage/protection info here too
-            };
-            await updateDoc(quoteRef, updatedData);
-            router.push(`/choose-insurer?quoteId=${quoteId}`); // Navigate to the next step
-        } catch (error) {
-            console.error("Error updating quotation:", error);
-            alert('Failed to save changes. Please try again.');
-        } finally {
-            setLoading(false);
-        }
+      setLoading(true);
+      try {
+          // --- Premium calculation logic remains the same ---
+          const selectedCar = carData.find(c => c.make === brand && c.model === model);
+          
+          let comprehensive_premium = 0;
+          let tpft_premium = 0;
+          let third_party_premium = 0;
+          let car_market_value = 0;
+
+          if (selectedCar && year && postcode) {
+              const carAge = new Date().getFullYear() - parseInt(year, 10);
+              const depreciationFactor = Math.max(0.3, Math.pow(0.9, carAge));
+              car_market_value = selectedCar.marketValue * depreciationFactor;
+
+              const { engineCapacity } = selectedCar;
+              const firstTwoPostcodeDigits = parseInt(postcode.substring(0, 2), 10);
+              const isEastMalaysia = (firstTwoPostcodeDigits >= 88 && firstTwoPostcodeDigits <= 91) || (firstTwoPostcodeDigits >= 93 && firstTwoPostcodeDigits <= 98);
+
+              const comprehensiveRates = {
+                  peninsular: { rates: [ { cc: 1400, base: 273.8 }, { cc: 1650, base: 305.5 }, { cc: 2200, base: 339.1 }, { cc: 3050, base: 372.6 }, { cc: 4100, base: 404.3 }, { cc: 4250, base: 436.0 }, { cc: 4400, base: 469.6 }, { cc: Infinity, base: 501.3 } ], per1000: 26.0 },
+                  east: { rates: [ { cc: 1400, base: 219.0 }, { cc: 1650, base: 244.4 }, { cc: 2200, base: 271.3 }, { cc: 3050, base: 298.1 }, { cc: 4100, base: 323.4 }, { cc: 4250, base: 348.8 }, { cc: 4400, base: 375.7 }, { cc: Infinity, base: 401.1 } ], per1000: 20.3 },
+              };
+              const thirdPartyRates = {
+                  peninsular: [ { cc: 1400, premium: 120.6 }, { cc: 1650, premium: 135.0 }, { cc: 2200, premium: 151.2 }, { cc: 3050, premium: 167.4 }, { cc: 4100, premium: 181.8 }, { cc: 4250, premium: 196.2 }, { cc: 4400, premium: 212.4 }, { cc: Infinity, premium: 226.8 } ],
+                  east: [ { cc: 1400, premium: 95.9 }, { cc: 1650, premium: 107.5 }, { cc: 2200, premium: 120.6 }, { cc: 3050, premium: 133.6 }, { cc: 4100, premium: 145.1 }, { cc: 4250, premium: 156.5 }, { cc: 4400, premium: 169.6 }, { cc: Infinity, premium: 181.1 } ],
+              };
+
+              const ratesForComprehensive = isEastMalaysia ? comprehensiveRates.east : comprehensiveRates.peninsular;
+              const ratesForThirdParty = isEastMalaysia ? thirdPartyRates.east : thirdPartyRates.peninsular;
+              
+              const compRateTier = ratesForComprehensive.rates.find(tier => engineCapacity <= tier.cc);
+              const excessValue = Math.max(0, car_market_value - 1000);
+              const comprehensiveBasePremium = compRateTier.base + (excessValue / 1000) * ratesForComprehensive.per1000;
+              
+              const tpftBasePremium = comprehensiveBasePremium * 0.75;
+              
+              const tpRateTier = ratesForThirdParty.find(tier => engineCapacity <= tier.cc);
+              const thirdPartyBasePremium = tpRateTier.premium;
+
+              let additionalCoverageCost = 0;
+              if (coverageType === "Comprehensive" && selectedProtections.length > 0) {
+                  additionalCoverageCost = selectedProtections.reduce((acc, protectionId) => {
+                      if (protectionId === 'windscreen') return acc + 150;
+                      if (protectionId === 'natural_disaster') return acc + car_market_value * 0.005;
+                      if (protectionId === 'strike_riot') return acc + car_market_value * 0.003;
+                      if (protectionId === 'personal_accident') return acc + 100;
+                      if (protectionId === 'towing') return acc + 50;
+                      if (protectionId === 'named_driver') return acc + 10;
+                      if (protectionId === 'all_driver') return acc + 50;
+                      if (protectionId === 'passengers_coverage') return acc + 25;
+                      return acc;
+                  }, 0);
+              }
+
+              const calculateFinal = (base) => {
+                  if(base <= 0) return 0;
+                  const ncdDiscount = base * (ncd / 100);
+                  const premiumPayable = base - ncdDiscount + additionalCoverageCost;
+                  const sst = premiumPayable * 0.06;
+                  const stampDuty = 10;
+                  return premiumPayable + sst + stampDuty;
+              }
+
+              comprehensive_premium = calculateFinal(comprehensiveBasePremium);
+              tpft_premium = calculateFinal(tpftBasePremium);
+              third_party_premium = calculateFinal(thirdPartyBasePremium);
+          }
+
+          const insurerAdjustments = {
+              abc: 1.0,
+              xyz: 1.05,
+              safedrive: 1.08,
+              guardian: 1.1,
+              metroprotect: 1.12,
+          };
+
+          const formatPremium = (premium, adjustment) => {
+              if (premium <= 0) return 'N/A';
+              return `RM${(premium * adjustment).toFixed(2)}`;
+          }
+          
+          const protectionsToSave = {};
+          protectionOptions.forEach(option => {
+              protectionsToSave[option.id] = selectedProtections.includes(option.id);
+          });
+
+          // ** NEW LOGIC: Create a new data object **
+          const newQuoteData = {
+              // Copy all user-editable data
+              plateNumber: plate,
+              car_brand: brand,
+              vehicleModel: model,
+              manufactured_year: year,
+              customer_name: name,
+              ncd,
+              documentType,
+              ic,
+              passport,
+              postcode,
+              coverage_type: coverageType,
+              selectedAddOns: selectedProtections,
+              car_market_value: car_market_value,
+              ...protectionsToSave,
+              
+              // Add pricing data
+              comprehensive_abc: formatPremium(comprehensive_premium, insurerAdjustments.abc),
+              tpft_abc: formatPremium(tpft_premium, insurerAdjustments.abc),
+              third_party_only_abc: formatPremium(third_party_premium, insurerAdjustments.abc),
+              comprehensive_xyz: formatPremium(comprehensive_premium, insurerAdjustments.xyz),
+              tpft_xyz: formatPremium(tpft_premium, insurerAdjustments.xyz),
+              third_party_only_xyz: formatPremium(third_party_premium, insurerAdjustments.xyz),
+              comprehensive_safedrive: formatPremium(comprehensive_premium, insurerAdjustments.safedrive),
+              tpft_safedrive: formatPremium(tpft_premium, insurerAdjustments.safedrive),
+              third_party_only_safedrive: formatPremium(third_party_premium, insurerAdjustments.safedrive),
+              comprehensive_guardian: formatPremium(comprehensive_premium, insurerAdjustments.guardian),
+              tpft_guardian: formatPremium(tpft_premium, insurerAdjustments.guardian),
+              third_party_only_guardian: formatPremium(third_party_premium, insurerAdjustments.guardian),
+              comprehensive_metroprotect: formatPremium(comprehensive_premium, insurerAdjustments.metroprotect),
+              tpft_metroprotect: formatPremium(tpft_premium, insurerAdjustments.metroprotect),
+              third_party_only_metroprotect: formatPremium(third_party_premium, insurerAdjustments.metroprotect),
+              
+              // Add metadata for tracking
+              status: 'draft',
+              createdAt: serverTimestamp(),
+              original_quote_id: quoteId, // Link back to the original quote
+              user_email: session?.user?.email,
+          };
+          
+          // Add the new document to the 'quotations' collection
+          const newQuoteRef = await addDoc(collection(db, 'quotations'), newQuoteData);
+          
+          // Redirect to the next step with the NEW quote ID
+          router.push(`/choose-insurer?quoteId=${newQuoteRef.id}`);
+
+      } catch (error) {
+          console.error("Error creating new quotation:", error);
+          alert('Failed to save changes. Please try again.');
+      } finally {
+          setLoading(false);
+      }
     };
+
+  
     
     const isCarOlderThan15Years = () => {
         if (!year) return false;
@@ -335,16 +479,7 @@ export default function ConfirmPage() {
     };
 
 
-  const protectionOptions = [
-    { id: 'windscreen', label: t('windscreen', 'Windscreen Protection') },
-    { id: 'named_driver', label: t('named_driver', 'Additional Named Driver') },
-    { id: 'all_driver', label: t('all_driver', 'All Drivers Coverage') },
-    { id: 'natural_disaster', label: t('natural_disaster', 'Flood, Landslide & Special Perils') },
-    { id: 'strike_riot', label: t('strike_riot', 'Strike, Riot, and Civil Commotion (SRCC)') },
-    { id: 'personal_accident', label: t('personal_accident', 'Personal Accident (PA) Coverage') },
-    { id: 'towing', label: t('towing', 'Unlimited Towing Service') },
-    { id: 'passengers_coverage', label: t('passengers_coverage', 'Legal Liability to Passengers') },
-  ];
+  
 
   const handleCheckNcd = () => {
     window.open("https://www.mycarinfo.com.my/NCDCheck/Online", "_blank");
@@ -356,6 +491,12 @@ export default function ConfirmPage() {
       setSelectedProtections(prev => [...prev, name]);
     } else {
       setSelectedProtections(prev => prev.filter(item => item !== name));
+    }
+  };
+  const handleBackToHome = (e) => {
+    e.preventDefault();
+    if (confirm("Are you sure to return to home page? Your edited data will not be saved.")) {
+        router.push('/dashboard');
     }
   };
 
@@ -395,9 +536,10 @@ export default function ConfirmPage() {
       <div className="min-h-screen bg-gray-50 flex items-center justify-center">
         <div className="text-center">
           <p className="mt-4 text-gray-600">Quotation not found.</p>
-          <Link href="/dashboard">
-            <a className="text-blue-600 hover:underline">Back to Dashboard</a>
-          </Link>
+          <Link href="/dashboard" className="text-blue-600 hover:underline">
+  Back to Dashboard
+</Link>
+
         </div>
       </div>
     );
@@ -417,15 +559,16 @@ export default function ConfirmPage() {
       <header className="bg-white shadow-sm">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between items-center h-16">
-              <Link href="/dashboard">
+              <a href="/dashboard" onClick={handleBackToHome} className="cursor-pointer">
                 <h1 className="text-2xl font-extrabold text-blue-900">CGS</h1>
-              </Link>
-              <Link href="/dashboard" className="text-gray-600 hover:text-blue-900">
+              </a>
+              <a href="/dashboard" onClick={handleBackToHome} className="text-gray-600 hover:text-blue-900 cursor-pointer">
                 Back to Home Page
-              </Link>
+              </a>
           </div>
         </div>
       </header>
+
 
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         <>

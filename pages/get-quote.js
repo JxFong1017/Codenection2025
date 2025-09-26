@@ -89,7 +89,7 @@ const handleFormDataExtracted = (data) => {
             onClose={() => setShowGeranModal(false)}
             onFormDataExtracted={handleFormDataExtracted} 
           />
-        )}
+        )}      
         {showForm && autofillData && (
           <ManualQuoteSevenSteps
           autofillData={autofillData}

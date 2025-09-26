@@ -1,11 +1,23 @@
 rules_version = '2';
+
 service cloud.firestore {
   match /databases/{database}/documents {
-    match /users/{email} {
-      allow read, write: if request.auth != null && request.auth.token.email == email;
+
+    // Rules for the 'quotations' collection
+    match /quotations/{quoteId} {
+      
+      // Allow any authenticated user to create a new quotation.
+      allow create: if request.auth != null;
+
+      // Allow a user to read, update, or delete a quotation if their email
+      // matches the 'user_email' field stored on the document.
+      allow read, update, delete: if request.auth != null && request.auth.token.email == resource.data.user_email;
     }
-    match /quotations/{quotationId} {
-      allow read, write: if request.auth != null && resource.data.userId == request.auth.token.email;
-    }
+
+    // You may have other collections like 'users'. You can add rules for them here.
+    // For example:
+    // match /users/{userId} {
+    //   allow read, write: if request.auth != null && request.auth.uid == userId;
+    // }
   }
 }

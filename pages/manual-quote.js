@@ -15,7 +15,7 @@ export default function ManualQuotePage() {
       <Head>
         <title>Get a Quote</title>
       </Head>
-      <ManualQuoteSevenStep autofillData={quoteDraft} />
+      <ManualQuoteSevenStep/>
     </>
   );
 }

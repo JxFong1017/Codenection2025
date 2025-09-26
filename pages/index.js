@@ -4,6 +4,8 @@ import Link from "next/link";
 import Image from "next/image";
 import { signIn } from "next-auth/react";
 import { useT } from "../src/utils/i18n";
+import { useRouter } from "next/router";
+import { validatePhone } from "../src/utils/validationLogic"; 
 import { signUpWithEmailAndPassword, showMessage } from "../lib/firebase";
 
 export default function Home() {
@@ -17,11 +19,22 @@ export default function Home() {
   });
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState("");
+  const [successMessage, setSuccessMessage] = useState(""); 
+  const router = useRouter();
 
   const t = useT();
 
   const handleInputChange = (field, value) => {
-    setFormData((prev) => ({ ...prev, [field]: value }));
+    setFormData((prev) => {
+      let newState = { ...prev, [field]: value };
+    setError("");
+    setSuccessMessage(""); 
+
+    if (field === "password" && value.length === 0) {
+      newState.confirmPassword = "";
+      }
+      return newState;
+    });
   };
 
   const handleSubmit = async (e) => {
@@ -39,21 +52,34 @@ export default function Home() {
         });
 
         if (result?.ok) {
-          window.location.href = "/dashboard";
+          router.push('/dashboard')
         } else {
-          setError(result?.error || "Invalid email or password. Please try again.");
+          setError("Invalid email or password. Please try again.");
+          setFormData(prev => ({ 
+            ...prev, 
+            email: "", 
+            password: "" 
+          }));
         }
       } catch (error) {
         setError("An unexpected error occurred during login.");
-        console.error("Login error:", error);
       }
     } else {
       // Handle signup
+      console.log("Password:", formData.password, "Confirm:", formData.confirmPassword); 
+       
       if (formData.password !== formData.confirmPassword) {
         setError("Passwords do not match.");
         setIsLoading(false);
         return;
       }
+      const phoneValidation = validatePhone(formData.phone);
+      if (!phoneValidation.isValid) {
+        setError(phoneValidation.error || "Please enter a valid phone number.");
+        setIsLoading(false);
+        return;
+      }
+
       try {
         await signUpWithEmailAndPassword(
           formData.email,
@@ -63,7 +89,7 @@ export default function Home() {
         );
 
         // Show success message and switch to login mode
-        showMessage("Account created successfully! Please log in.", "message-div");
+        setSuccessMessage("Account created successfully! Please log in.");
         setIsLoginMode(true);
         // Clear form for login
         setFormData({
@@ -82,10 +108,27 @@ export default function Home() {
           errorMessage = "Password is too weak. It should be at least 6 characters long.";
         }
         setError(errorMessage);
-        console.error("Signup error:", error);
       }
     }
     setIsLoading(false);
+  };
+
+  // Add this function inside your component, e.g., after the state declarations
+  const showLoginMessage = () => {
+    const messageDiv = document.getElementById('message-div');
+    if (messageDiv) {
+        messageDiv.textContent = "Please Login or Sign up first to get a quote!";
+
+        messageDiv.style.display = 'block';
+        messageDiv.style.opacity = '1';
+
+        setTimeout(() => {
+            messageDiv.style.opacity = '0';
+            setTimeout(() => {
+                messageDiv.style.display = 'none'; 
+            }, 500); 
+        }, 3000);
+    }
   };
 
   return (
@@ -98,9 +141,8 @@ export default function Home() {
         />
       </Head>
       
-      {/* Added a div for displaying messages */}
-      <div id="message-div" style={{ display: 'none', position: 'fixed', top: '10%', left: '50%', transform: 'translateX(-50%)', backgroundColor: 'green', color: 'white', padding: '1rem 2rem', borderRadius: '8px', zIndex: 100, transition: 'opacity 0.5s' }}></div>
-
+      <div id="message-div" style={{ display: 'none', position: 'fixed', top: '10%', left: '50%', transform: 'translateX(-50%)', backgroundColor: 'red', color: 'white', padding: '.5rem 2rem', borderRadius: '8px', zIndex: 100, transition: 'opacity 0.5s' }}></div>
+      
       <div className="min-h-screen bg-white">
         {/* Header */}
         <header className="bg-white shadow-sm">
@@ -127,7 +169,10 @@ export default function Home() {
                 <p className="text-lg text-black-600 font-bold mb-8">
                   {t("hero_subtitle")}
                 </p>
-                <button className="bg-blue-900 text-white px-8 py-3 font-extrabold hover:bg-blue-800 transition-colors">
+                <button 
+                  onClick={showLoginMessage} 
+                  className="bg-blue-900 text-white px-8 py-3 font-extrabold hover:bg-blue-800 transition-colors"
+                >
                   {t("get_quote_now")}
                 </button>
               </div>
@@ -155,8 +200,14 @@ export default function Home() {
                     {isLoginMode ? t("login") : t("signup")}
                   </h3>
 
+                  {successMessage && (
+                    <div className="bg-green-500 text-white py-2 px-3 rounded-lg mb-4 text-center">
+                      {successMessage}
+                    </div>
+                  )}
+
                   {error && (
-                    <div className="bg-red-500 text-white p-3 rounded mb-4 text-center">
+                    <div className="bg-red-500 text-white py-2 px-3 rounded-lg mb-4 text-center ">
                       {error}
                     </div>
                   )}
@@ -297,6 +348,7 @@ export default function Home() {
                             onClick={() => {
                               setIsLoginMode(!isLoginMode);
                               setError("");
+                              setSuccessMessage("");
                               setFormData({ email: "", password: "", name: "", phone: "", confirmPassword: "" });
                             }}
                             className="w-36 bg-transparent text-white py-2 rounded font-bold border border-white hover:bg-white/20 transition-colors"
@@ -313,6 +365,7 @@ export default function Home() {
                             onClick={() => {
                               setIsLoginMode(true);
                               setError("");
+                              setSuccessMessage("");
                               setFormData({ email: "", password: "", name: "", phone: "", confirmPassword: "" });
                             }}
                             className="underline cursor-pointer font-bold text-[#67DABB]"
@@ -414,11 +467,6 @@ export default function Home() {
             <p className="text-black text-center mb-6">
               {t("insurance_products_subtitle")}
             </p>
-            <div className="text-center mb-10">
-              <button className="bg-black text-white px-5 py-2 rounded">
-                {t("view_all_products")}
-              </button>
-            </div>
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
               {[
                 {

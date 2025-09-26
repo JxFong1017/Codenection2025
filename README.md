@@ -1,6 +1,7 @@
 # Smart Vehicle Data Validation & Error Detection System
 
 **Track:** Industry Collaboration (Smart Vehicle Data Validation & Error Detection by BJAK)
+
 A comprehensive real-time vehicle data validation and error detection system that prevents incorrect vehicle details during car insurance purchases and renewals, specifically designed for the Malaysian market.
 
 ## 🎯 Problem Statement

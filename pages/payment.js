@@ -2,15 +2,25 @@
 import { useRouter } from 'next/router';
 import { useEffect, useState } from 'react';
 import { doc, getDoc, updateDoc, serverTimestamp } from 'firebase/firestore';
+import { getAuth, onAuthStateChanged } from 'firebase/auth';
 import { db } from '../lib/firebase';
 import Head from 'next/head';
 import { useSession } from 'next-auth/react';
+
+const DetailItem = ({ label, value }) => (
+    value ? (
+        <div className="py-2 sm:grid sm:grid-cols-3 sm:gap-4">
+            <dt className="text-sm font-medium text-gray-500">{label}</dt>
+            <dd className="mt-1 text-sm text-gray-900 sm:mt-0 sm:col-span-2">{value}</dd>
+        </div>
+    ) : null
+);
 
 export default function PaymentPage() {
   const router = useRouter();
   const { quoteId } = router.query;
   const { data: session } = useSession();
-
+ const [firebaseUser, setFirebaseUser] = useState(null);
   const [quote, setQuote] = useState(null);
   const [loading, setLoading] = useState(true);
   const [coverNoteAddress, setCoverNoteAddress] = useState('');
@@ -27,73 +37,86 @@ export default function PaymentPage() {
     passengers_coverage: "Passengers coverage",
   };
 
+ useEffect(() => {
+    const auth = getAuth();
+    const unsubscribe = onAuthStateChanged(auth, (user) => {
+      if (user) {
+        setFirebaseUser(user);
+      } else {
+        router.push('/auth/signin');
+      }
+    });
+    return () => unsubscribe();
+  }, [router]);
+
   useEffect(() => {
-    if (quoteId) {
+    if (router.isReady && quoteId && firebaseUser) {
       const fetchQuote = async () => {
         setLoading(true);
-        const quoteRef = doc(db, 'quotations', quoteId);
-        const quoteSnap = await getDoc(quoteRef);
+        try {
+          const policyRef = doc(db, 'policies', quoteId);
+          const docSnap = await getDoc(policyRef);
 
-        if (quoteSnap.exists()) {
-          setQuote({ id: quoteSnap.id, ...quoteSnap.data() });
-        } else {
-          console.log('No such document!');
+          if (docSnap.exists() && docSnap.data().user_email === firebaseUser.email) {
+            const quoteData = docSnap.data();
+            setQuote({ id: docSnap.id, ...quoteData });
+
+          } else {
+            console.error("Quotation not found or access denied.");
+            setQuote(null);
+          }
+        } catch (error) {
+          console.error("Error fetching quotation:", error);
+          setQuote(null);
+        } finally {
+          setLoading(false);
         }
-        setLoading(false);
       };
+
       fetchQuote();
     }
-  }, [quoteId]);
+  }, [router.isReady, quoteId, firebaseUser]);
 
   const handleConfirmAndPay = async () => {
-    if (!isConfirmed) {
-      alert('Please confirm the details are accurate before proceeding.');
+    if (!isConfirmed || !coverNoteAddress.trim()) {
+      alert('Please confirm the details and enter the delivery address before proceeding.');
       return;
-    }
-    if (!coverNoteAddress.trim()) {
-        alert('Please enter the Cover Note Address.');
-        return;
     }
 
     setLoading(true);
     try {
-      // **LOGIC CORRECTED: Update the existing quote to 'completed'**
-      const quoteRef = doc(db, 'quotations', quoteId);
-      await updateDoc(quoteRef, {
-        status: 'completed',
-        cover_note_address: coverNoteAddress,
-        user_email: session?.user?.email, // Ensure email is saved
-        submittedAt: serverTimestamp(), // Mark the time of completion
-      });
+            const policyRef = doc(db, 'policies', quote.id);
 
-      // Proceed to payment flow using the SAME ID, now treated as an orderId
+            await updateDoc(policyRef, {
+                cover_note_address: coverNoteAddress, 
+                status: 'completed', 
+                paymentDate: serverTimestamp(),
+            });
+
       router.push(`/payment-selection?orderId=${quoteId}`);
 
     } catch (error) {
-      console.error("Error updating document to completed: ", error);
-      alert('Failed to update your order. Please try again.');
-    } finally {
+      console.error("Error during confirmation and policy creation: ", error);
+      alert('Failed to process your request. Please try again.');
       setLoading(false);
     }
   };
-
+  
+  const formatCurrency = (value) => {
+    const numberValue = parseFloat(value);
+    if (isNaN(numberValue)) {
+      return 'RM 0.00';
+    }
+    return `RM ${numberValue.toFixed(2)}`;
+  };
 
   if (loading) {
     return <div className="min-h-screen flex items-center justify-center">Loading...</div>;
   }
 
   if (!quote) {
-    return <div className="min-h-screen flex items-center justify-center">Quotation not found.</div>;
+    return <div className="min-h-screen flex items-center justify-center">Quotation not found or already processed.</div>;
   }
-  
-  const DetailItem = ({ label, value }) => (
-    value ? (
-        <div className="py-2 sm:grid sm:grid-cols-3 sm:gap-4">
-            <dt className="text-sm font-medium text-gray-500">{label}</dt>
-            <dd className="mt-1 text-sm text-gray-900 sm:mt-0 sm:col-span-2">{value}</dd>
-        </div>
-    ) : null
-  );
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -120,7 +143,6 @@ export default function PaymentPage() {
         </div>
 
         <div className="bg-white p-8 rounded-lg shadow space-y-8">
-            {/* Vehicle Info */}
             <div>
                 <h3 className="text-lg leading-6 font-medium text-gray-900">Vehicle Information</h3>
                 <dl className="mt-4 border-t border-gray-200">
@@ -131,18 +153,16 @@ export default function PaymentPage() {
                 </dl>
             </div>
 
-            {/* Coverage Info */}
             <div>
                 <h3 className="text-lg leading-6 font-medium text-gray-900">Coverage Details</h3>
                 <dl className="mt-4 border-t border-gray-200">
                     <DetailItem label="Insurer" value={quote.insurer} />
                     <DetailItem label="Coverage Type" value={quote.coverage_type} />
                     <DetailItem label="Additional Protections" value={quote.selectedAddOns?.map(item => protectionLabels[item] || item).join(', ') || 'None'} />
-                    <DetailItem label="Total Amount Payable" value={<span className="font-bold text-blue-600">{quote.price}</span>} />
+                    <DetailItem label="Total Amount Payable" value={<span className="font-bold text-blue-600">{formatCurrency(quote.price)}</span>} />
                 </dl>
             </div>
             
-            {/* Personal Info */}
             <div>
                 <h3 className="text-lg leading-6 font-medium text-gray-900">Personal Information</h3>
                 <dl className="mt-4 border-t border-gray-200">
@@ -153,7 +173,6 @@ export default function PaymentPage() {
                 </dl>
             </div>
 
-            {/* Cover Note Address */}
             <div>
                 <h3 className="text-lg leading-6 font-medium text-gray-900">Delivery Address</h3>
                  <div className="mt-4 border-t border-gray-200 pt-4">
@@ -169,7 +188,6 @@ export default function PaymentPage() {
                 </div>
             </div>
 
-            {/* Confirmation */}
             <div className="mt-6 space-y-4">
                 <div className="relative flex items-start">
                     <div className="flex items-center h-5">
@@ -186,7 +204,6 @@ export default function PaymentPage() {
                         <label htmlFor="confirmation" className="font-medium text-gray-700">I confirm that the details are accurate and agree to send the details to JPJ.</label>
                     </div>
                 </div>
-                <p className="text-xs text-gray-500">Note: Your quotation price is based on your postcode. If you wish to change your postcode, please request for a new quote.</p>
             </div>
         </div>
 
@@ -201,7 +218,7 @@ export default function PaymentPage() {
             onClick={handleConfirmAndPay}
             disabled={!isConfirmed || loading || !coverNoteAddress.trim()}
             className={`border border-transparent rounded-md shadow-sm py-2 px-4 inline-flex justify-center text-sm font-medium text-white ${!isConfirmed || loading || !coverNoteAddress.trim() ? 'bg-gray-400 cursor-not-allowed' : 'bg-green-600 hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500'}`}>
-            {loading ? 'Confirming...' : 'Confirm and Pay'}
+            {loading ? 'Processing...' : 'Confirm and Proceed to Payment'}
           </button>
         </div>
       </main>

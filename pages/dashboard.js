@@ -1,4 +1,6 @@
-import { collection, query, where, getDocs, orderBy, doc, updateDoc } from "firebase/firestore";
+import { getAuth, onAuthStateChanged } from "firebase/auth";
+// In pages/dashboard.js
+import { collection, query, where, onSnapshot, orderBy, doc, updateDoc } from "firebase/firestore"; // Add onSnapshot
 import { db } from "../lib/firebase";
 import { useSession, signOut } from "next-auth/react";
 import { useRouter } from "next/router";
@@ -29,48 +31,58 @@ export default function Dashboard() {
   };
   
   useEffect(() => {
-    const fetchQuotations = async () => {
-      if (status === "authenticated" && session?.user?.email) {
-        // --- Fetch for "Recent Quotes" (pending, confirmed) ---
-        const recentQuotesQuery = query(
-          collection(db, "quotations"),
-          where("user_email", "==", session.user.email),
-          where("status", "in", ["pending", "confirmed"]),
-          orderBy("createdAt", "desc")
-        );
-        try {
-          const querySnapshot = await getDocs(recentQuotesQuery);
-          const userQuotations = [];
-          querySnapshot.forEach((doc) => {
-            userQuotations.push({ id: doc.id, ...doc.data() });
-          });
-          setQuotations(userQuotations);
-        } catch (error) {
-          console.error("Error fetching user quotations: ", error);
-        }
+    const auth = getAuth();
 
-        // --- Fetch for "My Car Records" (completed) ---
-        const carRecordsQuery = query(
-          collection(db, "quotations"),
-          where("user_email", "==", session.user.email),
-          where("status", "==", "completed"),
-          orderBy("submittedAt", "desc")
-        );
-        try {
-          const querySnapshot = await getDocs(carRecordsQuery);
-          const userCarRecords = [];
-          querySnapshot.forEach((doc) => {
-            userCarRecords.push({ id: doc.id, ...doc.data() });
-          });
-          setCarRecords(userCarRecords);
-        } catch (error) {
-          console.error("Error fetching car records: ", error);
-        }
-      }
-    };
+    // Set up the primary auth state listener
+    const authUnsubscribe = onAuthStateChanged(auth, (user) => {
+        if (user) {
+            // User is signed in, now set up the real-time data listeners.
 
-    fetchQuotations();
-  }, [session, status]);
+            // --- Listener for "Recent Quotes" ---
+            const recentQuotesQuery = query(
+                collection(db, "quotations"),
+                where("user_email", "==", user.email),
+                where("status", "in", ["pending", "confirmed"]),
+                orderBy("createdAt", "desc")
+            );
+            const recentQuotesUnsubscribe = onSnapshot(recentQuotesQuery, (querySnapshot) => {
+                const userQuotations = querySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+                setQuotations(userQuotations);
+            }, (error) => {
+                console.error("Error with recent quotes listener: ", error);
+            });
+
+            // --- Listener for "My Car Records" ---
+            const carRecordsQuery = query(
+                collection(db, "policies"),
+                where("user_email", "==", user.email),
+                where("status", "==", "completed"),
+                orderBy("submittedAt", "desc")
+            );
+            const carRecordsUnsubscribe = onSnapshot(carRecordsQuery, (querySnapshot) => {
+                const userCarRecords = querySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+                setCarRecords(userCarRecords);
+            }, (error) => {
+                console.error("Error with car records listener: ", error);
+            });
+
+            // Return a cleanup function to unsubscribe from data listeners when the user logs out
+            return () => {
+                recentQuotesUnsubscribe();
+                carRecordsUnsubscribe();
+            };
+        } else {
+            // User is signed out, clear the data
+            setQuotations([]);
+            setCarRecords([]);
+        }
+    });
+
+    // Return a cleanup function for the main auth listener when the component unmounts
+    return () => authUnsubscribe();
+
+}, []); // The empty dependency array is correct here.
+
 
 
   useEffect(() => {
@@ -315,7 +327,7 @@ export default function Dashboard() {
             {quote.plateNumber}
           </span>
           <span className="self-end font-semibold text-2xl text-[#162679]">
-            RM{quote.price || 'N/A'}
+            {quote.price || 'N/A'}
           </span>
           <div className="text-xl text-gray-700">
             <span>{quote.car_brand} {quote.vehicleModel} {quote.manufactured_year}</span>

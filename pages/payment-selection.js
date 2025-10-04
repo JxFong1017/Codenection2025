@@ -5,6 +5,7 @@ import { doc, getDoc } from 'firebase/firestore';
 import { db } from '../lib/firebase';
 import Head from 'next/head';
 import Image from 'next/image';
+import { getAuth, onAuthStateChanged } from 'firebase/auth';
 
 // Placeholder logos
 const visaMastercardLogo = "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' height='24' viewBox='0 0 384 512'%3E%3Cpath d='M336 32H48C21.5 32 0 53.5 0 80v352c0 26.5 21.5 48 48 48h288c26.5 0 48-21.5 48-48V80c0-26.5-21.5-48-48-48zM96 368H48v-48h48v48zm0-80H48v-48h48v48zm0-80H48v-48h48v48zm80 160h-48v-48h48v48zm0-80h-48v-48h48v48zm0-80h-48v-48h48v48zm160 160h-48v-48h48v48zm0-80h-48v-48h48v48zm0-80h-48v-48h48v48zm-80 160h-48v-48h48v48zm0-80h-48v-48h48v48z' fill='%230166b3'/%3E%3C/svg%3E";
@@ -14,34 +15,55 @@ const kkMartLogo = "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg'
 
 export default function PaymentSelectionPage() {
   const router = useRouter();
-  const { orderId } = router.query;
   const [quote, setQuote] = useState(null);
   const [loading, setLoading] = useState(true);
   const [selectedPayment, setSelectedPayment] = useState('credit_card');
+  const { quoteId } = router.query;
+  
+  const [firebaseUser, setFirebaseUser] = useState(null);
 
   useEffect(() => {
-    if (router.isReady && orderId) {
+    const auth = getAuth();
+    const unsubscribe = onAuthStateChanged(auth, (user) => {
+      if (user) {
+        setFirebaseUser(user);
+      } else {
+        router.push('/auth/signin');
+      }
+    });
+    return () => unsubscribe();
+  }, [router]);
+
+  useEffect(() => {
+    if (router.isReady && quoteId && firebaseUser) {
       const fetchQuote = async () => {
         setLoading(true);
-        const quoteRef = doc(db, 'quotations', orderId);
-        const quoteSnap = await getDoc(quoteRef);
+        try {
+          const policyRef = doc(db, 'policies', quoteId);
+          const docSnap = await getDoc(policyRef);
 
-        if (quoteSnap.exists()) {
-          setQuote({ id: quoteSnap.id, ...quoteSnap.data() });
-        } else {
-          console.error('No such document!');
-          setQuote(null); 
+          if (docSnap.exists() && docSnap.data().user_email === firebaseUser.email) {
+            const quoteData = docSnap.data();
+            setQuote({ id: docSnap.id, ...quoteData });
+
+          } else {
+            console.error("Quotation not found or access denied.");
+            setQuote(null);
+          }
+        } catch (error) {
+          console.error("Error fetching quotation:", error);
+          setQuote(null);
+        } finally {
+          setLoading(false);
         }
-        setLoading(false);
       };
+
       fetchQuote();
-    } else if (router.isReady) {
-        setLoading(false);
     }
-  }, [orderId, router.isReady]);
+  }, [router.isReady, quoteId, firebaseUser]);
 
   const handlePayNow = () => {
-    router.push(`/payment-redirect?orderId=${orderId}`);
+    router.push(`/payment-redirect?quoteId=${quoteId}`);
   };
 
   if (loading || !quote) {

@@ -15,6 +15,7 @@ export default function GetQuoteDecision() {
   const [autofillData, setAutofillData] = useState(null);
   const [hasMadeDecision, setHasMadeDecision] = useState(false); 
   const [showGeranModal, setShowGeranModal] = useState(false);
+  const [isAuthenticated, setIsAuthenticated] = useState(false);
 
   useEffect(() => {
     const savedDecision = sessionStorage.getItem("quoteDecision");
@@ -33,9 +34,12 @@ export default function GetQuoteDecision() {
       router.replace("/auth/signin");
       return;
     }
-    // Only open the popup if the component is first mounted and no decision has been made
-    if (status === "authenticated" && !hasMadeDecision) {
-      setIsOpen(true);
+    if (status === "authenticated") {
+      setIsAuthenticated(true);
+      // Only open the popup if the component is first mounted and no decision has been made
+      if (!hasMadeDecision) {
+        setIsOpen(true);
+      }
     }
   }, [status, router, hasMadeDecision]);
 
@@ -48,9 +52,14 @@ const handleDecision = (type, data) => {
     setIsOpen(false);
     router.replace("/manual-quote");
   } else if (type === "geran") {
-    setAutofillData(null);
-    setIsOpen(false);
-    setShowGeranModal(true);
+    if (isAuthenticated) {
+      setAutofillData(null);
+      setIsOpen(false);
+      setShowGeranModal(true);
+    } else {
+      // Handle the case where the user is not authenticated
+      console.log("User is not authenticated");
+    }
   }
 };
 

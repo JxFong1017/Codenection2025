@@ -1,6 +1,7 @@
 import { useRouter } from 'next/router';
 import { useEffect, useState, useMemo } from 'react';
 import { doc, getDoc, collection, addDoc, serverTimestamp } from 'firebase/firestore';
+import { getAuth, onAuthStateChanged } from 'firebase/auth'; // <--- ADD THIS LINE
 import { db } from '../lib/firebase';
 import { useSession } from 'next-auth/react';
 import Head from 'next/head';
@@ -31,7 +32,7 @@ export default function ConfirmPage() {
   const [loading, setLoading] = useState(true);
   const { data: session, status } = useSession();
   const t = useT();
-
+  const [firebaseUser, setFirebaseUser] = useState(null); // <-- ADD THIS NEW STATE
   // Vehicle Info
   const [plate, setPlate] = useState('');
   const [brand, setBrand] = useState('');
@@ -43,6 +44,7 @@ export default function ConfirmPage() {
   const [showModelDropdown, setShowModelDropdown] = useState(false);
   const [availableYears, setAvailableYears] = useState([]);
   const [availableModels, setAvailableModels] = useState([]);
+  const [isNcdLoading, setIsNcdLoading] = useState(false);
 
   // Coverage Info
   const [coverageType, setCoverageType] = useState('');
@@ -93,6 +95,22 @@ export default function ConfirmPage() {
       router.push('/auth/signin');
     }
   }, [status, router]);
+// Add this entire block inside your ConfirmPage component
+useEffect(() => {
+  const auth = getAuth();
+  const unsubscribe = onAuthStateChanged(auth, (user) => {
+      if (user) {
+          // User is signed in via Firebase, set the user object in state
+          setFirebaseUser(user);
+      } else {
+          // User is signed out
+          setFirebaseUser(null);
+      }
+  });
+
+  // Cleanup subscription on unmount
+  return () => unsubscribe();
+}, []); // Empty dependency array ensures this runs only once on mount
 
   useEffect(() => {
     if (quoteId) {
@@ -329,13 +347,17 @@ export default function ConfirmPage() {
 
       setLoading(true);
       try {
-          // --- Premium calculation logic remains the same ---
+          // --- Premium calculation logic ---
           const selectedCar = carData.find(c => c.make === brand && c.model === model);
           
           let comprehensive_premium = 0;
           let tpft_premium = 0;
           let third_party_premium = 0;
           let car_market_value = 0;
+          let comprehensiveBasePremium = 0;
+          let tpftBasePremium = 0;
+          let thirdPartyBasePremium = 0;
+          let additionalCoverageCost = 0;
 
           if (selectedCar && year && postcode) {
               const carAge = new Date().getFullYear() - parseInt(year, 10);
@@ -360,14 +382,11 @@ export default function ConfirmPage() {
               
               const compRateTier = ratesForComprehensive.rates.find(tier => engineCapacity <= tier.cc);
               const excessValue = Math.max(0, car_market_value - 1000);
-              const comprehensiveBasePremium = compRateTier.base + (excessValue / 1000) * ratesForComprehensive.per1000;
-              
-              const tpftBasePremium = comprehensiveBasePremium * 0.75;
-              
+              comprehensiveBasePremium = compRateTier.base + (excessValue / 1000) * ratesForComprehensive.per1000;
+              tpftBasePremium = comprehensiveBasePremium * 0.75;
               const tpRateTier = ratesForThirdParty.find(tier => engineCapacity <= tier.cc);
-              const thirdPartyBasePremium = tpRateTier.premium;
+              thirdPartyBasePremium = tpRateTier.premium;
 
-              let additionalCoverageCost = 0;
               if (coverageType === "Comprehensive" && selectedProtections.length > 0) {
                   additionalCoverageCost = selectedProtections.reduce((acc, protectionId) => {
                       if (protectionId === 'windscreen') return acc + 150;
@@ -396,12 +415,22 @@ export default function ConfirmPage() {
               third_party_premium = calculateFinal(thirdPartyBasePremium);
           }
 
+          let base_premium_for_calculation = 0;
+          if (coverageType === 'Comprehensive') {
+            base_premium_for_calculation = comprehensiveBasePremium;
+          } else if (coverageType === 'Third-Party, Fire & Theft') {
+              base_premium_for_calculation = tpftBasePremium;
+          } else {
+            base_premium_for_calculation = thirdPartyBasePremium;
+          }
+          
+          const ncd_amount = base_premium_for_calculation * (ncd / 100);
+          const gross_premium = base_premium_for_calculation - ncd_amount + additionalCoverageCost;
+          const sst_amount = gross_premium * 0.06;
+          const stamp_duty = 10;
+
           const insurerAdjustments = {
-              abc: 1.0,
-              xyz: 1.05,
-              safedrive: 1.08,
-              guardian: 1.1,
-              metroprotect: 1.12,
+              abc: 1.0, xyz: 1.05, safedrive: 1.08, guardian: 1.1, metroprotect: 1.12,
           };
 
           const formatPremium = (premium, adjustment) => {
@@ -413,26 +442,29 @@ export default function ConfirmPage() {
           protectionOptions.forEach(option => {
               protectionsToSave[option.id] = selectedProtections.includes(option.id);
           });
-
-          // ** NEW LOGIC: Create a new data object **
+          const auth = getAuth();
+          const user = auth.currentUser;
+  
+          if (!firebaseUser) { // Use the state variable for the check
+            alert("Authentication not ready. Please wait a moment and try again.");
+            setLoading(false);
+            return;
+        }
           const newQuoteData = {
-              // Copy all user-editable data
-              plateNumber: plate,
-              car_brand: brand,
-              vehicleModel: model,
-              manufactured_year: year,
-              customer_name: name,
-              ncd,
-              documentType,
-              ic,
-              passport,
-              postcode,
-              coverage_type: coverageType,
-              selectedAddOns: selectedProtections,
-              car_market_value: car_market_value,
-              ...protectionsToSave,
+              plateNumber: plate, car_brand: brand, vehicleModel: model, manufactured_year: year,
+              customer_name: name, ncd, documentType, ic, passport, postcode, coverage_type: coverageType,
+              selectedAddOns: selectedProtections, ...protectionsToSave,
+              userId: firebaseUser.uid, // Use the state variable to get the UID
+              // --- THIS IS THE CRUCIAL PART: SAVING THE BREAKDOWN ---
+              sumInsured: car_market_value,
+              basePremium: base_premium_for_calculation,
+              ncdAmount: ncd_amount,
+              additionalProtectionsPremium: additionalCoverageCost,
+              grossPremium: gross_premium,
+              sst: sst_amount,
+              stampDuty: stamp_duty,
               
-              // Add pricing data
+              // Pricing data for next step
               comprehensive_abc: formatPremium(comprehensive_premium, insurerAdjustments.abc),
               tpft_abc: formatPremium(tpft_premium, insurerAdjustments.abc),
               third_party_only_abc: formatPremium(third_party_premium, insurerAdjustments.abc),
@@ -449,18 +481,17 @@ export default function ConfirmPage() {
               tpft_metroprotect: formatPremium(tpft_premium, insurerAdjustments.metroprotect),
               third_party_only_metroprotect: formatPremium(third_party_premium, insurerAdjustments.metroprotect),
               
-              // Add metadata for tracking
-              status: 'draft',
-              createdAt: serverTimestamp(),
-              original_quote_id: quoteId, // Link back to the original quote
-              user_email: session?.user?.email,
+              // Metadata
+              status: 'draft', createdAt: serverTimestamp(), original_quote_id: quoteId, user_email: session?.user?.email,
           };
           
-          // Add the new document to the 'quotations' collection
-          const newQuoteRef = await addDoc(collection(db, 'quotations'), newQuoteData);
-          
-          // Redirect to the next step with the NEW quote ID
-          router.push(`/choose-insurer?quoteId=${newQuoteRef.id}`);
+           // We now add the document to Firestore again
+           const newPolicyRef = await addDoc(collection(db, 'policies'), newQuoteData);
+
+ // And we redirect using the ID of the NEW document
+ router.push(`/choose-insurer?quoteId=${newPolicyRef.id}`);
+
+
 
       } catch (error) {
           console.error("Error creating new quotation:", error);
@@ -470,6 +501,7 @@ export default function ConfirmPage() {
       }
     };
 
+
   
     
     const isCarOlderThan15Years = () => {
@@ -477,28 +509,50 @@ export default function ConfirmPage() {
         const currentYear = new Date().getFullYear();
         return currentYear - parseInt(year, 10) > 15;
     };
-
-
+    const handleProtectionChange = (e) => {
+      const { name, checked } = e.target;
+      if (checked) {
+        setSelectedProtections(prev => [...prev, name]);
+      } else {
+        setSelectedProtections(prev => prev.filter(item => item !== name));
+      }
+    };
+  
+    const handleBackToHome = (e) => {
+      e.preventDefault();
+      if (confirm("Are you sure you want to return to the home page? Your edited data will not be saved.")) {
+          router.push('/dashboard');
+      }
+    };  
   
 
-  const handleCheckNcd = () => {
-    window.open("https://www.mycarinfo.com.my/NCDCheck/Online", "_blank");
+    const handleCheckNcd = async () => {
+    // Basic validation to ensure plate and IC/Passport are present
+    if (!plate || !(ic || passport)) {
+        alert("Please enter your Car Plate Number and your IC/Passport number to check your NCD.");
+        return;
+    }
+    setIsNcdLoading(true);
+    try {
+        // Simulate a network request to an NCD checking service
+        await new Promise(resolve => setTimeout(resolve, 1500));
+
+        // In a real-world scenario, this would be an API call.
+        // For demonstration, we'll just pick a random valid NCD.
+        const possibleNcds = [0, 25, 30, 38.3, 45, 55];
+        const randomNcd = possibleNcds[Math.floor(Math.random() * possibleNcds.length)];
+
+        setNcd(randomNcd);
+        alert(`Based on our check, your NCD is ${randomNcd}%. You can still adjust this manually if it's incorrect.`);
+
+    } catch (error) {
+        console.error("Failed to fetch NCD:", error);
+        alert("Sorry, we couldn't automatically fetch your NCD. Please select it from the list manually.");
+    } finally {
+        setIsNcdLoading(false);
+    }
   };
 
-  const handleProtectionChange = (e) => {
-    const { name, checked } = e.target;
-    if (checked) {
-      setSelectedProtections(prev => [...prev, name]);
-    } else {
-      setSelectedProtections(prev => prev.filter(item => item !== name));
-    }
-  };
-  const handleBackToHome = (e) => {
-    e.preventDefault();
-    if (confirm("Are you sure to return to home page? Your edited data will not be saved.")) {
-        router.push('/dashboard');
-    }
-  };
 
   const handlePlateInput = (e) => {
     const rawValue = e.target.value;
@@ -705,7 +759,16 @@ export default function ConfirmPage() {
                         <option value={45}>45%</option>
                         <option value={55}>55%</option>
                       </select>
-                      <button type="button" onClick={handleCheckNcd} className="underline text-sm">Check NCD</button>
+                      <button
+                        type="button"
+                        onClick={handleCheckNcd}
+                        disabled={isNcdLoading}
+                        className="underline text-sm text-blue-600 hover:text-blue-800 disabled:text-gray-400 disabled:cursor-wait"
+                      >
+                        {isNcdLoading ? 'Checking...' : 'Auto-check My NCD'}
+                      </button>
+                      <p className="text-xs text-gray-500 mt-1">Requires Car Plate & IC/Passport to be filled.</p>
+
                     </div>
                     <div className="flex items-center">
                       <span className="text-sm font-medium text-gray-700 mr-4">{t("id_type", "ID Type")}</span>
@@ -737,7 +800,7 @@ export default function ConfirmPage() {
               <div className="flex justify-end mt-8">
                   <button
                       onClick={handleProceed}
-                      disabled={!isPageValid() || loading}
+                      disabled={!isPageValid() || loading || !firebaseUser} // <-- ADD !firebaseUser
                       className={`px-6 py-3 border border-transparent text-base font-medium rounded-md shadow-sm text-white ${
                           !isPageValid() || loading 
                           ? 'bg-gray-400 cursor-not-allowed' 

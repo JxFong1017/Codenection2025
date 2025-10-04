@@ -1,45 +1,64 @@
 
 import { useRouter } from 'next/router';
 import Head from 'next/head';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { doc, updateDoc, serverTimestamp } from 'firebase/firestore';
 import { db } from '../lib/firebase';
+import { getAuth, onAuthStateChanged } from 'firebase/auth';
 
 export default function PaymentRedirectPage() {
   const router = useRouter();
-  const { orderId } = router.query;
+  const { quoteId } = router.query;
   const [isProcessing, setIsProcessing] = useState(false);
+  const [firebaseUser, setFirebaseUser] = useState(null);
 
+  useEffect(() => {
+    const auth = getAuth();
+    const unsubscribe = onAuthStateChanged(auth, (user) => {
+      if (user) {
+        setFirebaseUser(user);
+      } else {
+        router.push('/auth/signin');
+      }
+    });
+    return () => unsubscribe();
+  }, [router]);
+  
   const handleDonePayment = async () => {
-    if (!orderId) return;
+    if (!quoteId) return;
 
     setIsProcessing(true);
     try {
-      // Step 1: Update the quote status to 'completed' in Firestore.
-      const quoteRef = doc(db, 'quotations', orderId);
-      await updateDoc(quoteRef, {
+      // Get references to both the policy and the quotation documents
+      const policyRef = doc(db, 'policies', quoteId);
+      const quotationRef = doc(db, 'quotations', quoteId);
+
+      // Update the policy document for "My Car Records"
+      await updateDoc(policyRef, {
         status: 'completed',
-        submittedAt: serverTimestamp(),
+        submittedAt: serverTimestamp(), // Use `submittedAt` as expected by the dashboard
       });
 
-      // Step 2: Await the confirmation email before redirecting.
-      // This is the fix to ensure the email is sent before the page changes.
+      // Update the quotation document for "Recent Quotes"
+      await updateDoc(quotationRef, {
+        status: 'completed',
+      });
+
+      // Send the confirmation email
       await fetch('/api/send-confirmation-email', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify({ orderId }),
+        body: JSON.stringify({ quoteId }),
       });
       
-      // Step 3: Redirect to the dashboard only after the email API call is done.
-      router.push('/dashboard');
+      // Redirect to the success page
+      router.push(`/success?quoteId=${quoteId}`);
 
     } catch (error) {
       console.error('Error during payment finalization:', error);
-      // Even if email fails, the status is updated, so we can redirect.
-      alert('Your payment was processed, but we had an issue sending the confirmation email. Please check your dashboard for the policy record.');
-      router.push('/dashboard'); 
+      alert('There was an error finalizing your payment. Please contact support.');
     } finally {
       setIsProcessing(false);
     }

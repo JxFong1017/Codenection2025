@@ -1,9 +1,27 @@
+
 import { useRouter } from 'next/router';
 import { useEffect, useState } from 'react';
-import { doc, getDoc, updateDoc } from 'firebase/firestore';
+import { doc, getDoc } from 'firebase/firestore';
+import { getAuth, onAuthStateChanged } from 'firebase/auth';
 import { db } from '../lib/firebase';
 import Head from 'next/head';
-import { carData } from '../src/data/carData';
+
+// ADDED: Insurer-specific data to find the correct adjustment factor
+const insurerAdjustments = {
+    abc: 1.0,
+    xyz: 1.05,
+    safedrive: 1.08,
+    guardian: 1.1,
+    metroprotect: 1.12,
+};
+
+const insurers = [
+    { key: 'abc', name: 'ABC Insurance Ltd.' },
+    { key: 'xyz', name: 'XYZ General Insurance' },
+    { key: 'safedrive', name: 'SafeDrive Assurance' },
+    { key: 'guardian', name: 'Guardian Insurance' },
+    { key: 'metroprotect', name: 'MetroProtect Insurance' },
+];
 
 export default function BillingPage() {
   const router = useRouter();
@@ -12,124 +30,101 @@ export default function BillingPage() {
   const [quote, setQuote] = useState(null);
   const [loading, setLoading] = useState(true);
   const [billingDetails, setBillingDetails] = useState(null);
+  const [firebaseUser, setFirebaseUser] = useState(null);
 
   useEffect(() => {
-    if (!quoteId) return;
-
-    const fetchQuoteAndCalculate = async () => {
-      setLoading(true);
-      const quoteRef = doc(db, 'quotations', quoteId);
-      const quoteSnap = await getDoc(quoteRef);
-
-      if (quoteSnap.exists()) {
-        const quoteData = quoteSnap.data();
-        setQuote(quoteData);
-
-        // --- Re-calculate Billing Details --- 
-        const { 
-            car_brand,
-            vehicleModel,
-            manufactured_year,
-            postcode,
-            coverage_type,
-            selectedAddOns,
-            ncd
-        } = quoteData;
-
-        const selectedCar = carData.find(c => c.make === car_brand && c.model === vehicleModel);
-
-        if (selectedCar && manufactured_year && postcode) {
-            const carAge = new Date().getFullYear() - parseInt(manufactured_year, 10);
-            const depreciationFactor = Math.max(0.3, Math.pow(0.9, carAge));
-            const sumInsured = selectedCar.marketValue * depreciationFactor;
-
-            const { engineCapacity } = selectedCar;
-            const firstTwoPostcodeDigits = parseInt(postcode.substring(0, 2), 10);
-            const isEastMalaysia = (firstTwoPostcodeDigits >= 88 && firstTwoPostcodeDigits <= 91) || (firstTwoPostcodeDigits >= 93 && firstTwoPostcodeDigits <= 98);
-
-            const comprehensiveRates = {
-                peninsular: { rates: [ { cc: 1400, base: 273.8 }, { cc: 1650, base: 305.5 }, { cc: 2200, base: 339.1 }, { cc: 3050, base: 372.6 }, { cc: 4100, base: 404.3 }, { cc: 4250, base: 436.0 }, { cc: 4400, base: 469.6 }, { cc: Infinity, base: 501.3 } ], per1000: 26.0 },
-                east: { rates: [ { cc: 1400, base: 219.0 }, { cc: 1650, base: 244.4 }, { cc: 2200, base: 271.3 }, { cc: 3050, base: 298.1 }, { cc: 4100, base: 323.4 }, { cc: 4250, base: 348.8 }, { cc: 4400, base: 375.7 }, { cc: Infinity, base: 401.1 } ], per1000: 20.3 },
-            };
-            const thirdPartyRates = {
-                peninsular: [ { cc: 1400, premium: 120.6 }, { cc: 1650, premium: 135.0 }, { cc: 2200, premium: 151.2 }, { cc: 3050, premium: 167.4 }, { cc: 4100, premium: 181.8 }, { cc: 4250, premium: 196.2 }, { cc: 4400, premium: 212.4 }, { cc: Infinity, premium: 226.8 } ],
-                east: [ { cc: 1400, premium: 95.9 }, { cc: 1650, premium: 107.5 }, { cc: 2200, premium: 120.6 }, { cc: 3050, premium: 133.6 }, { cc: 4100, premium: 145.1 }, { cc: 4250, premium: 156.5 }, { cc: 4400, premium: 169.6 }, { cc: Infinity, premium: 181.1 } ],
-            };
-
-            let basePremium = 0;
-            if (coverage_type === "Comprehensive") {
-                const rates = isEastMalaysia ? comprehensiveRates.east : comprehensiveRates.peninsular;
-                const rateTier = rates.rates.find(tier => engineCapacity <= tier.cc);
-                const excessValue = Math.max(0, sumInsured - 1000);
-                basePremium = rateTier.base + (excessValue / 1000) * rates.per1000;
-            } else if (coverage_type === "Third-Party, Fire & Theft") {
-                 const rates = isEastMalaysia ? comprehensiveRates.east : comprehensiveRates.peninsular;
-                const rateTier = rates.rates.find(tier => engineCapacity <= tier.cc);
-                const excessValue = Math.max(0, sumInsured - 1000);
-                const compPremium = rateTier.base + (excessValue / 1000) * rates.per1000;
-                basePremium = compPremium * 0.75;
-            } else { // Third-Party Only
-                const rates = isEastMalaysia ? thirdPartyRates.east : thirdPartyRates.peninsular;
-                const rateTier = rates.find(tier => engineCapacity <= tier.cc);
-                basePremium = rateTier.premium;
-            }
-            
-            let additionalCoverageCost = 0;
-            if (coverage_type === "Comprehensive" && selectedAddOns && selectedAddOns.length > 0) {
-                additionalCoverageCost = selectedAddOns.reduce((acc, protectionId) => {
-                    if (protectionId === 'windscreen') return acc + 150;
-                    if (protectionId === 'natural_disaster') return acc + sumInsured * 0.005;
-                    if (protectionId === 'strike_riot') return acc + sumInsured * 0.003;
-                    if (protectionId === 'personal_accident') return acc + 100;
-                    if (protectionId === 'towing') return acc + 50;
-                    if (protectionId === 'named_driver') return acc + 10;
-                    if (protectionId === 'all_driver') return acc + 50;
-                    if (protectionId === 'passengers_coverage') return acc + 25;
-                    return acc;
-                }, 0);
-            }
-
-            const ncdDiscount = basePremium * (ncd / 100);
-            const grossPremium = basePremium - ncdDiscount + additionalCoverageCost;
-            const sst = grossPremium * 0.06;
-            const stampDuty = 10.00;
-            const commission = grossPremium * 0.10; // 10% commission
-            const grandTotal = parseFloat(quoteData.price.replace('RM','')); // Use the price from the selected insurer
-
-            setBillingDetails({
-                coverType: coverage_type,
-                sumInsured,
-                basicPremium: basePremium,
-                ncd, 
-                ncdDiscount,
-                grossPremium,
-                additionalCoverageCost, // For detailed breakdown if needed
-                sst,
-                stampDuty,
-                commission,
-                grandTotal
-            });
-        }
-
+    const auth = getAuth();
+    const unsubscribe = onAuthStateChanged(auth, (user) => {
+      if (user) {
+        setFirebaseUser(user);
       } else {
-        console.error("Quotation not found");
+        router.push('/auth/signin');
       }
-      setLoading(false);
-    };
+    });
+    return () => unsubscribe();
+  }, [router]);
 
-    fetchQuoteAndCalculate();
-  }, [quoteId]);
+  useEffect(() => {
+    if (quoteId && firebaseUser) {
+      const fetchQuote = async () => {
+        setLoading(true);
+        try {
+          const policyRef = doc(db, 'policies', quoteId);
+          const quoteSnap = await getDoc(policyRef);
 
-  const handleProceed = async () => {
-    // Here you would navigate to the final confirmation/payment page
+          if (quoteSnap.exists() && quoteSnap.data().user_email === firebaseUser.email) {
+            setQuote({ id: quoteSnap.id, ...quoteSnap.data() });
+          } else {
+            console.error('Billing page: Policy document not found or access denied.');
+            setQuote(null);
+          }
+        } catch (error) {
+          console.error("Error fetching document:", error);
+          setQuote(null);
+        } finally {
+          setLoading(false);
+        }
+      };
+      fetchQuote();
+    }
+  }, [quoteId, firebaseUser]);
+
+  // REVISED: This hook now correctly calculates the premium breakdown based on the chosen insurer
+  useEffect(() => {
+    if (quote) {
+        const parseCurrency = (value) => {
+            if (typeof value === 'string') {
+                return parseFloat(value.replace(/RM|,/g, '')) || 0;
+            }
+            return parseFloat(value) || 0;
+        };
+
+        // Find the selected insurer's adjustment factor
+        const selectedInsurer = insurers.find(ins => ins.name === quote.insurer);
+        const adjustmentFactor = selectedInsurer ? insurerAdjustments[selectedInsurer.key] : 1.0;
+
+        const basicPremium = parseCurrency(quote.basePremium);
+        const ncdPercentage = parseFloat(quote.ncd) || 0;
+        const additionalCoverageCost = parseCurrency(quote.additionalProtectionsPremium);
+
+        const ncdDiscount = basicPremium * (ncdPercentage / 100);
+        const grossPremiumUnadjusted = basicPremium - ncdDiscount + additionalCoverageCost;
+
+        // Apply the insurer-specific adjustment to the gross premium
+        const grossPremium = grossPremiumUnadjusted * adjustmentFactor;
+        
+        const sst = grossPremium * 0.06;
+        const stampDuty = 10.00;
+        const commission = basicPremium * 0.10; 
+        const grandTotal = grossPremium + sst + stampDuty;
+
+      setBillingDetails({
+        coverType: quote.coverage_type,
+        sumInsured: parseCurrency(quote.sumInsured),
+        basicPremium,
+        ncd: ncdPercentage,
+        ncdDiscount,
+        additionalCoverageCost,
+        grossPremium,
+        sst,
+        stampDuty,
+        commission,
+        grandTotal
+      });
+    }
+  }, [quote]);
+
+
+  const handleProceed = () => {
+    if (!quoteId) return;
     router.push(`/payment?quoteId=${quoteId}`);
   };
 
   const handleBack = () => {
-      router.push(`/choose-insurer?quoteId=${quoteId}`);
+    router.push(`/choose-insurer?quoteId=${quoteId}`);
   }
 
-  if (loading) {
+  if (loading || !firebaseUser) {
     return <div className="min-h-screen flex items-center justify-center">Loading billing details...</div>;
   }
 
@@ -137,7 +132,13 @@ export default function BillingPage() {
     return <div className="min-h-screen flex items-center justify-center">Could not load billing details.</div>;
   }
 
-  const formatCurrency = (value) => `RM ${value.toFixed(2)}`;
+  const formatCurrency = (value) => {
+    const numberValue = parseFloat(value);
+    if (isNaN(numberValue)) {
+      return 'RM 0.00';
+    }
+    return `RM ${numberValue.toFixed(2)}`;
+  };
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -217,7 +218,7 @@ export default function BillingPage() {
             </div>
 
             <div className="mt-8 text-xs text-gray-500 space-y-3">
-                <p>Our customers is always 1st priority. There are no cancellation fees, and full refund will be given to cancellation requests for any policies not enforced. <a href="#" className="underline">Learn more</a></p>
+                <p>Our customers is always 1st priority. There are no cancellation fees, and a full refund will be given to cancellation requests for any policies not enforced. </p>
                 <p>CGS Sdn Bhd is an approved insurance and takaful agent under the Financial Services Act 2013 & Islamic Financial Services Act 2013 and regulated by BNM.</p>
                 <p>Similar auto insurance products are available at ITOs' websites that provides a rebate on commission without service.</p>
                 <p>All insurers on our platform are members of PIDM. The benefit(s) payable under eligible policy is protected by PIDM up to limits. Please refer to PIDM Brochure or contact our insurer or PIDM.</p>
@@ -233,10 +234,12 @@ export default function BillingPage() {
                 </button>
                 <button
                     onClick={handleProceed}
-                    className="border border-transparent rounded-md shadow-sm py-2 px-4 inline-flex justify-center text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
+                    disabled={loading}
+                    className="border border-transparent rounded-md shadow-sm py-2 px-4 inline-flex justify-center text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:bg-gray-400 disabled:cursor-not-allowed"
                 >
-                    Proceed to Confirmation
+                    {loading ? 'Loading...' : 'Proceed to Confirmation'}
                 </button>
+
             </div>
         </main>
     </div>

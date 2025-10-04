@@ -81,7 +81,12 @@ export default function QuotationDetail({ quote, onClose }) {
         status: 'deleted'
       });
       setShowDeleteConfirm(false);
-      onClose();
+            // STEP 2: Call the function if it exists, after a successful deletion
+            if (onQuoteDeleted) {
+              onQuoteDeleted(quote.id);
+          }
+          
+          onClose(); // Close the modal
     } catch (error) {
       console.error("Error updating document: ", error);
     }

@@ -22,9 +22,7 @@ export default function AllQuotes() {
         // Corrected and improved query to align with the dashboard
         const q = query(
         collection(db, "quotations"),
-        where("user_email", "==", session.user.email), // Use the correct field 'user_email'
-        where("status", "in", ["pending", "confirmed", "completed"]), // Explicitly fetch all relevant statuses
-        orderBy("createdAt", "desc") // Order by creation time for consistency
+        where("user_email", "==", session.user.email),
         );
 
         try {
@@ -42,6 +40,12 @@ export default function AllQuotes() {
 
     fetchQuotations();
 }, [session, status]);
+
+  // This function will be called when a quote is deleted from the detail modal
+  const handleQuoteDeleted = (deletedQuoteId) => {
+    // This filters the quotations list to remove the one with the matching ID
+    setQuotations((prevQuotations) => prevQuotations.filter((quote) => quote.id !== deletedQuoteId));
+  };
 
 
   if (status === "loading") {
@@ -103,7 +107,6 @@ export default function AllQuotes() {
  quotations.map((quote) => {
   const statusColors = {
     pending: "bg-yellow-300 text-black",
-    confirmed: "bg-green-500 text-white",
     completed: "bg-green-500 text-white", // Green for completed
   };
 
@@ -162,7 +165,7 @@ export default function AllQuotes() {
             </div>
 
             {selectedQuote && (
-              <QuotationDetail quote={selectedQuote} onClose={() => setSelectedQuote(null)} />
+              <QuotationDetail quote={selectedQuote} onClose={() => setSelectedQuote(null)} onQuoteDeleted={handleQuoteDeleted} />
             )}
           </div>
         </main>

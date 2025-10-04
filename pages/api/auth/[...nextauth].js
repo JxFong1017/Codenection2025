@@ -1,69 +1,97 @@
 
 import NextAuth from "next-auth";
 import CredentialsProvider from "next-auth/providers/credentials";
-import { signInWithEmailAndPassword } from "firebase/auth";
-import { auth } from "../../../lib/firebase"; // Correctly import the initialized auth instance
+import admin from "../../../lib/firebase-admin"; // Use the SERVER-SIDE Admin SDK
+import { getAuth } from "firebase-admin/auth";
 
-const providers = [
-  CredentialsProvider({
-    name: "Credentials",
-    credentials: {
-      email: { label: "Email", type: "email" },
-      password: { label: "Password", type: "password" },
-    },
-    async authorize(credentials, req) {
-      try {
-        const userCredential = await signInWithEmailAndPassword(
-          auth,
-          credentials.email,
-          credentials.password
-        );
-        const user = userCredential.user;
-
-        if (user) {
-          // Return a user object that NextAuth can use
-          return { id: user.uid, email: user.email };
-        } else {
+// This is the definitive and correct configuration for NextAuth with Firebase Custom Tokens.
+export default NextAuth({
+  providers: [
+    CredentialsProvider({
+      name: "Credentials",
+      credentials: {
+        email: { label: "Email", type: "email" },
+        password: { label: "Password", type: "password" },
+      },
+      // This `authorize` function runs on the SERVER.
+      async authorize(credentials) {
+        if (!credentials) {
           return null;
         }
-      } catch (error) {
-        // You can log the error or handle specific Firebase auth errors
-        console.error("Firebase Auth Error:", error);
-        // Returning null will trigger the `error` response in the UI
-        return null;
-      }
-    },
-  }),
-];
 
-export default NextAuth({
-  providers,
+        try {
+          // We use the Firebase Auth REST API to securely verify the password on the server.
+          // This is the correct server-side replacement for signInWithEmailAndPassword.
+          const res = await fetch(
+            `https://identitytoolkit.googleapis.com/v1/accounts:signInWithPassword?key=${process.env.NEXT_PUBLIC_FIREBASE_API_KEY}`,
+            {
+              method: "POST",
+              headers: {
+                "Content-Type": "application/json",
+              },
+              body: JSON.stringify({
+                email: credentials.email,
+                password: credentials.password,
+                returnSecureToken: true,
+              }),
+            }
+          );
+
+          const user = await res.json();
+
+          // If the sign-in is successful, we get back a user object with a localId (Firebase UID).
+          if (res.ok && user.localId) {
+            return {
+              uid: user.localId,
+              email: user.email,
+            };
+          }
+
+          // If there's an error (e.g., wrong password), log it and return null.
+          console.error("Firebase sign-in error on server:", user.error.message);
+          return null;
+
+        } catch (error) {
+          console.error("Authorize function error:", error);
+          return null;
+        }
+      },
+    }),
+  ],
+  session: {
+    strategy: "jwt",
+  },
   callbacks: {
-    async session({ session, token }) {
-      // Add user ID to session
-      session.user.id = token.sub;
-      return session;
-    },
+    // The JWT callback is called AFTER `authorize` and is used to create the custom token.
     async jwt({ token, user }) {
       if (user) {
-        token.id = user.id;
+        token.uid = user.uid;
+      }
+      
+      // If we have a UID, we can use the ADMIN SDK to create the custom token.
+      if (token.uid) {
+          try {
+            const customToken = await getAuth(admin.app()).createCustomToken(token.uid);
+            token.customToken = customToken;
+          } catch (error) {
+              console.error("Error creating custom token:", error);
+              token.error = "CustomTokenError";
+          }
       }
       return token;
     },
-    async redirect({ url, baseUrl }) {
-      // url is the intended redirect URL, baseUrl is the app's base URL.
-      // After a logout, the callbackUrl is passed as url.
-      // In dashboard.js, signOut is called with callbackUrl: "/"
-      if (url === "/") {
-        return "/"; // Redirect to the homepage on logout
+    // The session callback makes the custom token available on the client-side `session` object.
+    async session({ session, token }) {
+      if (session.user) {
+        session.user.email = token.email;
       }
-      // For all other cases (like post-login), redirect to the dashboard.
-      return `${baseUrl}/dashboard`;
+      session.customToken = token.customToken;
+      session.error = token.error;
+      return session;
     },
   },
+  secret: process.env.NEXTAUTH_SECRET,
   pages: {
-    signIn: "/",
+    signIn: '/auth/signin',
   },
-  secret: process.env.NEXTAUTH_SECRET || "your-secret-key-here",
-  debug: process.env.NODE_ENV === "development",
 });

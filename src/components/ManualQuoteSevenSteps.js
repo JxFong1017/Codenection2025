@@ -19,10 +19,6 @@ import {
 } from "../utils/validationLogic";
 import { useQuote } from "../context/QuoteContext";
 import { useT } from "../utils/i18n";
-import {
-  checkExistingPolicy,
-  getPolicyStatusMessage,
-} from "../data/insuranceDatabase";
 import PlateValidationPopup from "./PlateValidationPopup";
 import { useSession, signOut } from "next-auth/react";
 import ContactHelp from "./ContactHelp";
@@ -432,21 +428,6 @@ export default function ManualQuoteSevenStep({ autofillData }) {
     setPlateValidation({ isValid: result.isValid, error: result.error });
   }, [debouncedPlate]);
 
-  // Check for existing policy when plate is valid (only for manual entry, not from Geran upload)
-  // Only show policy validation for specific plate "ABC 1234"
-  useEffect(() => {
-    if (plateValidation.isValid && debouncedPlate && !quoteDraft?.fromGeran) {
-      // Only check for existing policy if plate is "ABC 1234"
-      if (debouncedPlate.toUpperCase() === "ABC 1234") {
-        const policyCheck = checkExistingPolicy(debouncedPlate);
-        if (policyCheck.exists) {
-          const statusMessage = getPolicyStatusMessage(policyCheck);
-          setPlateValidationResult(statusMessage);
-          setShowPlateValidation(true);
-        }
-      }
-    }
-  }, [plateValidation.isValid, debouncedPlate, quoteDraft?.fromGeran]);
 
   // Effect to update available models when brand changes
   useEffect(() => {
@@ -760,20 +741,14 @@ export default function ManualQuoteSevenStep({ autofillData }) {
       setPlateValidation({ isValid, error });
 
       if (isValid) {
-        const checkResult = checkExistingPolicy(debouncedPlate);
-
-        if (checkResult && checkResult.exists) {
-          // Change this line
-          setPlateValidationResult(getPolicyStatusMessage(checkResult));
-          setShowPlateValidation(true);
-        } else {
+        
           setQuoteDraft((prev) => {
             if (!prev.fromGeran) {
               return { ...prev, plate: debouncedPlate };
             }
             return prev;
           });
-        }
+        
       }
     }
   }, [debouncedPlate, setQuoteDraft]);

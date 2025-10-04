@@ -1,23 +1,25 @@
 rules_version = '2';
-
 service cloud.firestore {
   match /databases/{database}/documents {
 
-    // Rules for the 'quotations' collection
-    match /quotations/{quoteId} {
-      
-      // Allow any authenticated user to create a new quotation.
-      allow create: if request.auth != null;
-
-      // Allow a user to read, update, or delete a quotation if their email
-      // matches the 'user_email' field stored on the document.
-      allow read, update, delete: if request.auth != null && request.auth.token.email == resource.data.user_email;
+    // Allow users to read/update their own user document, which is identified by their email.
+    match /users/{userEmail} {
+      allow read, update: if request.auth != null &&
+                             request.auth.token.email == userEmail;
     }
 
-    // You may have other collections like 'users'. You can add rules for them here.
-    // For example:
-    // match /users/{userId} {
-    //   allow read, write: if request.auth != null && request.auth.uid == userId;
-    // }
+    // Rules for the 'policies' collection based on user_email
+    match /policies/{policyId} {
+        allow create: if request.auth != null && request.resource.data.user_email == request.auth.token.email;
+        allow read: if request.auth != null;
+        allow update, delete: if request.auth != null && resource.data.user_email == request.auth.token.email;
+    }
+
+    // Rules for 'quotations' and 'carRecords' (which are in the same collection) based on user_email
+    match /quotations/{quotationId} {
+      allow create: if request.auth != null && request.resource.data.user_email == request.auth.token.email;
+      allow read: if request.auth != null;
+      allow update, delete: if request.auth != null && resource.data.user_email == request.auth.token.email;
+    }
   }
 }

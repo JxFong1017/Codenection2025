@@ -65,17 +65,17 @@ export default function PolicyDetail({ policy, onClose, t }) {
           </Section>
 
           <Section title={t('premium_breakdown', 'Premium Breakdown')}>
-            <DetailRow label={t('sum_insured', 'Sum Insured')} value={formatCurrency(policy.sum_insured)} />
-            <DetailRow label={t('basic_premium', 'Basic Premium')} value={formatCurrency(policy.basic_premium)} />
-            <DetailRow label={t('ncd', 'NCD')} value={`${policy.ncd_percentage || 0}%`} />
-            <DetailRow label={t('ncd_amount', 'NCD Amount')} value={formatCurrency(policy.ncd_amount)} />
-            <DetailRow label={t('additional_protections_premium', 'Additional Protections Premium')} value={formatCurrency(policy.additional_protections_premium)} />
-            <DetailRow label={t('gross_premium', 'Gross Premium')} value={formatCurrency(policy.gross_premium)} />
-            <DetailRow label={t('sst_6', 'SST (6%)')} value={formatCurrency(policy.sst_amount)} />
-            <DetailRow label={t('stamp_duty', 'Stamp Duty')} value={formatCurrency(policy.stamp_duty)} />
+            <DetailRow label={t('sum_insured', 'Sum Insured')} value={formatCurrency(policy.sumInsured)} />
+            <DetailRow label={t('basic_premium', 'Basic Premium')} value={formatCurrency(policy.basePremium)} />
+            <DetailRow label={t('ncd', 'NCD')} value={`${policy.ncd || 0}%`} />
+            <DetailRow label={t('ncd_amount', 'NCD Amount')} value={formatCurrency(policy.ncdAmount)} />
+            <DetailRow label={t('additional_protections_premium', 'Additional Protections Premium')} value={formatCurrency(policy.additionalProtectionsPremium)} />
+            <DetailRow label={t('gross_premium', 'Gross Premium')} value={formatCurrency(policy.grossPremium)} />
+            <DetailRow label={t('sst_6', 'SST (6%)')} value={formatCurrency(policy.sst)} />
+            <DetailRow label={t('stamp_duty', 'Stamp Duty')} value={formatCurrency(policy.stampDuty)} />
             <div className="grid grid-cols-2 gap-4 pt-4 mt-4 border-t-2 border-gray-300">
               <dt className="text-base font-bold text-gray-900">{t('total_paid', 'Total Paid')}</dt>
-              <dd className="text-lg text-blue-800 font-extrabold">{formatCurrency(policy.price)}</dd>
+              <dd className="text-lg text-blue-800 font-extrabold">{policy.price || 'N/A'}</dd>
             </div>
           </Section>
 

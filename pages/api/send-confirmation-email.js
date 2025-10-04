@@ -84,15 +84,15 @@ export default async function handler(req, res) {
     return res.status(405).end(`Method ${req.method} Not Allowed`);
   }
 
-  const { orderId } = req.body;
+  const { quoteId } = req.body;
 
-  if (!orderId) {
+  if (!quoteId) {
     return res.status(400).json({ success: false, error: 'Order ID is required.' });
   }
 
   try {
     // 1. Fetch the completed quote data
-    const quoteRef = doc(db, 'quotations', orderId);
+    const quoteRef = doc(db, 'policies', quoteId);
     const quoteSnap = await getDoc(quoteRef);
 
     if (!quoteSnap.exists()) {
@@ -104,11 +104,9 @@ export default async function handler(req, res) {
     // 2. Generate the HTML for the email
     const emailHtml = generateEmailHtml(policyData);
 
-    // 3. Create the email document in the 'mail' collection with the CORRECT structure
+    // 3. Create the email document in the 'mail' collection
     const mailCollectionRef = collection(db, 'mail');
     await addDoc(mailCollectionRef, {
-      // **THIS IS THE FIX:** The Firebase Extension expects the 'to' field
-      // and a 'message' object containing subject and html.
       to: [policyData.user_email],
       message: {
         subject: `Your Policy is Confirmed! (Order: ${policyData.id})`,

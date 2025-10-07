@@ -4,7 +4,7 @@ import { useRouter } from 'next/router';
 import { doc, updateDoc } from 'firebase/firestore';
 import { db } from '../../lib/firebase';
 
-export default function QuotationDetail({ quote, onClose }) {
+export default function QuotationDetail({ quote, onClose, onQuoteDeleted }) {
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
   const router = useRouter();
 
@@ -30,26 +30,26 @@ export default function QuotationDetail({ quote, onClose }) {
       ncd: quote.ncd ? `${quote.ncd}%` : 'N/A',
       additional_protections_list: quote.additional_protections_list || '<p>None selected.</p>',
       
-      // Prices from the database - Conditionally set based on coverage type
-      comprehensive_abc: coverageType === 'Comprehensive' ? (quote.comprehensive_abc || 'N/A') : 'N/A',
-      tpft_abc: coverageType === 'Third-Party, Fire & Theft' ? (quote.tpft_abc || 'N/A') : 'N/A',
-      third_party_only_abc: coverageType === 'Third-Party Only' ? (quote.third_party_only_abc || 'N/A') : 'N/A',
+      // Prices from the database - Pass all available prices
+      comprehensive_abc: quote.comprehensive_abc || 'N/A',
+      tpft_abc: quote.tpft_abc || 'N/A',
+      third_party_only_abc: quote.third_party_only_abc || 'N/A',
 
-      comprehensive_xyz: coverageType === 'Comprehensive' ? (quote.comprehensive_xyz || 'N/A') : 'N/A',
-      tpft_xyz: coverageType === 'Third-Party, Fire & Theft' ? (quote.tpft_xyz || 'N/A') : 'N/A',
-      third_party_only_xyz: coverageType === 'Third-Party Only' ? (quote.third_party_only_xyz || 'N/A') : 'N/A',
+      comprehensive_xyz: quote.comprehensive_xyz || 'N/A',
+      tpft_xyz: quote.tpft_xyz || 'N/A',
+      third_party_only_xyz: quote.third_party_only_xyz || 'N/A',
 
-      comprehensive_safedrive: coverageType === 'Comprehensive' ? (quote.comprehensive_safedrive || 'N/A') : 'N/A',
-      tpft_safedrive: coverageType === 'Third-Party, Fire & Theft' ? (quote.tpft_safedrive || 'N/A') : 'N/A',
-      third_party_only_safedrive: coverageType === 'Third-Party Only' ? (quote.third_party_only_safedrive || 'N/A') : 'N/A',
+      comprehensive_safedrive: quote.comprehensive_safedrive || 'N/A',
+      tpft_safedrive: quote.tpft_safedrive || 'N/A',
+      third_party_only_safedrive: quote.third_party_only_safedrive || 'N/A',
 
-      comprehensive_guardian: coverageType === 'Comprehensive' ? (quote.comprehensive_guardian || 'N/A') : 'N/A',
-      tpft_guardian: coverageType === 'Third-Party, Fire & Theft' ? (quote.tpft_guardian || 'N/A') : 'N/A',
-      third_party_only_guardian: coverageType === 'Third-Party Only' ? (quote.third_party_only_guardian || 'N/A') : 'N/A',
+      comprehensive_guardian: quote.comprehensive_guardian || 'N/A',
+      tpft_guardian: quote.tpft_guardian || 'N/A',
+      third_party_only_guardian: quote.third_party_only_guardian || 'N/A',
 
-      comprehensive_metroprotect: coverageType === 'Comprehensive' ? (quote.comprehensive_metroprotect || 'N/A') : 'N/A',
-      tpft_metroprotect: coverageType === 'Third-Party, Fire & Theft' ? (quote.tpft_metroprotect || 'N/A') : 'N/A',
-      third_party_only_metroprotect: coverageType === 'Third-Party Only' ? (quote.third_party_only_metroprotect || 'N/A') : 'N/A',
+      comprehensive_metroprotect: quote.comprehensive_metroprotect || 'N/A',
+      tpft_metroprotect: quote.tpft_metroprotect || 'N/A',
+      third_party_only_metroprotect: quote.third_party_only_metroprotect || 'N/A',
     };
 
     for (const key in data) {

@@ -379,12 +379,22 @@ const currentStatus = (matchingPolicy && matchingPolicy.status === 'completed')
           </div>
 
           <div className="mb-8">
-            <h3 className="text-xl font-bold text-black mb-4">
-              {t("my_car_records")}
-            </h3>
+  {/* START: Added this block */}
+  <div className="flex justify-between items-center mb-4">
+    <h3 className="text-xl font-bold text-black">
+      {t("my_car_records")}
+    </h3>
+    {carRecords.length > 3 && (
+      <Link href="/all-records" className="text-blue-600 hover:underline">
+        {t("view_all")}
+      </Link>
+    )}
+  </div>
+  {/* END: Added this block */}
+
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
               {carRecords.length > 0 ? (
-                carRecords.map((record) => {
+                carRecords.slice(0, 3).map((record) => {
                   const submittedAt = record.submittedAt?.toDate();
                   const expiryDate = submittedAt ? new Date(submittedAt.setFullYear(submittedAt.getFullYear() + 1)) : null;
                   const daysLeft = expiryDate ? Math.ceil((expiryDate - new Date()) / (1000 * 60 * 60 * 24)) : null;

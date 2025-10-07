@@ -1,6 +1,9 @@
 
-import { doc, getDoc, collection, addDoc } from 'firebase/firestore';
-import { db } from '../../lib/firebase';
+import admin from '../../lib/firebase-admin';
+import * as SibApiV3Sdk from 'sib-api-v3-sdk';
+
+// Use the authenticated admin Firestore instance
+const db = admin.firestore();
 
 const protectionLabels = {
   windscreen: "Windscreen",
@@ -59,12 +62,12 @@ const generateEmailHtml = (policy) => {
             <div class="section">
                 <h3>Premium Breakdown</h3>
                 <dl>
-                    <div class="detail-row"><dt>Basic Premium:</dt><dd>${formatCurrency(policy.basic_premium)}</dd></div>
+                    <div class="detail-row"><dt>Basic Premium:</dt><dd>${formatCurrency(policy.basePremium)}</dd></div>
                     <div class="detail-row"><dt>Add-ons:</dt><dd><ul>${selectedAddOnsList}</ul></dd></div>
-                    <div class="detail-row"><dt>NCD:</dt><dd>${policy.ncd_percentage}%</dd></div>
-                    <div class="detail-row"><dt>Gross Premium:</dt><dd>${formatCurrency(policy.gross_premium)}</dd></div>
-                    <div class="detail-row"><dt>SST (6%):</dt><dd>${formatCurrency(policy.sst_amount)}</dd></div>
-                    <div class="detail-row"><dt>Stamp Duty:</dt><dd>${formatCurrency(policy.stamp_duty)}</dd></div>
+                    <div class="detail-row"><dt>NCD:</dt><dd>${policy.ncd}%</dd></div>
+                    <div class="detail-row"><dt>Gross Premium:</dt><dd>${formatCurrency(policy.grossPremium)}</dd></div>
+                    <div class="detail-row"><dt>SST (6%):</dt><dd>${formatCurrency(policy.sst)}</dd></div>
+                    <div class="detail-row"><dt>Stamp Duty:</dt><dd>${formatCurrency(policy.stampDuty)}</dd></div>
                 </dl>
                 <div class="total">Total Paid: ${formatCurrency(policy.price)}</div>
             </div>
@@ -91,11 +94,11 @@ export default async function handler(req, res) {
   }
 
   try {
-    // 1. Fetch the completed quote data
-    const quoteRef = doc(db, 'policies', quoteId);
-    const quoteSnap = await getDoc(quoteRef);
+    // 1. Fetch the completed quote data using the Admin SDK
+    const quoteRef = db.collection('policies').doc(quoteId);
+    const quoteSnap = await quoteRef.get();
 
-    if (!quoteSnap.exists()) {
+    if (!quoteSnap.exists) {
       return res.status(404).json({ success: false, error: 'Quotation not found.' });
     }
 
@@ -104,17 +107,22 @@ export default async function handler(req, res) {
     // 2. Generate the HTML for the email
     const emailHtml = generateEmailHtml(policyData);
 
-    // 3. Create the email document in the 'mail' collection
-    const mailCollectionRef = collection(db, 'mail');
-    await addDoc(mailCollectionRef, {
-      to: [policyData.user_email],
-      message: {
-        subject: `Your Policy is Confirmed! (Order: ${policyData.id})`,
-        html: emailHtml,
-      }
-    });
+    // 3. Setup Brevo/Sendinblue API to send the email directly
+    let defaultClient = SibApiV3Sdk.ApiClient.instance;
+    let apiKey = defaultClient.authentications['api-key'];
+    apiKey.apiKey = process.env.BREVO_API_KEY;
 
-    res.status(200).json({ success: true, message: 'Confirmation email queued successfully.' });
+    let apiInstance = new SibApiV3Sdk.TransactionalEmailsApi();
+    let sendSmtpEmail = new SibApiV3Sdk.SendSmtpEmail();
+
+    sendSmtpEmail.subject = `Your Policy is Confirmed! (Order: ${policyData.id})`;
+    sendSmtpEmail.htmlContent = emailHtml;
+    sendSmtpEmail.sender = { name: 'CGS Insurance', email: 'yitiankok@gmail.com' };
+    sendSmtpEmail.to = [{ email: policyData.user_email }];
+
+    await apiInstance.sendTransacEmail(sendSmtpEmail);
+
+    res.status(200).json({ success: true, message: 'Confirmation email sent successfully.' });
 
   } catch (error) {
     console.error('Error in send-confirmation-email API:', error);

@@ -2,8 +2,6 @@
 import { useRouter } from 'next/router';
 import Head from 'next/head';
 import { useEffect, useState } from 'react';
-import { doc, updateDoc, serverTimestamp } from 'firebase/firestore';
-import { db } from '../lib/firebase';
 import { getAuth, onAuthStateChanged } from 'firebase/auth';
 
 export default function PaymentRedirectPage() {
@@ -25,35 +23,40 @@ export default function PaymentRedirectPage() {
   }, [router]);
   
   const handleDonePayment = async () => {
-    if (!quoteId) return;
+    if (!quoteId || !firebaseUser) return;
 
     setIsProcessing(true);
     try {
-      // Get references to both the policy and the quotation documents
-      const policyRef = doc(db, 'policies', quoteId);
-      const quotationRef = doc(db, 'quotations', quoteId);
-
-      // Update the policy document for "My Car Records"
-      await updateDoc(policyRef, {
-        status: 'completed',
-        submittedAt: serverTimestamp(), // Use `submittedAt` as expected by the dashboard
-      });
-
-      // Update the quotation document for "Recent Quotes"
-      await updateDoc(quotationRef, {
-        status: 'completed',
-      });
-
-      // Send the confirmation email
-      await fetch('/api/send-confirmation-email', {
+      // Step 1: Securely update the policy status via the API
+      const finalizeResponse = await fetch('/api/finalize-payment', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({ quoteId }),
       });
+
+      if (!finalizeResponse.ok) {
+        // The server-side API failed. The user should contact support.
+        throw new Error('Failed to update policy status on the server.');
+      }
+
+      // Step 2: Send the confirmation email via the API
+      const emailResponse = await fetch('/api/send-confirmation-email', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ quoteId }),
+      });
+
+      if (!emailResponse.ok) {
+        // This error is less critical, but we should still let the user know.
+        // The policy is updated, but the email failed.
+        console.warn('Policy status updated, but confirmation email failed to send.');
+      }
       
-      // Redirect to the success page
+      // Step 3: Redirect to the success page
       router.push(`/success?quoteId=${quoteId}`);
 
     } catch (error) {
@@ -78,8 +81,8 @@ export default function PaymentRedirectPage() {
         </p>
         <button
           onClick={handleDonePayment}
-          disabled={isProcessing}
-          className={`w-full px-6 py-3 border border-transparent rounded-md shadow-sm text-base font-medium text-white ${isProcessing ? 'bg-gray-400 cursor-not-allowed' : 'bg-green-600 hover:bg-green-700'} focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500`}
+          disabled={isProcessing || !firebaseUser}
+          className={`w-full px-6 py-3 border border-transparent rounded-md shadow-sm text-base font-medium text-white ${isProcessing || !firebaseUser ? 'bg-gray-400 cursor-not-allowed' : 'bg-green-600 hover:bg-green-700'} focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500`}
         >
           {isProcessing ? 'Processing...' : 'Done Payment'}
         </button>

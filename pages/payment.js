@@ -93,7 +93,7 @@ export default function PaymentPage() {
                 paymentDate: serverTimestamp(),
             });
 
-      router.push(`/payment-selection?orderId=${quoteId}`);
+      router.push(`/payment-selection?quoteId=${quoteId}`);
 
     } catch (error) {
       console.error("Error during confirmation and policy creation: ", error);

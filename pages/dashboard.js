@@ -309,15 +309,24 @@ export default function Dashboard() {
     confirmed: "bg-green-500 text-white",
     completed: "bg-green-500 text-white", // Green for completed
   };
+// Find the policy created from this quote by checking the 'original_quote_id' field.
+const matchingPolicy = carRecords.find(record => record.original_quote_id === quote.id);
 
+// If a matching policy exists and its status is 'completed', use that. Otherwise, use the quote's status.
+const currentStatus = (matchingPolicy && matchingPolicy.status === 'completed') 
+                      ? 'completed' 
+                      : quote.status;
+
+
+  
   return (
     <div key={quote.id} className="bg-[#BFE4ED] rounded-lg p-6 h-72 flex flex-col justify-between">
       <div>
         {/* Top section: ID and Status */}
         <div className="flex justify-between items-start mb-4">
           <div className="font-bold text-lg">#{quote.quotation_no || quote.id}</div>
-          <span className={`px-3 py-1 rounded-full text-sm font-medium capitalize ${statusColors[quote.status] || 'bg-gray-400'}`}>
-            {quote.status}
+          <span className={`px-3 py-1 rounded-full text-sm font-medium capitalize ${statusColors[currentStatus] || 'bg-gray-400'}`}>
+          {currentStatus}
           </span>
         </div>
 
@@ -335,7 +344,7 @@ export default function Dashboard() {
         </div>
 
         {/* Message for completed quotes */}
-        {quote.status === 'completed' && (
+        {currentStatus === 'completed' && (
            <p className="text-sm text-gray-800 pt-3">
              You have completed your payment, please check in My Car Records.
            </p>
@@ -344,7 +353,7 @@ export default function Dashboard() {
 
       {/* Bottom section: Button (or lack thereof) */}
       <div className="h-10"> {/* Fixed height for alignment */}
-        {quote.status !== 'completed' && (
+        {currentStatus !== 'completed' && (
           <button
             onClick={() => setSelectedQuote(quote)}
             className="w-full bg-white text-blue-900 border border-blue-200 py-2 rounded-lg font-medium hover:bg-blue-50"

@@ -1,3 +1,4 @@
+
 const protectionLabels = {
   windscreen: "Windscreen",
   named_driver: "Named Driver",
@@ -75,7 +76,7 @@ export default function PolicyDetail({ policy, onClose, t }) {
             <DetailRow label={t('stamp_duty', 'Stamp Duty')} value={formatCurrency(policy.stampDuty)} />
             <div className="grid grid-cols-2 gap-4 pt-4 mt-4 border-t-2 border-gray-300">
               <dt className="text-base font-bold text-gray-900">{t('total_paid', 'Total Paid')}</dt>
-              <dd className="text-lg text-blue-800 font-extrabold">{policy.price || 'N/A'}</dd>
+              <dd className="text-lg text-blue-800 font-extrabold">{formatCurrency(policy.price)}</dd>
             </div>
           </Section>
 

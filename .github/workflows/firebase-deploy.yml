@@ -34,3 +34,5 @@ jobs:
           firebaseServiceAccount: ${{ secrets.FIREBASE_SERVICE_ACCOUNT }}
           channelId: live
           projectId: codenection2025-19a07
+           env: # <--- ADD THIS BLOCK HERE
+          FIREBASE_CLI_EXPERIMENTS: webframeworks # <--- ADD THIS LINE

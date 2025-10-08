@@ -86,6 +86,21 @@ export default function ManualQuoteSevenStep({ autofillData }) {
   const [availableModels, setAvailableModels] = useState([]);
   const [availableYears, setAvailableYears] = useState([]);
   const [showLogoutPopup, setShowLogoutPopup] = useState(false);
+      // Autofill from Chat Assistant context
+      useEffect(() => {
+        // Check if there is data from the chat and we are not using geran autofill
+        if (quoteDraft && quoteDraft.plate && !quoteDraft.fromGeran && !autofillData) {
+            
+            // Set the state for the form fields
+            setPlate(quoteDraft.plate || "");
+            setBrandSearch(quoteDraft.brand || "");
+            setModelSearch(quoteDraft.model || "");
+            setYear(quoteDraft.year || "");
+
+            // Automatically move to the second step
+            setStep(2);
+        }
+      }, []); // The empty array ensures this runs only once on mount
 
   // Step 3
   const [coverageType, setCoverageType] = useState("");

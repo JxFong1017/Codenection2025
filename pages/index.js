@@ -43,27 +43,32 @@ export default function Home() {
     setError("");
 
     if (isLoginMode) {
-      // Handle login
-      try {
+       // Handle login
+       try {
         const result = await signIn("credentials", {
+          // The 'redirect' option is now true by default.
+          // We tell NextAuth where to go on success.
+          callbackUrl: '/dashboard', 
           email: formData.email,
           password: formData.password,
-          redirect: false,
         });
-
-        if (result?.ok) {
-          router.push('/dashboard')
-        } else {
+        
+        // This part of the code will now only run if the login fails.
+        // The `result.error` will contain the reason for the failure.
+        if (result?.error) {
           setError("Invalid email or password. Please try again.");
           setFormData(prev => ({ 
             ...prev, 
-            email: "", 
+            // Do not clear the email, but clear the password for retry
             password: "" 
           }));
         }
+        // No more manual router.push() needed!
+
       } catch (error) {
         setError("An unexpected error occurred during login.");
       }
+
     } else {
       // Handle signup
       console.log("Password:", formData.password, "Confirm:", formData.confirmPassword); 

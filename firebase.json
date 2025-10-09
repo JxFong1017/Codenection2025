@@ -17,6 +17,12 @@
       "firebase.json",
       "**/.*",
       "**/node_modules/**"
+    ],
+    "rewrites": [
+      {
+        "source": "**",
+        "function": "ssrcodenection202519a07"
+      }
     ]
   },
   "firestore": {

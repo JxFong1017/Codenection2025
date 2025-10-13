@@ -118,7 +118,7 @@ export default function ChooseInsurerPage() {
       if (user) {
         setFirebaseUser(user);
       } else {
-        router.push('/auth/signin');
+        router.push('/');
       }
     });
     return () => unsubscribe();

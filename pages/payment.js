@@ -5,7 +5,6 @@ import { doc, getDoc, updateDoc, serverTimestamp } from 'firebase/firestore';
 import { getAuth, onAuthStateChanged } from 'firebase/auth';
 import { db } from '../lib/firebase';
 import Head from 'next/head';
-import { useSession } from 'next-auth/react';
 
 const DetailItem = ({ label, value }) => (
     value ? (
@@ -19,8 +18,7 @@ const DetailItem = ({ label, value }) => (
 export default function PaymentPage() {
   const router = useRouter();
   const { quoteId } = router.query;
-  const { data: session } = useSession();
- const [firebaseUser, setFirebaseUser] = useState(null);
+  const [firebaseUser, setFirebaseUser] = useState(null);
   const [quote, setQuote] = useState(null);
   const [loading, setLoading] = useState(true);
   const [coverNoteAddress, setCoverNoteAddress] = useState('');
@@ -168,7 +166,7 @@ export default function PaymentPage() {
                 <dl className="mt-4 border-t border-gray-200">
                     <DetailItem label="Full Name" value={quote.customer_name} />
                     <DetailItem label="IC / Passport" value={quote.ic || quote.passport} />
-                    <DetailItem label="Email" value={session?.user?.email} />
+                    <DetailItem label="Email" value={firebaseUser?.email} />
                     <DetailItem label="Postcode" value={quote.postcode} />
                 </dl>
             </div>

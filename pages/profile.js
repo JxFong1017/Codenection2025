@@ -1,5 +1,7 @@
 import { useState, useEffect } from 'react';
-import { useSession } from 'next-auth/react';
+import { getAuth, onAuthStateChanged } from 'firebase/auth';
+import { useRouter } from 'next/router';
+
 import { doc, getDoc, updateDoc } from 'firebase/firestore';
 import { db } from '../lib/firebase';
 import Head from 'next/head';
@@ -8,47 +10,63 @@ import Link from 'next/link';
 
 export default function Profile() {
   const t = useT();
-  const { data: session } = useSession();
+  const router = useRouter();
+
   const [name, setName] = useState('');
   const [phone, setPhone] = useState('');
   const [email, setEmail] = useState('');
   const [message, setMessage] = useState('');
 
   useEffect(() => {
-    if (session) {
-      const fetchUserData = async () => {
-        const userDocRef = doc(db, 'users', session.user.email);
-        const userDocSnap = await getDoc(userDocRef);
-        if (userDocSnap.exists()) {
-          const userData = userDocSnap.data();
-          setName(userData.name);
-          setPhone(userData.phone);
-          setEmail(userData.email);
+    const auth = getAuth();
+    const unsubscribe = onAuthStateChanged(auth, (user) => {
+        if (user) {
+            // User is signed in, fetch their profile data
+            const fetchUserData = async () => {
+                const userDocRef = doc(db, 'users', user.email);
+                const userDocSnap = await getDoc(userDocRef);
+                if (userDocSnap.exists()) {
+                    const userData = userDocSnap.data();
+                    setName(userData.name || '');
+                    setPhone(userData.phone || '');
+                    setEmail(userData.email || '');
+                } else {
+                    // If no profile doc, still set the email from the auth user
+                    setEmail(user.email);
+                    console.log('No profile document found for this user.');
+                }
+            };
+            fetchUserData();
         } else {
-          console.log('No such document!');
+            // User is signed out, redirect to the login page
+            router.push('/');
         }
-      };
-      fetchUserData();
-    }
-  }, [session]);
+    });
 
-  const handleUpdate = async (e) => {
-    e.preventDefault();
-    setMessage('');
-    if (session) {
-      const userDocRef = doc(db, 'users', session.user.email);
-      try {
-        await updateDoc(userDocRef, {
-          name: name,
-          phone: phone,
-        });
-        setMessage('Profile updated successfully!');
-      } catch (error) {
-        console.error('Error updating document: ', error);
-        setMessage('Error updating profile.');
-      }
+    return () => unsubscribe();
+}, [router]);
+
+const handleUpdate = async (e) => {
+  e.preventDefault();
+  setMessage('');
+  const auth = getAuth();
+  const user = auth.currentUser; // Get the user from Firebase
+
+  if (user) {
+    const userDocRef = doc(db, 'users', user.email);
+    try {
+      await updateDoc(userDocRef, {
+        name: name,
+        phone: phone,
+      });
+      setMessage('Profile updated successfully!');
+    } catch (error) {
+      console.error('Error updating document: ', error);
+      setMessage('Error updating profile.');
     }
-  };
+  }
+};
+
 
   return (
     <>

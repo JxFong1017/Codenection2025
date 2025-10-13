@@ -1,7 +1,7 @@
 import { collection, query, where, getDocs, onSnapshot, orderBy } from "firebase/firestore";
 import { getAuth, onAuthStateChanged } from "firebase/auth";
 import { db } from "../lib/firebase";
-import { useSession } from "next-auth/react";
+
 import { useRouter } from "next/router";
 import { useEffect, useState, useMemo } from "react";
 import Head from "next/head";
@@ -11,7 +11,7 @@ import QuotationDetail from "../src/components/QuotationDetail";
 
 export default function AllQuotes() {
   const t = useT();
-  const { data: session, status } = useSession();
+
   const router = useRouter();
   const [quotations, setQuotations] = useState([]);
   const [selectedQuote, setSelectedQuote] = useState(null);
@@ -19,42 +19,36 @@ export default function AllQuotes() {
   const [firebaseUser, setFirebaseUser] = useState(null);
   const [sortOrder, setSortOrder] = useState('desc'); // 'desc' for latest, 'asc' for oldest
   const [statusFilter, setStatusFilter] = useState('all'); // 'all', 'pending', 'confirmed', 'completed'
-
-
   useEffect(() => {
     const auth = getAuth();
     const unsubscribe = onAuthStateChanged(auth, (user) => {
-      if (user) {
-        setFirebaseUser(user);
-      } else {
-        setFirebaseUser(null);
-      }
+        if (user) {
+            // User is signed in, fetch their data
+            setFirebaseUser(user);
+
+            // Fetch quotations
+            const q = query(
+                collection(db, "quotations"),
+                where("user_email", "==", user.email),
+                orderBy("createdAt", "desc")
+            );
+
+            getDocs(q).then((querySnapshot) => {
+                const userQuotations = querySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+                setQuotations(userQuotations);
+            }).catch((error) => {
+                console.error("Error fetching user quotations: ", error);
+            });
+
+        } else {
+            // User is signed out, redirect to home
+            router.push("/");
+        }
     });
 
+    // Cleanup the listener on component unmount
     return () => unsubscribe();
-  }, []);
-
-  useEffect(() => {
-    const fetchQuotations = async () => {
-      if (status === "authenticated" && session?.user?.email) {
-        const q = query(
-          collection(db, "quotations"),
-          where("user_email", "==", session.user.email),
-          orderBy("createdAt", "desc")
-        );
-
-        try {
-          const querySnapshot = await getDocs(q);
-          const userQuotations = querySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-          setQuotations(userQuotations);
-        } catch (error) {
-          console.error("Error fetching user quotations: ", error);
-        }
-      }
-    };
-
-    fetchQuotations();
-  }, [session, status]);
+}, [router]); // Dependency on router
 
   useEffect(() => {
     if (!firebaseUser) return;
@@ -101,23 +95,6 @@ export default function AllQuotes() {
         return dateB - dateA;
     });
   }, [quotations, policies, sortOrder, statusFilter]);
-
-
-  if (status === "loading") {
-    return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-blue-600 mx-auto"></div>
-          <p className="mt-4 text-gray-600">Loading...</p>
-        </div>
-      </div>
-    );
-  }
-
-  if (status === "unauthenticated") {
-    router.push("/");
-    return null;
-  }
 
   const formatPrice = (price) => {
     if (price === null || typeof price === 'undefined' || price === '') return 'N/A';

@@ -20,7 +20,8 @@ import {
 import { useQuote } from "../context/QuoteContext";
 import { useT } from "../utils/i18n";
 import PlateValidationPopup from "./PlateValidationPopup";
-import { useSession, signOut } from "next-auth/react";
+import { auth } from "../../lib/firebase";
+import { onAuthStateChanged, signOut as firebaseSignOut } from "firebase/auth";
 import ContactHelp from "./ContactHelp";
 import { carData } from "../data/carData";
 import NextImage from "next/image";
@@ -29,7 +30,17 @@ import DecisionPopup from "./DecisionPopup.jsx";
 import { formatPlate } from "../utils/formatPlate";
 
 export default function ManualQuoteSevenStep({ autofillData }) {
-  const { data: session } = useSession();
+  const [user, setUser] = useState(null);
+  const [authLoading, setAuthLoading] = useState(true);
+  useEffect(() => {
+    const unsubscribe = onAuthStateChanged(auth, (currentUser) => {
+      setUser(currentUser);
+      setAuthLoading(false);
+    });
+    // Cleanup subscription on unmount
+    return () => unsubscribe();
+  }, []);
+  
   const t = useT();
   const [step, setStep] = useState(1);
   const { quoteDraft, setQuoteDraft } = useQuote();
@@ -39,9 +50,14 @@ export default function ManualQuoteSevenStep({ autofillData }) {
   const [showDecisionPopup, setShowDecisionPopup] = useState(true);
 
   const handleLogout = () => {
-      setShowLogoutPopup(false);
-      signOut({ callbackUrl: "/" });
-    };
+    setShowLogoutPopup(false);
+    firebaseSignOut(auth).then(() => {
+      window.location.href = "/";
+    }).catch((error) => {
+      console.error("Logout failed:", error);
+    });
+  };
+  
 
   const handleDecision = (type) => {
     if (type === "manual") {
@@ -68,6 +84,7 @@ export default function ManualQuoteSevenStep({ autofillData }) {
   const [showPlateValidation, setShowPlateValidation] = useState(false);
   const [plateValidationResult, setPlateValidationResult] = useState(null);
   const [showGeranModal, setShowGeranModal] = useState(false);
+  const [isUserTyping, setIsUserTyping] = useState(false);
 
   // Step 2
   const [brand, setBrand] = useState("");
@@ -376,44 +393,45 @@ export default function ManualQuoteSevenStep({ autofillData }) {
   };
 
   // NEW EFFECT FOR BRAND AUTO-SELECTION with partial matching
-  useEffect(() => {
-    if (!debouncedBrandSearch) {
-      // If the input is empty, clear validation.
+useEffect(() => {
+  if (!debouncedBrandSearch) {
       setBrandValidation({ isValid: null, error: null });
+      setBrand("");
       return;
-    }
-    const normalizedSearch = debouncedBrandSearch.toLowerCase();
-    // 2. Check for an exact case-insensitive match (highest priority)
-    const exactMatch = allBrands.find(
-      (b) => b.toLowerCase() === normalizedSearch
-    );
-    if (exactMatch) {
+  }
+  
+  const normalizedSearch = debouncedBrandSearch.toLowerCase();
+  const exactMatch = allBrands.find((b) => b.toLowerCase() === normalizedSearch);
+  const fuzzyResults = fuse.search(normalizedSearch);
+
+  if (exactMatch) {
+      // Exact match: Auto-select and set the clean value in the input field.
       setBrand(exactMatch);
       setBrandSearch(exactMatch);
       setBrandValidation({ isValid: true, error: null });
       setShowBrandDropdown(false);
-      return; // Exit early if we found an exact match
-    }
-    // 3. Perform a fuzzy search for potential misspellings
-    const fuzzyResults = fuse.search(normalizedSearch);
-
-    if (fuzzyResults.length === 1 && fuzzyResults[0].score < 0.3) {
-      // If there is ONE and only ONE result, and its score is low enough
-      // (indicating a very close fuzzy match), auto-correct and select it.
+      return; 
+  }
+  
+  if (fuzzyResults.length === 1 && fuzzyResults[0].score < 0.3) {
+      // STRONG FUZZY MATCH: Set the internal data state (brand), but DO NOT
+      // overwrite the user's input (brandSearch). Let the user keep typing.
       const autoCorrectedBrand = fuzzyResults[0].item;
-      setBrand(autoCorrectedBrand);
-      setBrandSearch(autoCorrectedBrand);
-      setBrandValidation({ isValid: true, error: null });
-      setShowBrandDropdown(false);
-    } else {
+      setBrand(autoCorrectedBrand); 
+      setBrandValidation({ isValid: true, error: t('fuzzy_match_hint') }); // Use a hint instead of null error
+      // DO NOT CALL setBrandSearch(autoCorrectedBrand); <-- FIX
+      setShowBrandDropdown(false); // Can hide dropdown if confident
+
+  } else {
       // 4. If no exact match and no strong fuzzy match, it's invalid
-      setBrand(""); // Clear the brand state to prevent invalid submissions
+      setBrand(""); // Clear the brand state
       setBrandValidation({
-        isValid: false,
-        error: t("invalid_brand"),
+          isValid: false,
+          error: t("invalid_brand"),
       });
-    }
-  }, [debouncedBrandSearch, allBrands, fuse, t]);
+  }
+  
+}, [debouncedBrandSearch, allBrands, fuse, t]);
 
   // This useEffect handles both IC and Passport validation
   useEffect(() => {
@@ -486,45 +504,54 @@ export default function ManualQuoteSevenStep({ autofillData }) {
   }, [modelSearch, availableModels]);
 
   // --- NEW EFFECT FOR MODEL AUTO-SELECTION with partial matching ---
-  useEffect(() => {
-    if (!debouncedModelSearch || !modelFuse) {
+useEffect(() => {
+  if (!debouncedModelSearch || !modelFuse) {
       setModelValidation({ isValid: null, error: null });
+      setModel("");
       return;
-    }
-    const normalizedSearch = debouncedModelSearch.toLowerCase();
-    // 2. Check for an exact case-insensitive match (highest priority)
-    const exactMatch = availableModels.find(
-      (m) => m.toLowerCase() === normalizedSearch
-    );
-    if (exactMatch) {
-      setModel(exactMatch);
-      setModelSearch(exactMatch);
+  }
+  
+  const normalizedSearch = debouncedModelSearch.toLowerCase();
+  const exactMatch = availableModels.find((m) => m.toLowerCase() === normalizedSearch);
+  const fuzzyResults = modelFuse.search(normalizedSearch);
+  
+  let finalSelectedModel = null;
+
+  if (exactMatch) {
+      finalSelectedModel = exactMatch;
+  } else if (fuzzyResults.length === 1 && fuzzyResults[0].score < 0.3) {
+      finalSelectedModel = fuzzyResults[0].item;
+  }
+
+  if (finalSelectedModel) {
+      // 1. Set the actual Model state (internal data)
+      setModel(finalSelectedModel);
       setModelValidation({ isValid: true, error: null });
       setShowModelDropdown(false);
-      return; // Exit early if we found an exact match
-    }
-    // 3. Perform a fuzzy search for potential misspellings
-    const fuzzyResults = modelFuse.search(normalizedSearch);
-    if (fuzzyResults.length === 1 && fuzzyResults[0].score < 0.3) {
-      // If there is ONE and only ONE strong fuzzy match, auto-correct and select it.
-      const autoCorrectedModel = fuzzyResults[0].item;
-      setModel(autoCorrectedModel);
-      setModelSearch(autoCorrectedModel);
-      setModelValidation({ isValid: true, error: null });
-      setShowModelDropdown(false);
-    } else {
-      // 4. If no exact match and no strong fuzzy match, it's invalid
+
+      // 2. Control the input field (modelSearch) based on the match type
+      if (exactMatch) {
+          // Auto-correct/overwrite ONLY for an exact match (e.g., proper casing)
+          setModelSearch(finalSelectedModel);
+      } else {
+          // FUZZY MATCH: Set the internal Model state, but DO NOT overwrite
+          // the user's input. This allows backspacing/editing.
+          // You can optionally add a validation hint here if needed, 
+          // but setting the model is sufficient for correct function.
+      }
+  } else {
+      // No match found
       setModel("");
       if (debouncedModelSearch.length > 0) {
-        setModelValidation({
-          isValid: false,
-          error: t("invalid_model"),
-        });
+          setModelValidation({
+              isValid: false,
+              error: t("invalid_model"),
+          });
       } else {
-        setModelValidation({ isValid: null, error: null });
+          setModelValidation({ isValid: null, error: null });
       }
-    }
-  }, [debouncedModelSearch, availableModels, modelFuse, t]);
+  }
+}, [debouncedModelSearch, availableModels, modelFuse, t]);
 
   // Effect to update available years when model changes
   useEffect(() => {
@@ -541,7 +568,7 @@ export default function ManualQuoteSevenStep({ autofillData }) {
   const handleSubmit = async () => {
     if (isSubmitting) return; // Prevent multiple submissions
     setIsSubmitting(true);
-    if (!session?.user?.email) {
+    if (!user?.email) {
       setNotification({
         type: "error",
         message: "You must be signed in to submit a quote.",
@@ -590,7 +617,7 @@ export default function ManualQuoteSevenStep({ autofillData }) {
         protections: coverageType === "Comprehensive" ? protections : null,
       },
       estimatedPremium: estimateRange,
-      email: session.user.email,
+      email: user.email,
       timezoneOffset: new Date().getTimezoneOffset(),
     };
 
@@ -911,7 +938,7 @@ export default function ManualQuoteSevenStep({ autofillData }) {
                     onClick={() => setShowLogoutPopup(!showLogoutPopup)}
                     className="bg-black text-white px-4 py-2 rounded text-sm font-medium hover:bg-gray-800 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
                   >
-                    {session.user.email || "user@gmail.com"}
+{authLoading ? 'Loading...' : user?.email || 'Not Signed In'}
                   </button>
 
                   {showLogoutPopup && (
@@ -1835,7 +1862,7 @@ export default function ManualQuoteSevenStep({ autofillData }) {
                   {t("your_quotation_sent")}
                 </h2>
                 <div className="mt-4 text-3xl font-extrabold text-blue-800">
-                  {session?.user?.email || "USERNAME123@GMAIL.COM"}
+                {user?.email || "your.email@example.com"}
                 </div>
 
                 <p className="mt-4 text-gray-600">{t("contact_us_help")}</p>

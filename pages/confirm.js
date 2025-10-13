@@ -3,7 +3,7 @@ import { useEffect, useState, useMemo } from 'react';
 import { doc, getDoc, collection, addDoc, serverTimestamp } from 'firebase/firestore';
 import { getAuth, onAuthStateChanged } from 'firebase/auth'; // <--- ADD THIS LINE
 import { db } from '../lib/firebase';
-import { useSession } from 'next-auth/react';
+
 import Head from 'next/head';
 import Link from 'next/link';
 import Fuse from 'fuse.js';
@@ -30,7 +30,7 @@ export default function ConfirmPage() {
   // --- STATE AND HOOKS ---
   const [quote, setQuote] = useState(null);
   const [loading, setLoading] = useState(true);
-  const { data: session, status } = useSession();
+ 
   const t = useT();
   const [firebaseUser, setFirebaseUser] = useState(null); // <-- ADD THIS NEW STATE
   // Vehicle Info
@@ -91,26 +91,22 @@ export default function ConfirmPage() {
   ];
   // --- DATA FETCHING ---
   useEffect(() => {
-    if (status === 'unauthenticated') {
-      router.push('/auth/signin');
-    }
-  }, [status, router]);
-// Add this entire block inside your ConfirmPage component
-useEffect(() => {
-  const auth = getAuth();
-  const unsubscribe = onAuthStateChanged(auth, (user) => {
-      if (user) {
-          // User is signed in via Firebase, set the user object in state
-          setFirebaseUser(user);
-      } else {
-          // User is signed out
-          setFirebaseUser(null);
-      }
-  });
+    const auth = getAuth();
+    const unsubscribe = onAuthStateChanged(auth, (user) => {
+        if (user) {
+            // User is signed in, set the user object
+            setFirebaseUser(user);
+        } else {
+            // User is signed out, redirect to the login page
+            setFirebaseUser(null);
+            router.push("/");
+        }
+    });
 
-  // Cleanup subscription on unmount
-  return () => unsubscribe();
-}, []); // Empty dependency array ensures this runs only once on mount
+    // Cleanup subscription on unmount
+    return () => unsubscribe();
+}, [router]); // Add router to the dependency array
+
 
   useEffect(() => {
     if (quoteId) {
@@ -482,7 +478,7 @@ useEffect(() => {
               third_party_only_metroprotect: formatPremium(third_party_premium, insurerAdjustments.metroprotect),
               
               // Metadata
-              status: 'draft', createdAt: serverTimestamp(), original_quote_id: quoteId, user_email: session?.user?.email,
+              status: 'draft', createdAt: serverTimestamp(), original_quote_id: quoteId, user_email: firebaseUser?.email,
           };
           
            // We now add the document to Firestore again
@@ -571,19 +567,6 @@ useEffect(() => {
     
     setPlate(formatted.slice(0, 15));
   };
-
-
-  // --- RENDER ---
-  if (loading || status === 'loading') {
-    return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-blue-600 mx-auto"></div>
-          <p className="mt-4 text-gray-600">Loading...</p>
-        </div>
-      </div>
-    );
-  }
 
   if (!quote) {
     return (

@@ -38,7 +38,7 @@ export default function BillingPage() {
       if (user) {
         setFirebaseUser(user);
       } else {
-        router.push('/auth/signin');
+        router.push('/');
       }
     });
     return () => unsubscribe();

@@ -16,7 +16,7 @@ import PolicyDetail from "../src/components/PolicyDetail.js";
 
 export default function Dashboard() {
   const t = useT();
-  const { data: session, status } = useSession();
+  
   const router = useRouter();
   const [showDecisionPopup, setShowDecisionPopup] = useState(false);
   const [showLogoutPopup, setShowLogoutPopup] = useState(false);
@@ -27,8 +27,10 @@ export default function Dashboard() {
 
   const handleLogout = () => {
     setShowLogoutPopup(false);
-    signOut({ callbackUrl: "/" });
+    const auth = getAuth();
+    signOut(auth); // This will trigger onAuthStateChanged, which will then redirect
   };
+  
   
   useEffect(() => {
     const auth = getAuth();
@@ -75,6 +77,7 @@ export default function Dashboard() {
             // User is signed out, clear the data
             setQuotations([]);
             setCarRecords([]);
+            router.push("/");
         }
     });
 
@@ -83,13 +86,6 @@ export default function Dashboard() {
 
 }, []); // The empty dependency array is correct here.
 
-
-
-  useEffect(() => {
-    if (status === "unauthenticated") {
-      router.push("/");
-    }
-  }, [status, router]);
 
   const handleGetQuotation = () => {
     router.push("/get-quote");
@@ -110,20 +106,7 @@ export default function Dashboard() {
     router.push("/manual-quote");
   };
 
-  if (status === "loading") {
-    return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-blue-600 mx-auto"></div>
-          <p className="mt-4 text-gray-600">{t("loading")}</p>
-        </div>
-      </div>
-    );
-  }
 
-  if (!session) {
-    return null;
-  }
   const handleDelete = async (quoteId) => {
     if (!quoteId) return;
 
@@ -185,7 +168,7 @@ export default function Dashboard() {
                     onClick={() => setShowLogoutPopup(!showLogoutPopup)}
                     className="bg-black text-white px-4 py-2 rounded text-sm font-medium hover:bg-gray-800 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
                   >
-                    {session.user.email || "user@gmail.com"}
+                    {getAuth().currentUser?.email || "user@gmail.com"}
                   </button>
 
                   {showLogoutPopup && (

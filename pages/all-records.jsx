@@ -2,7 +2,7 @@
 import { collection, query, where, getDocs, onSnapshot, orderBy } from "firebase/firestore";
 import { getAuth, onAuthStateChanged } from "firebase/auth";
 import { db } from "../lib/firebase";
-import { useSession } from "next-auth/react";
+
 import { useRouter } from "next/router";
 import { useEffect, useState, useMemo } from "react";
 import Head from "next/head";
@@ -12,25 +12,43 @@ import PolicyDetail from "../src/components/PolicyDetail.js";
 
 export default function AllRecords() {
   const t = useT();
-  const { data: session, status } = useSession();
+
   const router = useRouter();
   const [records, setRecords] = useState([]);
   const [selectedRecord, setSelectedRecord] = useState(null);
   const [firebaseUser, setFirebaseUser] = useState(null);
   const [sortOrder, setSortOrder] = useState('desc'); // 'desc' for latest, 'asc' for oldest
-
   useEffect(() => {
     const auth = getAuth();
     const unsubscribe = onAuthStateChanged(auth, (user) => {
-      if (user) {
-        setFirebaseUser(user);
-      } else {
-        setFirebaseUser(null);
-      }
+        if (user) {
+            // User is signed in, fetch their data
+            const policiesQuery = query(
+                collection(db, "policies"),
+                where("user_email", "==", user.email),
+                where("status", "==", "completed")
+            );
+
+            const unsubscribeSnapshot = onSnapshot(policiesQuery, (querySnapshot) => {
+                const userPolicies = querySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+                setRecords(userPolicies);
+            });
+
+            // Important: Return the snapshot listener's unsubscribe function
+            // to be called when the auth state changes or component unmounts.
+            return () => unsubscribeSnapshot();
+
+        } else {
+            // User is signed out, clear data and redirect
+            setRecords([]);
+            router.push("/");
+        }
     });
 
+    // Cleanup the auth listener on component unmount
     return () => unsubscribe();
-  }, []);
+}, [router]); // Dependency on router
+
 
   useEffect(() => {
     if (!firebaseUser) return;
@@ -59,23 +77,6 @@ export default function AllRecords() {
         return dateB - dateA;
     });
   }, [records, sortOrder]);
-
-
-  if (status === "loading") {
-    return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-blue-600 mx-auto"></div>
-          <p className="mt-4 text-gray-600">Loading...</p>
-        </div>
-      </div>
-    );
-  }
-
-  if (status === "unauthenticated") {
-    router.push("/");
-    return null;
-  }
 
   return (
     <>

@@ -6,7 +6,7 @@ import { useQuote } from "../context/QuoteContext";
 import { validateCarMake, getModelsForMake, getYearsForModel } from "../utils/validationLogic";
 import { formatPlate } from "../utils/formatPlate";
 
-export default function ChatAssistant() {
+export default function ChatAssistant() {  
   const [isOpen, setIsOpen] = useState(false);
   const [messages, setMessages] = useState([]);
   const [input, setInput] = useState("");

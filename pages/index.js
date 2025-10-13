@@ -2,11 +2,13 @@ import { useState } from "react";
 import Head from "next/head";
 import Link from "next/link";
 import Image from "next/image";
-import { signIn } from "next-auth/react";
+
 import { useT } from "../src/utils/i18n";
 import { useRouter } from "next/router";
 import { validatePhone } from "../src/utils/validationLogic"; 
-import { signUpWithEmailAndPassword, showMessage } from "../lib/firebase";
+import { auth, signUpWithEmailAndPassword, showMessage } from "../lib/firebase";
+import { signInWithEmailAndPassword } from "firebase/auth";
+
 
 export default function Home() {
   const [isLoginMode, setIsLoginMode] = useState(true);
@@ -45,29 +47,17 @@ export default function Home() {
     if (isLoginMode) {
        // Handle login
        try {
-        const result = await signIn("credentials", {
-          // The 'redirect' option is now true by default.
-          // We tell NextAuth where to go on success.
-          callbackUrl: '/dashboard', 
-          email: formData.email,
-          password: formData.password,
-        });
-        
-        // This part of the code will now only run if the login fails.
-        // The `result.error` will contain the reason for the failure.
-        if (result?.error) {
-          setError("Invalid email or password. Please try again.");
-          setFormData(prev => ({ 
-            ...prev, 
-            // Do not clear the email, but clear the password for retry
-            password: "" 
-          }));
-        }
-        // No more manual router.push() needed!
-
+        await signInWithEmailAndPassword(auth, formData.email, formData.password);
+        router.push('/dashboard'); // Redirect to dashboard on successful login
       } catch (error) {
-        setError("An unexpected error occurred during login.");
+        // Handle Firebase-specific authentication errors
+        let errorMessage = "Failed to log in. Please check your credentials.";
+        if (error.code === 'auth/user-not-found' || error.code === 'auth/wrong-password' || error.code === 'auth/invalid-credential') {
+          errorMessage = "Invalid email or password. Please try again.";
+        }
+        setError(errorMessage);
       }
+
 
     } else {
       // Handle signup

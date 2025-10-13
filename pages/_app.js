@@ -1,6 +1,5 @@
-import { SessionProvider } from 'next-auth/react';
-import FirebaseSessionProvider from '../src/components/FirebaseSessionProvider';
 import '../styles/globals.css';
+import { SessionProvider } from 'next-auth/react';
 import { LanguageProvider } from '../src/context/LanguageContext';
 import { QuoteProvider } from '../src/context/QuoteContext';
 import dynamic from 'next/dynamic';
@@ -11,7 +10,6 @@ const ChatAssistant = dynamic(() => import('../src/components/ChatAssistant.jsx'
 function MyApp({ Component, pageProps: { session, ...pageProps } }) {
   return (
     <SessionProvider session={session}>
-      <FirebaseSessionProvider>
       <LanguageProvider>
         <QuoteProvider>
           <LanguageSwitcher />
@@ -19,7 +17,6 @@ function MyApp({ Component, pageProps: { session, ...pageProps } }) {
           <ChatAssistant />
         </QuoteProvider>
       </LanguageProvider>
-      </FirebaseSessionProvider>
     </SessionProvider>
   );
 }

@@ -1,14 +1,14 @@
 "use client";
 import { useEffect, useState } from "react";
 import Head from "next/head";
-import { useSession } from "next-auth/react";
+import { getAuth, onAuthStateChanged } from "firebase/auth";
 import { useRouter } from "next/router";
 import DecisionPopup from "../src/components/DecisionPopup.jsx";
 import ManualQuoteSevenSteps from "../src/components/ManualQuoteSevenSteps";
 import GeranImageUpload from "../src/components/GeranImageUpload";
 
 export default function GetQuoteDecision() {
-  const { status } = useSession();
+
   const router = useRouter();
   const [isOpen, setIsOpen] = useState(false);
   const [showForm, setShowForm] = useState(false);
@@ -30,19 +30,24 @@ export default function GetQuoteDecision() {
   }, []);
 
   useEffect(() => {
-    if (status === "unauthenticated") {
-      router.replace("/auth/signin");
-      return;
-    }
-    if (status === "authenticated") {
-      setIsAuthenticated(true);
-      // Only open the popup if the component is first mounted and no decision has been made
-      if (!hasMadeDecision) {
-        setIsOpen(true);
+    const auth = getAuth();
+    const unsubscribe = onAuthStateChanged(auth, (user) => {
+      if (user) {
+        // User is properly signed in with Firebase
+        setIsAuthenticated(true);
+        // Only open the popup if no decision has been made yet
+        if (!hasMadeDecision) {
+          setIsOpen(true);
+        }
+      } else {
+        // No user is signed in. Redirect to the homepage to log in.
+        router.replace('/');
       }
-    }
-  }, [status, router, hasMadeDecision]);
-
+    });
+  
+    // Cleanup the listener when the component is no longer on the screen
+    return () => unsubscribe();
+  }, [router, hasMadeDecision]); // Dependencies
   
   // When user makes a decision
 const handleDecision = (type, data) => {
@@ -105,7 +110,6 @@ const handleFormDataExtracted = (data) => {
           startStep={startStep}
           />
         )}
-
 
       </div>
     </>

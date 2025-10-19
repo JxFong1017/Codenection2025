@@ -9,10 +9,6 @@ const nextConfig = {
     // your project has ESLint errors.
     ignoreDuringBuilds: true,
   },
-  serverRuntimeConfig: {
-    FIREBASE_SERVICE_ACCOUNT_KEY: process.env.FIREBASE_SERVICE_ACCOUNT_KEY,
-    BREVO_API_KEY: process.env.BREVO_API_KEY,
-  },
 }
 
 export default nextConfig

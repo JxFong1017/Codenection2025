@@ -1,26 +1,26 @@
-
 import { generateQuotationAndSendEmail } from '../../lib/quotationService';
 
 export default async function handler(req, res) {
   if (req.method === 'POST') {
     try {
-      const result = await generateQuotationAndSendEmail(req.body);
-      // If the service function completes, it means the quote was saved.
-      // It might return a warning if the email failed, but that's handled here.
+      const quotationData = req.body;
+
+      // Validate the incoming data (basic validation)
+      if (!quotationData || !quotationData.email) {
+        return res.status(400).json({ error: 'Invalid quotation data provided.' });
+      }
+
+      const result = await generateQuotationAndSendEmail(quotationData);
+
       if (result.success) {
-        res.status(200).json({ success: true, message: result.warning || 'Quotation generated and sent successfully.' });
+        res.status(200).json({ status: 'success', message: 'Quotation generated and email sent successfully!', warning: result.warning });
       } else {
-        // This path should ideally not be taken if errors are thrown.
-        res.status(500).json({ success: false, error: result.error || 'An unknown error occurred in the service.' });
+        // This case might not be reached based on the current quotationService logic, but it's good practice.
+        res.status(500).json({ error: 'An unknown error occurred while generating the quotation.' });
       }
     } catch (error) {
-      console.error('--- Critical Error in generate-quote API ---', error);
-      // CRITICAL CHANGE: Expose the actual error message to the client.
-      // This will reveal the true underlying cause of the Firestore save failure.
-      res.status(500).json({
-        success: false, 
-        error: `Server-Side Error: ${error.message}` // Return the specific error message.
-      });
+      console.error('API Route Error:', error);
+      res.status(500).json({ error: error.message || 'An internal server error occurred.' });
     }
   } else {
     res.setHeader('Allow', ['POST']);

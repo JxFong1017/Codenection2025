@@ -74,20 +74,24 @@ function GeranImageUpload({ onFormDataExtracted, onClose }) {
     setUploadProgress(0);
 
     const base64Data = imagePreview.split(",")[1];
-    const apiKey = "AIzaSyByM8oGoRPqZkNZu9d9tpHnHNDN0Dgoano";
-    const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-05-20:generateContent?key=${apiKey}`;
+    const apiKey = process.env.NEXT_PUBLIC_GEMINI_API_KEY; // <-- CORRECT: Use environment variable
+    const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash-latest:generateContent?key=${apiKey}`;
 
     const progressInterval = setInterval(() => {
       setUploadProgress((prev) => (prev >= 90 ? 90 : prev + 10));
     }, 200);
 
     try {
+      if (!apiKey) {
+        throw new Error("Gemini API key is not configured. Please set NEXT_PUBLIC_GEMINI_API_KEY in your .env.local file.");
+      }
+      
       const payload = {
         contents: [
           {
             parts: [
               {
-                text: "Act as an expert OCR system for a Malaysian vehicle registration document (Geran). Your task is to extract specific vehicle details. The document is often referred to as 'Sijil Pemilikan Kenderaan'.  Extract the following information by locating the corresponding labels and their values in the provided image. Return the data in a JSON object with the specified keys. Ensure the extracted values are clean and accurately formatted. If a field cannot be found, return null. The expected keys are: 'plateNumber' for 'No. Pendaftaran', 'ownerName' for 'Nama Pemunya Berdaftar', 'address' for 'Alamat', 'chassisNo' for 'No. Chasis', 'engineNo' for 'No. Enjin', 'makeAndModel' for 'Buatan/Nama Model', 'engineCC' for 'Keupayaan Enjin', 'fuelType' for 'Bahan Bakar', 'registrationDate' for 'Tarikh Pendaftaran'. Be as accurate as possible and handle variations in the document's layout.",
+                text: "Act as an expert OCR system for a Malaysian vehicle registration document (Geran). Your task is to extract specific vehicle details. The document is often referred to as 'Sijil Pemilikan Kenderaan'.  Extract the following information by locating the corresponding labels and their values in the provided image. Return the data in a JSON object with the specified keys. Ensure the extracted values are clean and accurately formatted. If a field cannot be found, return null. The expected keys are: 'plateNumber' for 'No. Pendaftaran', 'ownerName' for 'Nama Pemunya Berdaftar', 'address' for 'Alamat', 'chassisNo' for 'No. Chasis', 'engineNo' for 'No. Enjin', 'makeAndModel' for 'Buatan/Nama Model', 'engineCC' for 'Keupayaan Enjin', 'fuelType' for 'Bahan Bakar', 'registrationDate' for 'Tarikh Pendaftaran'. Be as accurate as possible and handle variations in the document's layout.",
               },
               {
                 inlineData: {
@@ -145,8 +149,13 @@ function GeranImageUpload({ onFormDataExtracted, onClose }) {
       }
 
       if (!response || !response.ok) {
+         if (response && response.status === 429) {
+          throw new Error(
+            "API rate limit exceeded. Please wait a moment before trying again."
+          );
+        }
         throw new Error(
-          "Failed to fetch response from API after multiple retries."
+          `Failed to fetch response from API after multiple retries. Status: ${response ? response.status : 'unknown'}`
         );
       }
 
@@ -204,7 +213,11 @@ function GeranImageUpload({ onFormDataExtracted, onClose }) {
    
     } catch (error) {
       console.error("Error processing image:", error);
-      showAlert("Error processing image. Please try again.");
+      if (error.message && error.message.includes("429")) {
+        showAlert("Too many requests. Please wait a minute and try again.");
+      } else {
+        showAlert(error.message || "Error processing image. Please try again.");
+      }
     } finally {
       setIsUploading(false);
       clearInterval(progressInterval);
@@ -478,4 +491,3 @@ function GeranImageUpload({ onFormDataExtracted, onClose }) {
   );
 }
 export default GeranImageUpload;
-

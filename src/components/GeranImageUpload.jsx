@@ -74,8 +74,8 @@ function GeranImageUpload({ onFormDataExtracted, onClose }) {
     setUploadProgress(0);
 
     const base64Data = imagePreview.split(",")[1];
-    const apiKey = process.env.NEXT_PUBLIC_GEMINI_API_KEY; // <-- CORRECT: Use environment variable
-    const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash-latest:generateContent?key=${apiKey}`;
+    const apiKey = process.env.NEXT_PUBLIC_GEMINI_API_KEY; 
+    const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-pro-vision:generateContent?key=${apiKey}`;
 
     const progressInterval = setInterval(() => {
       setUploadProgress((prev) => (prev >= 90 ? 90 : prev + 10));

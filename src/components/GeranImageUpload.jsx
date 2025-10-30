@@ -91,7 +91,7 @@ function GeranImageUpload({ onFormDataExtracted, onClose }) {
           {
             parts: [
               {
-                text: "Act as an expert OCR system for a Malaysian vehicle registration document (Geran). Your task is to extract specific vehicle details. The document is often referred to as 'Sijil Pemilikan Kenderaan'.  Extract the following information by locating the corresponding labels and their values in the provided image. Return the data in a JSON object with the specified keys. Ensure the extracted values are clean and accurately formatted. If a field cannot be found, return null. The expected keys are: 'plateNumber' for 'No. Pendaftaran', 'ownerName' for 'Nama Pemunya Berdaftar', 'address' for 'Alamat', 'chassisNo' for 'No. Chasis', 'engineNo' for 'No. Enjin', 'makeAndModel' for 'Buatan/Nama Model', 'engineCC' for 'Keupayaan Enjin', 'fuelType' for 'Bahan Bakar', 'registrationDate' for 'Tarikh Pendaftaran'. Be as accurate as possible and handle variations in the document's layout.",
+                text: "Act as an expert OCR system for a Malaysian vehicle registration document (Geran). Your task is to extract specific vehicle details. The document is often referred to as 'Sijil Pemilikan Kenderaan'.  Extract the following information by locating the corresponding labels and their values in the provided image. Return the data in a valid JSON format. Ensure the extracted values are clean and accurately formatted. If a field cannot be found, return null. The expected keys are: 'plateNumber' for 'No. Pendaftaran', 'ownerName' for 'Nama Pemunya Berdaftar', 'address' for 'Alamat', 'chassisNo' for 'No. Chasis', 'engineNo' for 'No. Enjin', 'makeAndModel' for 'Buatan/Nama Model', 'engineCC' for 'Keupayaan Enjin', 'fuelType' for 'Bahan Bakar', 'registrationDate' for 'Tarikh Pendaftaran'. Be as accurate as possible and handle variations in the document's layout.",
               },
               {
                 inlineData: {
@@ -102,23 +102,6 @@ function GeranImageUpload({ onFormDataExtracted, onClose }) {
             ],
           },
         ],
-        generationConfig: {
-          responseMimeType: "application/json",
-          responseSchema: {
-            type: "OBJECT",
-            properties: {
-              plateNumber: { type: "STRING" },
-              ownerName: { type: "STRING" },
-              address: { type: "STRING" },
-              chassisNo: { type: "STRING" },
-              engineNo: { type: "STRING" },
-              makeAndModel: { type: "STRING" },
-              engineCC: { type: "STRING" },
-              fuelType: { type: "STRING" },
-              registrationDate: { type: "STRING" },
-            },
-          },
-        },
       };
 
       let response;
@@ -160,9 +143,9 @@ function GeranImageUpload({ onFormDataExtracted, onClose }) {
       }
 
       const result = await response.json();
-      const extractedData = JSON.parse(
-        result.candidates?.[0]?.content?.parts?.[0]?.text || "{}"
-      );
+      const extractedText = result.candidates?.[0]?.content?.parts?.[0]?.text || "{}";
+      const jsonText = extractedText.match(/```json\n([\s\S]*?)\n```/)[1];
+      const extractedData = JSON.parse(jsonText);
       console.log("Parsed extractedData:", extractedData);
 
       let make = "";

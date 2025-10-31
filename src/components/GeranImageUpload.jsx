@@ -75,7 +75,7 @@ function GeranImageUpload({ onFormDataExtracted, onClose }) {
 
     const base64Data = imagePreview.split(",")[1];
     const apiKey = process.env.NEXT_PUBLIC_GEMINI_API_KEY; 
-    const apiUrl = `https://generativelanguage.googleapis.com/v1/models/gemini-1.0-pro-vision-latest:generateContent?key=${apiKey}`;
+    const apiUrl = `https://generativelanguage.googleapis.com/v1/models/gemini-pro-vision:generateContent?key=${apiKey}`;
 
     const progressInterval = setInterval(() => {
       setUploadProgress((prev) => (prev >= 90 ? 90 : prev + 10));
@@ -91,7 +91,7 @@ function GeranImageUpload({ onFormDataExtracted, onClose }) {
           {
             parts: [
               {
-                text: "Act as an expert OCR system for a Malaysian vehicle registration document (Geran). Your task is to extract specific vehicle details. The document is often referred to as 'Sijil Pemilikan Kenderaan'.  Extract the following information by locating the corresponding labels and their values in the provided image. Return the data in a valid JSON format. Ensure the extracted values are clean and accurately formatted. If a field cannot be found, return null. The expected keys are: 'plateNumber' for 'No. Pendaftaran', 'ownerName' for 'Nama Pemunya Berdaftar', 'address' for 'Alamat', 'chassisNo' for 'No. Chasis', 'engineNo' for 'No. Enjin', 'makeAndModel' for 'Buatan/Nama Model', 'engineCC' for 'Keupayaan Enjin', 'fuelType' for 'Bahan Bakar', 'registrationDate' for 'Tarikh Pendaftaran'. Be as accurate as possible and handle variations in the document's layout.",
+                text: "Act as an expert OCR system for a Malaysian vehicle registration document (Geran). Your task is to extract specific vehicle details. The document is often referred to as 'Sijil Pemilikan Kenderaan'.  Extract the following information by locating the corresponding labels and their values in the provided image. Return the data in a valid JSON format, enclosed in a ```json ... ``` block. Ensure the extracted values are clean and accurately formatted. If a field cannot be found, return null. The expected keys are: 'plateNumber' for 'No. Pendaftaran', 'ownerName' for 'Nama Pemunya Berdaftar', 'address' for 'Alamat', 'chassisNo' for 'No. Chasis', 'engineNo' for 'No. Enjin', 'makeAndModel' for 'Buatan/Nama Model', 'engineCC' for 'Keupayaan Enjin', 'fuelType' for 'Bahan Bakar', 'registrationDate' for 'Tarikh Pendaftaran'. Be as accurate as possible and handle variations in the document's layout.",
               },
               {
                 inlineData: {
@@ -144,7 +144,8 @@ function GeranImageUpload({ onFormDataExtracted, onClose }) {
 
       const result = await response.json();
       const extractedText = result.candidates?.[0]?.content?.parts?.[0]?.text || "{}";
-      const jsonText = extractedText.match(/```json\n([\s\S]*?)\n```/)[1];
+      const jsonMatch = extractedText.match(/```json\n([\s\S]*?)\n```/);
+      const jsonText = jsonMatch ? jsonMatch[1] : extractedText;
       const extractedData = JSON.parse(jsonText);
       console.log("Parsed extractedData:", extractedData);
 

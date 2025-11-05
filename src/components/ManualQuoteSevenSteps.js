@@ -451,27 +451,19 @@ useEffect(() => {
   }, [debouncedPlate]);
 
 
-  // Effect to update available models when brand changes
-  useEffect(() => {
-    if (brand) {
-      const models = getModelsForMake(brand);
-      setAvailableModels(models);
-      // Initialize the Fuse instance for the new set of models
-      setModelFuse(
-        new Fuse(models, {
-          keys: [],
-          includeScore: true,
-          threshold: 0.3, // Adjust for fuzziness
-        })
-      );
-    } else {
-      setAvailableModels([]);
-      setModelFuse(null); // Clear the Fuse instance if no brand is selected
-    }
-    setModel("");
-    setYear("");
-    setModelSearch("");
-  }, [brand]);
+ // Effect to update available models when brand changes
+useEffect(() => {
+  if (brand) {
+    const models = getModelsForMake(brand);
+    setAvailableModels(models);
+  } else {
+    setAvailableModels([]);
+  }
+  // Reset downstream fields when the brand changes
+  setModel("");
+  setYear("");
+  setModelSearch("");
+}, [brand]);
 
   const filteredBrands = useMemo(() => {
     if (!brandSearch) {
@@ -797,48 +789,11 @@ useEffect(() => {
   }, []);
 
   useEffect(() => {
-    if (brandSearch) {
-      const results = fuse.search(brandSearch);
-      setAvailableBrands(results.map((result) => result.item));
-      setShowBrandDropdown(true);
-    } else {
-      setAvailableBrands(getUniqueMakes());
-      setShowBrandDropdown(false);
-    }
-  }, [brandSearch, fuse]);
-
-  useEffect(() => {
-    if (brand && debouncedBrandSearch) {
-      setBrandValidation(validateCarMake(brand));
-      setAvailableModels(getModelsForMake(brand).sort());
-      setModelFuse(
-        new Fuse(getModelsForMake(brand), {
-          keys: [],
-          includeScore: true,
-          threshold: 0.3,
-        })
-      );
-    }
-  }, [brand, debouncedBrandSearch]);
-
-  useEffect(() => {
     if (model) {
       setAvailableYears(getYearsForModel(brand, model).sort().reverse());
     }
   }, [brand, model]);
 
-  useEffect(() => {
-    if (modelFuse && debouncedModelSearch) {
-      const results = modelFuse.search(debouncedModelSearch);
-      setAvailableModels(results.map((result) => result.item));
-      setShowModelDropdown(true);
-    } else if (brand) {
-      setAvailableModels(getModelsForMake(brand));
-      setShowModelDropdown(false);
-    } else {
-      setAvailableModels([]);
-    }
-  }, [debouncedModelSearch, modelFuse, brand]);
 
   useEffect(() => {
     if (coverageType && coverageType !== "Comprehensive") {

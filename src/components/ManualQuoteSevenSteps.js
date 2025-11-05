@@ -392,46 +392,35 @@ export default function ManualQuoteSevenStep({ autofillData }) {
     });
   };
 
-  // NEW EFFECT FOR BRAND AUTO-SELECTION with partial matching
+// EFFECT FOR BRAND VALIDATION (Simplified)
 useEffect(() => {
+  // Do nothing if there's no input
   if (!debouncedBrandSearch) {
-      setBrandValidation({ isValid: null, error: null });
-      setBrand("");
-      return;
+    setBrandValidation({ isValid: null, error: null });
+    setBrand("");
+    return;
   }
-  
+
   const normalizedSearch = debouncedBrandSearch.toLowerCase();
-  const exactMatch = allBrands.find((b) => b.toLowerCase() === normalizedSearch);
-  const fuzzyResults = fuse.search(normalizedSearch);
+  const exactMatch = allBrands.find(
+    (b) => b.toLowerCase() === normalizedSearch
+  );
 
   if (exactMatch) {
-      // Exact match: Auto-select and set the clean value in the input field.
-      setBrand(exactMatch);
-      setBrandSearch(exactMatch);
-      setBrandValidation({ isValid: true, error: null });
-      setShowBrandDropdown(false);
-      return; 
-  }
-  
-  if (fuzzyResults.length === 1 && fuzzyResults[0].score < 0.3) {
-      // STRONG FUZZY MATCH: Set the internal data state (brand), but DO NOT
-      // overwrite the user's input (brandSearch). Let the user keep typing.
-      const autoCorrectedBrand = fuzzyResults[0].item;
-      setBrand(autoCorrectedBrand); 
-      setBrandValidation({ isValid: true, error: t('fuzzy_match_hint') }); // Use a hint instead of null error
-      // DO NOT CALL setBrandSearch(autoCorrectedBrand); <-- FIX
-      setShowBrandDropdown(false); // Can hide dropdown if confident
-
+    // If the user's input is an exact match for a brand, it's valid.
+    setBrand(exactMatch);
+    setBrandValidation({ isValid: true, error: null });
   } else {
-      // 4. If no exact match and no strong fuzzy match, it's invalid
-      setBrand(""); // Clear the brand state
-      setBrandValidation({
-          isValid: false,
-          error: t("invalid_brand"),
-      });
+    // If it's not an exact match, it's invalid.
+    setBrand(""); // Clear the brand so the form can't proceed
+    setBrandValidation({
+      isValid: false,
+      error: "Invalid brand. Please choose from the dropdown list.",
+    });
   }
-  
-}, [debouncedBrandSearch, allBrands, fuse, t]);
+}, [debouncedBrandSearch, allBrands]); // We no longer need 'fuse' or 't'
+
+
 
   // This useEffect handles both IC and Passport validation
   useEffect(() => {
@@ -503,55 +492,34 @@ useEffect(() => {
     );
   }, [modelSearch, availableModels]);
 
-  // --- NEW EFFECT FOR MODEL AUTO-SELECTION with partial matching ---
+// EFFECT FOR MODEL VALIDATION (Simplified)
 useEffect(() => {
-  if (!debouncedModelSearch || !modelFuse) {
-      setModelValidation({ isValid: null, error: null });
-      setModel("");
-      return;
+  // Do nothing if there's no input or no brand selected
+  if (!debouncedModelSearch || !availableModels.length) {
+    setModelValidation({ isValid: null, error: null });
+    setModel("");
+    return;
   }
-  
+
   const normalizedSearch = debouncedModelSearch.toLowerCase();
-  const exactMatch = availableModels.find((m) => m.toLowerCase() === normalizedSearch);
-  const fuzzyResults = modelFuse.search(normalizedSearch);
-  
-  let finalSelectedModel = null;
+  const exactMatch = availableModels.find(
+    (m) => m.toLowerCase() === normalizedSearch
+  );
 
   if (exactMatch) {
-      finalSelectedModel = exactMatch;
-  } else if (fuzzyResults.length === 1 && fuzzyResults[0].score < 0.3) {
-      finalSelectedModel = fuzzyResults[0].item;
-  }
-
-  if (finalSelectedModel) {
-      // 1. Set the actual Model state (internal data)
-      setModel(finalSelectedModel);
-      setModelValidation({ isValid: true, error: null });
-      setShowModelDropdown(false);
-
-      // 2. Control the input field (modelSearch) based on the match type
-      if (exactMatch) {
-          // Auto-correct/overwrite ONLY for an exact match (e.g., proper casing)
-          setModelSearch(finalSelectedModel);
-      } else {
-          // FUZZY MATCH: Set the internal Model state, but DO NOT overwrite
-          // the user's input. This allows backspacing/editing.
-          // You can optionally add a validation hint here if needed, 
-          // but setting the model is sufficient for correct function.
-      }
+    // If the user's input is an exact match for a model, it's valid.
+    setModel(exactMatch);
+    setModelValidation({ isValid: true, error: null });
   } else {
-      // No match found
-      setModel("");
-      if (debouncedModelSearch.length > 0) {
-          setModelValidation({
-              isValid: false,
-              error: t("invalid_model"),
-          });
-      } else {
-          setModelValidation({ isValid: null, error: null });
-      }
+    // If it's not an exact match, it's invalid.
+    setModel(""); // Clear the model so the form can't proceed
+    setModelValidation({
+      isValid: false,
+      error: "Invalid model. Please choose from the dropdown list.",
+    });
   }
-}, [debouncedModelSearch, availableModels, modelFuse, t]);
+}, [debouncedModelSearch, availableModels]); // We no longer need 'modelFuse' or 't'
+
 
   // Effect to update available years when model changes
   useEffect(() => {

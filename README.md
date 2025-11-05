@@ -20,8 +20,8 @@ This causes:
 
 ### Core Validation Features
 - **Car Plate Number**: Auto-space, auto-uppercase, validation for maximum length of 10 characters, and restriction for symbols, error detection for restricted characters such as "I" and "O"
-- **Car Brand**: Data validation with searchable dropdown, error detection, and auto-filled by fuzzy search 
-- **Car Model**: Data validation with searchable dropdown that filters by the selected brand, error detection, and auto-filled by fuzzy search
+- **Car Brand**: Data validation with searchable dropdown, error detection
+- **Car Model**: Data validation with searchable dropdown that filters by the selected brand, error detection
 - **Manufacturing Year**: Data validation with dropdown for valid years for the selected brand and model
 - **NRIC**: Validation for the format of NRIC in Malaysia
 - **Postcode**: Validation for maximum length of 5 digits

@@ -362,19 +362,20 @@ function GeranImageUpload({ onFormDataExtracted, onClose }) {
             {!imagePreview ? (
               <div className="text-center">
                 <div className="mx-auto flex items-center justify-center h-20 w-20 rounded-full bg-blue-100 mb-4">
-                  <svg
-                    className="h-10 w-10 text-blue-600"
-                    fill="none"
-                    stroke="currentColor"
-                    viewBox="0 0 24 24"
-                  >
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      strokeWidth={2}
-                      d="M7 16a4 40 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"
-                    />
-                  </svg>
+                <svg
+  className="h-10 w-10 text-blue-600"
+  fill="none"
+  stroke="currentColor"
+  viewBox="0 0 24 24"
+>
+  <path
+    strokeLinecap="round"
+    strokeLinejoin="round"
+    strokeWidth={2}
+    d="M7 16a4 4 0 01-4-4V7a4 4 0 014-4h1.586a1 1 0 01.707.293l2.414 2.414a1 1 0 00.707.293h3.172a4 4 0 014 4v5a4 4 0 01-4 4H7z"
+  />
+</svg>
+
                 </div>
 
                 <h3 className="text-lg font-medium text-gray-900 mb-2">

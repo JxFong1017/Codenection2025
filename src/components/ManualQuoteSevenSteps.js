@@ -1052,12 +1052,14 @@ useEffect(() => {
                 )}
 
                 <div className="flex justify-between mt-8 max-w-md mx-auto">
-                  <Link
-                    href="/dashboard"
-                    className="px-6 py-3 rounded-xl font-semibold border border-blue-200 text-blue-900 hover:bg-blue-50"
-                  >
-                    {t("back_to_home")}
-                  </Link>
+                <Link
+  href="/dashboard"
+  onClick={handleGoToDashboard} // <-- ADD THIS LINE
+  className="px-6 py-3 rounded-xl font-semibold border border-blue-200 text-blue-900 hover:bg-blue-50"
+>
+  {t("back_to_home")}
+</Link>
+
 
                   <button
                     onClick={() => setShowPlateConfirm(true)}

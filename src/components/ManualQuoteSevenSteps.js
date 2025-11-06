@@ -622,6 +622,9 @@ useEffect(() => {
   const handleGoToDashboard = (e) => {
     e.preventDefault();
     if (confirm("Are you sure you want to return to the dashboard? Your edited data will not be saved.")) {
+            // Add these two lines to clear the session data
+            sessionStorage.removeItem("quoteDecision");
+            sessionStorage.removeItem("autofillData");
       window.location.href = '/dashboard';
     }
   };

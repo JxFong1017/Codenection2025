@@ -1,8 +1,8 @@
-import { getAuth, onAuthStateChanged } from "firebase/auth";
+import { getAuth, onAuthStateChanged, signOut } from "firebase/auth";
 // In pages/dashboard.js
 import { collection, query, where, onSnapshot, orderBy, doc, updateDoc } from "firebase/firestore"; // Add onSnapshot
 import { db } from "../lib/firebase";
-import { useSession, signOut } from "next-auth/react";
+import { useSession } from "next-auth/react";
 import { useRouter } from "next/router";
 import { useEffect, useState } from "react";
 import Head from "next/head";
@@ -24,6 +24,7 @@ export default function Dashboard() {
   const [selectedQuote, setSelectedQuote] = useState(null);
   const [carRecords, setCarRecords] = useState([]);
   const [selectedPolicy, setSelectedPolicy] = useState(null);
+  const [userEmail, setUserEmail] = useState("Loading...");
 
   const handleLogout = () => {
     setShowLogoutPopup(false);
@@ -38,6 +39,8 @@ export default function Dashboard() {
     // Set up the primary auth state listener
     const authUnsubscribe = onAuthStateChanged(auth, (user) => {
         if (user) {
+          setUserEmail(user.email); // <<< --- ADD THIS LINE
+        // User is signed in, now set up the real-time data listeners.
             // User is signed in, now set up the real-time data listeners.
 
             // --- Listener for "Recent Quotes" ---
@@ -79,7 +82,7 @@ export default function Dashboard() {
             setCarRecords([]);
             router.push("/");
         }
-    });
+      }, [router]); // Change from [] to [router]
 
     // Return a cleanup function for the main auth listener when the component unmounts
     return () => authUnsubscribe();
@@ -168,7 +171,7 @@ export default function Dashboard() {
                     onClick={() => setShowLogoutPopup(!showLogoutPopup)}
                     className="bg-black text-white px-4 py-2 rounded text-sm font-medium hover:bg-gray-800 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
                   >
-                    {getAuth().currentUser?.email || "user@gmail.com"}
+                    {userEmail}
                   </button>
 
                   {showLogoutPopup && (

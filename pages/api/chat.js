@@ -1,7 +1,7 @@
 // pages/api/chat.js
 import { initializeApp, getApps } from "firebase-admin/app";
 import { getFirestore } from "firebase-admin/firestore";
-import { createQuotation } from "../../lib/quotationService";
+import { generateQuotationAndSendEmail } from "../../lib/quotationService";
 
 if (!getApps().length) {
   initializeApp();
@@ -30,8 +30,9 @@ const quotationRequestTool = {
           id_type: { type: "STRING", description: "The type of identification, e.g., NRIC, IC." },
           id_number: { type: "STRING", description: "The user's identification number." },
           postcode: { type: "STRING", description: "The user's postcode." },
+          email: { type: "STRING", description: "The user's email address." }, // <-- ADD THIS
         },
-        required: ["car_plate_number", "car_brand", "car_model", "manufactured_year", "coverage_type", "ncd_percentage", "full_name", "id_type", "id_number", "postcode"],
+        required: ["car_plate_number", "car_brand", "car_model", "manufactured_year", "coverage_type", "ncd_percentage", "full_name", "id_type", "id_number", "postcode", "email"],
       },
     },
   ],
@@ -224,13 +225,14 @@ Conversation Workflow:
             year: args.manufactured_year,
             ncd: args.ncd_percentage,
           },
+          email: args.email, // <-- ADD THIS LINE
           coverageType: args.coverage_type,
           // Assuming no additional protections from the chat
           additionalProtections: {}, 
         };
 
         // Call the service to create the quotation
-        await createQuotation(quotationData);
+        await generateQuotationAndSendEmail(quotationData);
         
         // The final response after successful quotation creation
         botReply = "Quotation is sent to your email. Please check. Thank you for using CGS and have a nice day.";

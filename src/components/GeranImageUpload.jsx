@@ -323,7 +323,7 @@ function GeranImageUpload({ onFormDataExtracted, onClose }) {
         };
       console.log("Sending to parent:", processedData);
       onFormDataExtracted(processedData);
-      handleClose(); // Close modal after continuing
+      
       }
   };
   

@@ -80,11 +80,20 @@ const handleFormDataExtracted = (data) => {
   setStartStep(2);
 };
 
+const handleCloseGeranModal = () => {
+  // Clear the session storage to ensure a clean start next time
+  sessionStorage.removeItem("quoteDecision");
+  sessionStorage.removeItem("autofillData");
+  
+  // Navigate back to the dashboard
+  router.push('/dashboard');
+};
 
-  const handleClose = () => {
-    setIsOpen(false);
-    setHasMadeDecision(true); // Prevent popup from reopening on close
-  };
+const handleClose = () => {
+  // Closing the initial choice popup should cancel the process and return to the dashboard.
+  router.push('/dashboard');
+};
+
 
   return (
     <>
@@ -100,9 +109,10 @@ const handleFormDataExtracted = (data) => {
         
         {showGeranModal && ( 
           <GeranImageUpload
-            onClose={() => setShowGeranModal(false)}
-            onFormDataExtracted={handleFormDataExtracted} 
-          />
+  onClose={handleCloseGeranModal}
+  onFormDataExtracted={handleFormDataExtracted} 
+/>
+
         )}      
         {showForm && autofillData && (
           <ManualQuoteSevenSteps
